@@ -154,6 +154,70 @@ namespace Infrastructure.Integrations.Hikvision
         public string? CardNo { get; set; }
     }
 
+    public sealed class HikvisionDeviceListRequest
+    {
+        [JsonPropertyName("SearchDescription")]
+        public HikvisionDeviceListSearchDescription SearchDescription { get; set; } = new();
+    }
+
+    public sealed class HikvisionDeviceListSearchDescription
+    {
+        [JsonPropertyName("position")]
+        public int Position { get; set; }
+        [JsonPropertyName("maxResult")]
+        public int MaxResult { get; set; }
+        [JsonPropertyName("Filter")]
+        public HikvisionDeviceListFilter Filter { get; set; } = new();
+    }
+
+    public sealed class HikvisionDeviceListFilter
+    {
+        [JsonPropertyName("key")]
+        public string Key { get; set; } = string.Empty;
+        [JsonPropertyName("devType")]
+        public string DevType { get; set; } = string.Empty;
+        [JsonPropertyName("protocolType")]
+        public string[] ProtocolType { get; set; } = Array.Empty<string>();
+        [JsonPropertyName("devStatus")]
+        public string[] DevStatus { get; set; } = Array.Empty<string>();
+    }
+
+    public sealed class HikvisionUserInfoSearchRequest
+    {
+        [JsonPropertyName("UserInfoSearchCond")]
+        public HikvisionUserInfoSearchCondition UserInfoSearchCond { get; set; } = new();
+    }
+
+    public sealed class HikvisionUserInfoSearchCondition
+    {
+        [JsonPropertyName("searchID")]
+        public string SearchID { get; set; } = string.Empty;
+        [JsonPropertyName("searchResultPosition")]
+        public int SearchResultPosition { get; set; }
+        [JsonPropertyName("maxResults")]
+        public int MaxResults { get; set; }
+        [JsonPropertyName("employeeNo")]
+        public string EmployeeNo { get; set; } = string.Empty;
+    }
+
+    public sealed class HikvisionCardInfoSearchRequest
+    {
+        [JsonPropertyName("CardInfoSearchCond")]
+        public HikvisionCardInfoSearchCondition CardInfoSearchCond { get; set; } = new();
+    }
+
+    public sealed class HikvisionCardInfoSearchCondition
+    {
+        [JsonPropertyName("searchID")]
+        public string SearchID { get; set; } = string.Empty;
+        [JsonPropertyName("searchResultPosition")]
+        public int SearchResultPosition { get; set; }
+        [JsonPropertyName("maxResults")]
+        public int MaxResults { get; set; }
+        [JsonPropertyName("employeeNo")]
+        public string EmployeeNo { get; set; } = string.Empty;
+    }
+
     public sealed class HikvisionClient
     {
         private readonly HttpClient _http;
@@ -189,19 +253,19 @@ namespace Infrastructure.Integrations.Hikvision
             var url = "/ISAPI/ContentMgmt/DeviceMgmt/deviceList?format=json";
 
             // Same body as your Postman request
-            var payload = new
+            var payload = new HikvisionDeviceListRequest
             {
-                SearchDescription = new
+                SearchDescription = new HikvisionDeviceListSearchDescription
                 {
-                    position = 0,
-                    maxResult = 100,
-                    Filter = new
+                    Position = 0,
+                    MaxResult = 100,
+                    Filter = new HikvisionDeviceListFilter
                     {
-                        key = "",
-                        devType = "",
-                        protocolType = new[] { "ISAPI" },
+                        Key = string.Empty,
+                        DevType = string.Empty,
+                        ProtocolType = new[] { "ISAPI" },
                         // Put whatever you used in Postman. If unsure, remove devStatus or keep empty array.
-                        devStatus = new[] { "online", "offline" }
+                        DevStatus = new[] { "online", "offline" }
                     }
                 }
             };
@@ -598,14 +662,14 @@ namespace Infrastructure.Integrations.Hikvision
             using var http = CreateAuthHttpClient(ipAddress, port, username, password);
 
             var searchId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            var payload = new
+            var payload = new HikvisionUserInfoSearchRequest
             {
-                UserInfoSearchCond = new
+                UserInfoSearchCond = new HikvisionUserInfoSearchCondition
                 {
-                    searchID = searchId,
-                    searchResultPosition = 0,
-                    maxResults = 1,
-                    employeeNo = employeeNo
+                    SearchID = searchId,
+                    SearchResultPosition = 0,
+                    MaxResults = 1,
+                    EmployeeNo = employeeNo
                 }
             };
 
@@ -733,14 +797,14 @@ namespace Infrastructure.Integrations.Hikvision
             CancellationToken ct)
         {
             var searchId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            var payload = new
+            var payload = new HikvisionCardInfoSearchRequest
             {
-                CardInfoSearchCond = new
+                CardInfoSearchCond = new HikvisionCardInfoSearchCondition
                 {
-                    searchID = searchId,
-                    searchResultPosition = 0,
-                    maxResults = 1,
-                    employeeNo = employeeNo
+                    SearchID = searchId,
+                    SearchResultPosition = 0,
+                    MaxResults = 1,
+                    EmployeeNo = employeeNo
                 }
             };
 
