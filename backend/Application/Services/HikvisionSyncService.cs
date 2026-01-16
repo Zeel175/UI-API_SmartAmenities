@@ -35,6 +35,12 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(employeeNo))
                 return;
 
+            _logger.LogInformation(
+                "Hikvision sync started for {EmployeeNo}. buildingId={BuildingId}, deviceIp={DeviceIp}",
+                employeeNo,
+                buildingId,
+                deviceIp);
+
             var device = await ResolveDeviceAsync(buildingId, deviceIp, ct);
             if (device == null)
             {
@@ -59,6 +65,13 @@ namespace Application.Services
                     return;
                 }
 
+                _logger.LogInformation(
+                    "Hikvision status received for {EmployeeNo}. HasFace={HasFace}, HasFingerprint={HasFingerprint}, HasCard={HasCard}",
+                    employeeNo,
+                    status.HasFace,
+                    status.HasFingerprint,
+                    status.HasCard);
+
                 await ApplyBiometricStatusAsync(employeeNo, status, ct);
             }
             catch (Exception ex)
@@ -74,16 +87,26 @@ namespace Application.Services
 
             if (resident != null)
             {
+                var updates = new List<string>();
                 if (status.HasFace && string.IsNullOrWhiteSpace(resident.FaceId))
+                {
                     resident.FaceId = status.FaceId ?? "ENROLLED";
+                    updates.Add("FaceId");
+                }
 
                 if (status.HasFingerprint && string.IsNullOrWhiteSpace(resident.FingerId))
+                {
                     resident.FingerId = status.FingerprintId ?? "ENROLLED";
+                    updates.Add("FingerId");
+                }
 
                 if (status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
                 {
                     if (string.IsNullOrWhiteSpace(resident.CardId) || resident.CardId != status.CardNo)
+                    {
                         resident.CardId = status.CardNo;
+                        updates.Add("CardId");
+                    }
                 }
 
                 resident.HasFace = status.HasFace;
@@ -91,6 +114,12 @@ namespace Application.Services
                 resident.LastBiometricSyncUtc = DateTime.UtcNow;
 
                 await _db.SaveChangesAsync(ct);
+                _logger.LogInformation(
+                    updates.Count == 0
+                        ? "Hikvision sync applied for resident {EmployeeNo} with no field updates."
+                        : "Hikvision sync applied for resident {EmployeeNo}. UpdatedFields={UpdatedFields}",
+                    employeeNo,
+                    updates.Count == 0 ? Array.Empty<string>() : updates.ToArray());
                 return;
             }
 
@@ -99,19 +128,35 @@ namespace Application.Services
 
             if (family != null)
             {
+                var updates = new List<string>();
                 if (status.HasFace && string.IsNullOrWhiteSpace(family.FaceId))
+                {
                     family.FaceId = status.FaceId ?? "ENROLLED";
+                    updates.Add("FaceId");
+                }
 
                 if (status.HasFingerprint && string.IsNullOrWhiteSpace(family.FingerId))
+                {
                     family.FingerId = status.FingerprintId ?? "ENROLLED";
+                    updates.Add("FingerId");
+                }
 
                 if (status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
                 {
                     if (string.IsNullOrWhiteSpace(family.CardId) || family.CardId != status.CardNo)
+                    {
                         family.CardId = status.CardNo;
+                        updates.Add("CardId");
+                    }
                 }
 
                 await _db.SaveChangesAsync(ct);
+                _logger.LogInformation(
+                    updates.Count == 0
+                        ? "Hikvision sync applied for family member {EmployeeNo} with no field updates."
+                        : "Hikvision sync applied for family member {EmployeeNo}. UpdatedFields={UpdatedFields}",
+                    employeeNo,
+                    updates.Count == 0 ? Array.Empty<string>() : updates.ToArray());
             }
         }
 
