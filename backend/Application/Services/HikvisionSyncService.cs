@@ -150,6 +150,10 @@ namespace Application.Services
                     }
                 }
 
+                family.HasFace = status.HasFace;
+                family.HasFingerprint = status.HasFingerprint;
+                family.LastBiometricSyncUtc = DateTime.UtcNow;
+
                 await _db.SaveChangesAsync(ct);
                 _logger.LogInformation(
                     updates.Count == 0
