@@ -8,6 +8,6 @@ namespace Application.Interfaces
 {
     public interface IHikvisionSyncService
     {
-        Task SyncUserBiometricStatusAsync(int deviceId, string employeeNo);
+        Task SyncUserBiometricStatusAsync(string employeeNo, int? buildingId, string? deviceIp, CancellationToken ct = default);
     }
 }

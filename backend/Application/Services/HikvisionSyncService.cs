@@ -1,74 +1,167 @@
-﻿using Application.Interfaces;
+﻿using Application.Helper;
+using Application.Interfaces;
 using Infrastructure.Context;
+using Infrastructure.Integrations.Hikvision;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services
 {
     public class HikvisionSyncService : IHikvisionSyncService
     {
         private readonly AppDbContext _db;
+        private readonly HikvisionClient _hikvisionClient;
+        private readonly ISecretProtector _secretProtector;
+        private readonly ILogger<HikvisionSyncService> _logger;
 
-        public HikvisionSyncService(AppDbContext db)
+        public HikvisionSyncService(
+            AppDbContext db,
+            HikvisionClient hikvisionClient,
+            ISecretProtector secretProtector,
+            ILogger<HikvisionSyncService> logger)
         {
             _db = db;
+            _hikvisionClient = hikvisionClient;
+            _secretProtector = secretProtector;
+            _logger = logger;
         }
 
-        public async Task SyncUserBiometricStatusAsync(int deviceId, string employeeNo)
+        public async Task SyncUserBiometricStatusAsync(
+            string employeeNo,
+            int? buildingId,
+            string? deviceIp,
+            CancellationToken ct = default)
         {
-            // TODO: Replace with real device calls
-            bool faceEnrolled = true;        // TEMP (replace)
-            bool fingerprintEnrolled = true; // TEMP (replace)
+            if (string.IsNullOrWhiteSpace(employeeNo))
+                return;
 
-            // 1) Try ResidentMaster first
-            var resident = await _db.ResidentMasters
-                .FirstOrDefaultAsync(x => x.Code == employeeNo);
-
-            if (resident != null)
+            var device = await ResolveDeviceAsync(buildingId, deviceIp, ct);
+            if (device == null)
             {
-                ApplyBiometricFlagsToResident(resident, faceEnrolled, fingerprintEnrolled);
-                await _db.SaveChangesAsync();
+                _logger.LogWarning("Hikvision sync skipped: device not resolved (buildingId={BuildingId}, deviceIp={DeviceIp})", buildingId, deviceIp);
                 return;
             }
 
-            // 2) If not found, try ResidentFamilyMember (change DbSet name as per your project)
-            var family = await _db.ResidentFamilyMembers
-                .FirstOrDefaultAsync(x => x.Code == employeeNo);
-
-            if (family != null)
+            try
             {
-                ApplyBiometricFlagsToFamily(family, faceEnrolled, fingerprintEnrolled);
-                await _db.SaveChangesAsync();
+                var status = await _hikvisionClient.GetUserBiometricStatusAsync(
+                    device.IpAddress,
+                    device.Port,
+                    device.UserName,
+                    device.Password,
+                    employeeNo,
+                    device.DevIndex,
+                    ct);
+
+                if (status == null)
+                {
+                    _logger.LogWarning("Hikvision sync skipped: no status returned for {EmployeeNo}.", employeeNo);
+                    return;
+                }
+
+                await ApplyBiometricStatusAsync(employeeNo, status, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Hikvision sync failed for {EmployeeNo}.", employeeNo);
             }
         }
 
-        private static void ApplyBiometricFlagsToResident(dynamic r, bool faceEnrolled, bool fingerprintEnrolled)
+        private async Task ApplyBiometricStatusAsync(string employeeNo, HikvisionBiometricStatus status, CancellationToken ct)
         {
-            // Only set if enrolled AND DB is empty
-            if (faceEnrolled && string.IsNullOrWhiteSpace((string)r.FaceId))
-                r.FaceId = "ENROLLED";
+            var resident = await _db.ResidentMasters
+                .FirstOrDefaultAsync(x => x.Code == employeeNo, ct);
 
-            if (fingerprintEnrolled && string.IsNullOrWhiteSpace((string)r.FingerId))
-                r.FingerId = "ENROLLED";
+            if (resident != null)
+            {
+                if (status.HasFace && string.IsNullOrWhiteSpace(resident.FaceId))
+                    resident.FaceId = status.FaceId ?? "ENROLLED";
 
-            // If you have UpdatedOn/ModifiedOn column, set it here
-            // r.UpdatedOn = DateTime.UtcNow;
+                if (status.HasFingerprint && string.IsNullOrWhiteSpace(resident.FingerId))
+                    resident.FingerId = status.FingerprintId ?? "ENROLLED";
+
+                if (status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
+                {
+                    if (string.IsNullOrWhiteSpace(resident.CardId) || resident.CardId != status.CardNo)
+                        resident.CardId = status.CardNo;
+                }
+
+                resident.HasFace = status.HasFace;
+                resident.HasFingerprint = status.HasFingerprint;
+                resident.LastBiometricSyncUtc = DateTime.UtcNow;
+
+                await _db.SaveChangesAsync(ct);
+                return;
+            }
+
+            var family = await _db.ResidentFamilyMembers
+                .FirstOrDefaultAsync(x => x.Code == employeeNo, ct);
+
+            if (family != null)
+            {
+                if (status.HasFace && string.IsNullOrWhiteSpace(family.FaceId))
+                    family.FaceId = status.FaceId ?? "ENROLLED";
+
+                if (status.HasFingerprint && string.IsNullOrWhiteSpace(family.FingerId))
+                    family.FingerId = status.FingerprintId ?? "ENROLLED";
+
+                if (status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
+                {
+                    if (string.IsNullOrWhiteSpace(family.CardId) || family.CardId != status.CardNo)
+                        family.CardId = status.CardNo;
+                }
+
+                await _db.SaveChangesAsync(ct);
+            }
         }
 
-        private static void ApplyBiometricFlagsToFamily(dynamic f, bool faceEnrolled, bool fingerprintEnrolled)
+        private async Task<DeviceSyncInfo?> ResolveDeviceAsync(int? buildingId, string? deviceIp, CancellationToken ct)
         {
-            if (faceEnrolled && string.IsNullOrWhiteSpace((string)f.FaceId))
-                f.FaceId = "ENROLLED";
+            var query =
+                from b in _db.Buildings
+                join d in _db.HikDevices on b.DeviceId equals d.Id
+                where b.IsActive
+                select new
+                {
+                    b.Id,
+                    d.IpAddress,
+                    d.PortNo,
+                    b.DeviceUserName,
+                    b.DevicePassword,
+                    d.DevIndex
+                };
 
-            if (fingerprintEnrolled && string.IsNullOrWhiteSpace((string)f.FingerId))
-                f.FingerId = "ENROLLED";
+            if (buildingId.HasValue)
+                query = query.Where(x => x.Id == buildingId.Value);
+            else if (!string.IsNullOrWhiteSpace(deviceIp))
+                query = query.Where(x => x.IpAddress == deviceIp);
+            else
+                return null;
 
-            // If you have UpdatedOn/ModifiedOn column, set it here
-            // f.UpdatedOn = DateTime.UtcNow;
+            var device = await query.FirstOrDefaultAsync(ct);
+            if (device == null)
+                return null;
+
+            if (string.IsNullOrWhiteSpace(device.IpAddress)
+                || string.IsNullOrWhiteSpace(device.DeviceUserName)
+                || string.IsNullOrWhiteSpace(device.DevicePassword))
+                return null;
+
+            var password = _secretProtector.Unprotect(device.DevicePassword);
+
+            return new DeviceSyncInfo(
+                device.IpAddress,
+                device.PortNo ?? 80,
+                device.DeviceUserName,
+                password,
+                device.DevIndex);
         }
+
+        private sealed record DeviceSyncInfo(
+            string IpAddress,
+            int Port,
+            string UserName,
+            string Password,
+            string? DevIndex);
     }
 }
