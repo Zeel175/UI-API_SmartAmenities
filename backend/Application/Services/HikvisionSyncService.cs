@@ -35,18 +35,18 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(employeeNo))
                 return;
 
-            _logger.LogInformation(
-                "Hikvision sync started for {EmployeeNo}. buildingId={BuildingId}, deviceIp={DeviceIp}",
-                employeeNo,
-                buildingId,
-                deviceIp);
-
             var device = await ResolveDeviceAsync(buildingId, deviceIp, ct);
             if (device == null)
             {
                 _logger.LogWarning("Hikvision sync skipped: device not resolved (buildingId={BuildingId}, deviceIp={DeviceIp})", buildingId, deviceIp);
                 return;
             }
+
+            _logger.LogInformation(
+                "Hikvision sync started for {EmployeeNo}. buildingId={BuildingId}, deviceIp={DeviceIp}",
+                employeeNo,
+                buildingId,
+                device.IpAddress);
 
             try
             {
