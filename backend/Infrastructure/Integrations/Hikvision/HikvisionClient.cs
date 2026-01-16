@@ -599,6 +599,15 @@ namespace Infrastructure.Integrations.Hikvision
                     status.FaceId = TryGetFirstString(record.Value, "faceId");
                     status.FingerprintId = TryGetFirstString(record.Value, "fingerPrintID", "fingerId");
                     status.CardNo = TryGetFirstString(record.Value, "cardNo");
+
+                    if (!status.HasFace && !string.IsNullOrWhiteSpace(status.FaceId))
+                        status.HasFace = true;
+
+                    if (!status.HasFingerprint && !string.IsNullOrWhiteSpace(status.FingerprintId))
+                        status.HasFingerprint = true;
+
+                    if (!status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
+                        status.HasCard = true;
                 }
             }
 

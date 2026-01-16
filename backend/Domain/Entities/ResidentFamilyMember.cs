@@ -52,6 +52,9 @@ namespace Domain.Entities
             public string? QrCodeImagePath { get; set; }
             public bool IsActive { get; set; }
             public bool IsResident { get; set; }
+            public bool HasFace { get; set; }
+            public bool HasFingerprint { get; set; }
+            public DateTime? LastBiometricSyncUtc { get; set; }
 
             public ICollection<ResidentFamilyMemberUnit> MemberUnits { get; set; }
         }
