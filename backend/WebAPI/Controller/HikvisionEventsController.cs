@@ -49,6 +49,10 @@ namespace WebAPI.Controller
             var employeeNo = HikvisionEventParser.TryGetEmployeeNo(raw);
             if (!string.IsNullOrWhiteSpace(employeeNo))
             {
+                _logger.LogInformation(
+                    "Hikvision event received for {EmployeeNo}. buildingId={BuildingId}",
+                    employeeNo,
+                    buildingId);
                 var remoteIpAddress = HttpContext.Connection.RemoteIpAddress;
                 var remoteIp = remoteIpAddress?.IsIPv4MappedToIPv6 == true
                     ? remoteIpAddress.MapToIPv4().ToString()

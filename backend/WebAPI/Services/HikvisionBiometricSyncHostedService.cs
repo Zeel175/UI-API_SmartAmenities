@@ -37,6 +37,12 @@ namespace WebAPI.Services
             {
                 try
                 {
+                    _logger.LogInformation(
+                        "Biometric sync cycle started. IntervalSeconds={IntervalSeconds}, MinResyncMinutes={MinResyncMinutes}, MaxUsersPerCycle={MaxUsersPerCycle}",
+                        _options.IntervalSeconds,
+                        _options.MinResyncMinutes,
+                        _options.MaxUsersPerCycle);
+
                     using var scope = _scopeFactory.CreateScope();
                     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                     var syncService = scope.ServiceProvider.GetRequiredService<IHikvisionSyncService>();
@@ -97,7 +103,10 @@ namespace WebAPI.Services
                             await syncService.SyncUserBiometricStatusAsync(member.EmployeeNo, member.BuildingId, null, stoppingToken);
                     }
 
-                    _logger.LogInformation("Biometric sync cycle completed. Residents={ResidentCount}, FamilyMembers={FamilyCount}", residents.Count, familyMembers.Count);
+                    _logger.LogInformation(
+                        "Biometric sync cycle completed. Residents={ResidentCount}, FamilyMembers={FamilyCount}",
+                        residents.Count,
+                        familyMembers.Count);
                 }
                 catch (OperationCanceledException)
                 {
