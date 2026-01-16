@@ -1,0 +1,43 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent sm:absolute sm:inset-0 sm:overflow-auto">
+  <div class="relative flex flex-0 flex-col border-b px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
+    <div class="text-4xl font-extrabold tracking-tight">Add/Edit Zone</div>
+    <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
+      <a *ngIf="IsViewPermission" mat-flat-button color="primary" (click)="cancel()">View List</a>
+    </div>
+  </div>
+  <div class="flex flex-auto overflow-visible">
+    <div class="flex flex-auto flex-col overflow-visible sm:mb-18 sm:overflow-y-auto">
+      <mat-card class="zone-add-edit-form mt-4 mx-6 md:mx-8">
+        <mat-card-content>
+          <form [formGroup]="frmZone" (ngSubmit)="save()" novalidate class="app-form">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 auto-rows-min mb-6">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Code</mat-label>
+                <input matInput formControlName="code" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Zone Name</mat-label>
+                <input matInput formControlName="zoneName" />
+                <mat-error *ngIf="frmZone.get('zoneName').invalid && frmZone.get('zoneName').touched">Zone Name is required</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Building</mat-label>
+                <mat-select formControlName="buildingId">
+                  <mat-option *ngFor="let b of buildings" [value]="b.id">{{ b.buildingName }} - {{ b.code }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmZone.get('buildingId').invalid && frmZone.get('buildingId').touched">Building is required</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Description</mat-label>
+                <input matInput formControlName="description" />
+              </mat-form-field>
+            </div>
+            <div class="flex justify-center">
+              <button mat-flat-button color="primary" type="submit">Save</button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

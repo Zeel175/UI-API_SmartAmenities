@@ -1,0 +1,166 @@
+/* ----------------------------------------------------------------------------------------------------- */
+/*  @ Import/write your custom styles here.
+/*  @ Styles from this file will override 'vendors.scss' and Fuse's base styles.
+/* ----------------------------------------------------------------------------------------------------- */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+
+/* Always force ngx-bootstrap modal in center of viewport */
+.modal,
+.modal.show,
+.bs-modal,
+.bs-modal.show {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1301 !important;
+  /* higher than Angular Material sidenav etc */
+  position: fixed !important;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Remove default margin from modal-dialog, center vertically */
+.modal-dialog,
+.bs-modal-dialog,
+.modal-dialog-centered {
+  margin: 0 !important;
+  min-height: auto !important;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.confirmation-modal {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.13);
+  max-width: 370px;
+  margin: 0 auto;
+  padding: 32px 28px 24px 28px;
+  text-align: center;
+  position: relative;
+}
+
+.confirmation-modal__icon {
+  margin-bottom: 10px;
+}
+
+.confirmation-modal__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #222;
+  letter-spacing: 0.5px;
+}
+
+.confirmation-modal__message {
+  margin-bottom: 24px;
+  font-size: 1.09rem;
+  color: #444;
+  line-height: 1.5;
+}
+
+.confirmation-modal__actions {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+
+.confirmation-modal__actions button {
+  min-width: 96px;
+  border-radius: 22px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* 1) red wrapper */
+/* Red card background */
+.bg-light-red {
+  background-color: hsl(355, 89%, 60%) !important;
+}
+
+/* Inner input backgrounds forced to white */
+.bg-light-red .mat-form-field-wrapper,
+.bg-light-red .mat-form-field-flex,
+.bg-light-red .mat-form-field-infix,
+.bg-light-red .mdc-text-field--outlined,
+.bg-light-red .mat-mdc-form-field-wrapper,
+.bg-light-red .mat-mdc-form-field-flex,
+.bg-light-red .mat-mdc-form-field-infix {
+  background-color: white !important;
+}
+
+/* Floating label color override */
+:host ::ng-deep .bg-light-red .mdc-floating-label,
+:host ::ng-deep .bg-light-red .mat-mdc-form-field-label {
+  color: black !important;
+  opacity: 1 !important;
+}
+
+/* Keep floating labels readable over the red highlight */
+// .bg-light-red .mat-form-field-label,
+// .bg-light-red .mat-mdc-floating-label {
+//   background-color:  white !important;
+//   padding: 0 2px;
+// }
+/*-----------------------------------------------------------------------------------*/
+/*  Angular Material “process details” dialog overrides                               */
+/*-----------------------------------------------------------------------------------*/
+
+/* 1) Round the container, pad it & use your card background */
+.process-details-dialog .mat-dialog-container {
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--your-card-bg-color); /* e.g. #fff or your theme var */
+  max-width: 90vw;
+}
+
+/* 2) Title styles */
+.process-details-dialog h2[mat-dialog-title] {
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* 3) Constrain/pad the table area */
+.process-details-dialog .table-wrapper {
+  max-height: calc(90vh - 200px); /* leave room for title & actions */
+  overflow: auto;
+  margin-bottom: 24px;
+}
+
+/* 4) Tidy up the table */
+.process-details-dialog table.mat-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.process-details-dialog th.mat-header-cell,
+.process-details-dialog td.mat-cell {
+  padding: 8px 16px;
+  border-bottom: none;
+}
+
+/* 5) Dialog‐actions bar */
+.process-details-dialog mat-dialog-actions {
+  margin-top: 0;
+  padding-top: 0;
+}
+.process-details-dialog mat-dialog-actions button {
+  min-width: 96px;
+  border-radius: 22px;
+  font-weight: 600;
+  font-size: 16px;
+}

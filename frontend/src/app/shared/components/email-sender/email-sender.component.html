@@ -1,0 +1,98 @@
+<!-- 
+<form [formGroup]="emailForm" (ngSubmit)="submitForm()">
+  <h5>Email Form</h5>
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min">
+  <mat-form-field class="full-width">
+    <mat-label>Subject</mat-label>
+    <input matInput formControlName="subject" placeholder="Enter subject">
+    <mat-error *ngIf="emailForm.get('subject')?.hasError('required')">
+      Subject is required
+    </mat-error>
+  </mat-form-field>
+
+  <mat-form-field class="full-width">
+    <mat-label>Email Address</mat-label>
+    <input matInput formControlName="receptor" placeholder="Enter receptor address">
+    <mat-error *ngIf="emailForm.get('receptor')?.hasError('required')">
+      Receptor is required
+    </mat-error>
+    <mat-error *ngIf="emailForm.get('receptor')?.hasError('receptor')">
+      Not a valid receptor
+    </mat-error>
+  </mat-form-field>
+
+  <mat-form-field class="full-width">
+    <mat-label>Email Body</mat-label>
+    <textarea matInput formControlName="body" placeholder="Enter email body"></textarea>
+    <mat-error *ngIf="emailForm.get('body')?.hasError('required')">
+      Body is required
+    </mat-error>
+  </mat-form-field>
+  </div>
+
+  <div class="dialog-actions">
+    <button type="button" mat-button mat-dialog-close (click)="cancel()">Cancel</button>
+    <button type="submit" mat-raised-button color="primary" [disabled]="emailForm.invalid">
+      Send
+    </button>
+  </div>
+</form> -->
+<!-- email-sender.component.html -->
+<mat-card class="shadow rounded-lg p-6 mb-6">
+  <mat-card-header>
+    <mat-card-title class="text-xl font-semibold">Email Form</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <form [formGroup]="emailForm" (ngSubmit)="submitForm()">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Subject -->
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Subject *</mat-label>
+          <input matInput formControlName="subject" placeholder="Enter subject" />
+          <mat-error *ngIf="emailForm.get('subject')?.hasError('required')">
+            Subject is required
+          </mat-error>
+          <mat-error *ngIf="emailForm.get('subject')?.hasError('maxlength')">
+            Must be under 100 characters
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Email Address -->
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Email Address</mat-label>
+          <input matInput formControlName="receptor" placeholder="you@example.com" />
+          <mat-error *ngIf="emailForm.get('receptor')?.hasError('required')">
+            Email is required
+          </mat-error>
+          <mat-error *ngIf="emailForm.get('receptor')?.hasError('email')">
+            Enter a valid email
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Body -->
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Email Body *</mat-label>
+          <textarea
+            matInput
+            formControlName="body"
+            rows="4"
+            placeholder="Type your message here…"
+            (input)="updatePreview()"
+          ></textarea>
+          <mat-error *ngIf="emailForm.get('body')?.hasError('required')">
+            Body is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-2 mt-6">
+      <button type="button" mat-button (click)="formSubmit.emit();">Cancel</button>
+      <button type="submit" mat-flat-button color="primary" [disabled]="emailForm.invalid">
+        {{ submitLabel }}   <!-- CHANGED -->
+      </button>
+    </div>
+    </form>
+  </mat-card-content>
+</mat-card>

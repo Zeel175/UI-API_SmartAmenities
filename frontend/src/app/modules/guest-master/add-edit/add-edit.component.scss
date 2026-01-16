@@ -1,0 +1,174 @@
+.family-member-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.family-card {
+  position: relative;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 14px;
+  padding: 0; /* Remove padding here so the header touches the edges */
+  background: #fff;
+  overflow: hidden; /* Ensures child elements respect border radius */
+}
+/* ✅ This now works perfectly because it's a standard Flexbox container */
+.family-card__head {
+  display: flex;             /* This makes them sit in a row */
+  align-items: center;       /* Vertically centers them */
+  justify-content: space-between; /* Pushes Title to left, Button to right */
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.12); /* Optional: adds a nice separator line */
+}
+
+.family-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; // ✅ pushes delete button to right
+  padding: 14px 16px;
+}
+.family-card__title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+.family-card__content {
+  padding: 16px;
+}
+
+/* ✅ THIS IS THE FIX */
+.family-card__delete {
+  margin-left: auto; /* Ensures it stays to the right */
+}
+/* Optional: make icon visually nicer */
+.family-card__delete mat-icon {
+  font-size: 20px;
+  line-height: 20px;
+}
+/* Optional: reduce “tight” look of fields inside the card */
+.family-card__content ::ng-deep .mat-mdc-form-field {
+  width: 100%;
+}
+
+/* Profile photo container */
+.profile-photo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Title */
+.profile-photo-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Card */
+.profile-photo-card {
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  border: 1px dashed #cbd5e1;
+  background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Image */
+.profile-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Placeholder */
+.profile-photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.profile-photo-placeholder mat-icon {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+/* Upload button */
+.upload-photo-btn {
+  width: fit-content;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+/* ===============================
+   PROFILE PHOTO BUTTON (COMPACT)
+   =============================== */
+
+.profile-photo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+   padding-left: 12px;   /* 👈 matches mat-form-field left spacing */
+  padding-bottom: 16px;
+}
+
+.upload-photo-btn {
+  width: fit-content;          /* 👈 stops full-width */
+  min-width: 160px;
+  height: 36px;                /* 👈 compact height */
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  line-height: 1;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+}
+
+/* ===============================
+   PHOTO CARD (OPTIONAL REFINEMENT)
+   =============================== */
+
+.profile-photo-card {
+  width: 140px;
+  height: 140px;
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+.profile-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.profile-photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #94a3b8;
+  font-size: 12px;
+
+  mat-icon {
+    font-size: 32px;
+    margin-bottom: 4px;
+  }
+}

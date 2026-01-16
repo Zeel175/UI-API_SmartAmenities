@@ -1,0 +1,26 @@
+<!-- <div class="modal-body text-center">
+    <img height="50" width="50" src="assets/images/warning.png" *ngIf="isWarning"/>
+    <p innerHTML="{{message}}"></p>
+    <button #btnYes mat-flat-button type="button" class="app-button mr-1" style="right:50px" color="warn"
+        (click)="btnClicked(true)">{{yesBtnText}}</button>
+    <button #btnNo mat-flat-button type="button" class="app-button" style="margin-left: 50px;left:50px" color="primary"
+        (click)="btnClicked(false)">{{noBtnText}}</button>
+</div> -->
+<div class="confirmation-modal">
+  <div class="confirmation-modal__icon" *ngIf="isWarning">
+    <img height="56" width="56" src="assets/images/warning.png" />
+  </div>
+  <!-- <div class="confirmation-modal__icon" *ngIf="!isWarning">
+    <mat-icon style="font-size:56px;color:#1976d2;">help_outline</mat-icon>
+  </div> -->
+  <div class="confirmation-modal__title">Confirmation</div>
+  <div class="confirmation-modal__message" [innerHTML]="message"></div>
+  <div class="confirmation-modal__actions">
+    <button #btnNo mat-stroked-button type="button" color="primary" (click)="btnClicked(false)">
+      {{noBtnText}}
+    </button>
+    <button #btnYes mat-flat-button type="button" color="warn" (click)="btnClicked(true)">
+      {{yesBtnText}}
+    </button>
+  </div>
+</div>

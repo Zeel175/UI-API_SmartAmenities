@@ -1,0 +1,46 @@
+ /* Attachments Section */
+ .attachments-section {
+    margin-bottom: 1.5rem;
+}
+
+.attachment-input {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.attachment-list {
+    margin-top: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.attachment-item:last-child {
+    border-bottom: none;
+}
+
+.attachment-details {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.attachment-icon {
+    color: rgb(23,187,88);
+    font-size: 20px;
+}
+
+.attachment-name {
+    font-size: 14px;
+    color: #333;
+    word-break: break-word;
+}

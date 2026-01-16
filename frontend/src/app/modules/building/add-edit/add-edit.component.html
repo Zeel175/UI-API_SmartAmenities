@@ -1,0 +1,71 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent sm:absolute sm:inset-0 sm:overflow-auto">
+  <div class="relative flex flex-0 flex-col border-b px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
+    <div class="text-4xl font-extrabold tracking-tight">Add/Edit Building</div>
+    <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
+      <a *ngIf="IsViewPermission" mat-flat-button color="primary" (click)="cancel()">View List</a>
+    </div>
+  </div>
+  <div class="flex flex-auto overflow-visible">
+    <div class="flex flex-auto flex-col overflow-visible sm:mb-18 sm:overflow-y-auto">
+      <mat-card class="building-add-edit-form mt-4 mx-6 md:mx-8">
+        <mat-card-content>
+          <form [formGroup]="frmBuilding" (ngSubmit)="save()" novalidate class="app-form">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 auto-rows-min mb-6">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Code</mat-label>
+                <input matInput formControlName="code" />
+                <!-- <mat-error *ngIf="frmBuilding.get('code').invalid && frmBuilding.get('code').touched">Code is required</mat-error> -->
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Building Name</mat-label>
+                <input matInput formControlName="buildingName" />
+                <mat-error *ngIf="frmBuilding.get('buildingName').invalid && frmBuilding.get('buildingName').touched">Building Name is required</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Property</mat-label>
+                <mat-select formControlName="propertyId">
+                  <mat-option *ngFor="let p of properties" [value]="p.id">{{p.code}}-{{ p.propertyName }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmBuilding.get('propertyId').invalid && frmBuilding.get('propertyId').touched">Property is required</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Device</mat-label>
+                <mat-select formControlName="deviceId">
+                  <mat-option *ngFor="let device of devices" [value]="device.id || device.deviceId">
+                    {{ device.devName || device.name || device.deviceId || device.id }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmBuilding.get('deviceId').invalid && frmBuilding.get('deviceId').touched">Device is required</mat-error>
+              </mat-form-field>
+              <mat-form-field *ngIf="frmBuilding.get('deviceId')?.value" appearance="outline" class="full-width">
+                <mat-label>Device Username</mat-label>
+                <input matInput formControlName="deviceUserName" />
+                <mat-error *ngIf="frmBuilding.get('deviceUserName').invalid && frmBuilding.get('deviceUserName').touched">Device Username is required</mat-error>
+              </mat-form-field>
+              <mat-form-field *ngIf="frmBuilding.get('deviceId')?.value" appearance="outline" class="full-width">
+                <mat-label>Device Password</mat-label>
+                <input matInput type="password" formControlName="devicePassword" #devicePasswordField />
+                <button mat-icon-button type="button" (click)="
+                    devicePasswordField.type === 'password'
+                      ? (devicePasswordField.type = 'text')
+                      : (devicePasswordField.type = 'password')
+                  " matSuffix>
+                  @if (devicePasswordField.type === 'password') {
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
+                  }
+                  @if (devicePasswordField.type === 'text') {
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
+                  }
+                </button>
+                <mat-error *ngIf="frmBuilding.get('devicePassword').invalid && frmBuilding.get('devicePassword').touched">Device Password is required</mat-error>
+              </mat-form-field>
+            </div>
+            <div class="flex justify-center">
+              <button mat-flat-button color="primary" type="submit">Save</button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

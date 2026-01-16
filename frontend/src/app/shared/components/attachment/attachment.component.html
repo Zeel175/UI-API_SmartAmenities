@@ -1,0 +1,29 @@
+<div class="form-group attachments-section">
+    <label>Attachments</label>
+    <input
+      type="file"
+      id="file-upload"
+      [multiple]="multiple"
+      [accept]="acceptTypes"
+      (change)="onFileChange($event)"
+      class="form-control-file attachment-input"
+    />
+  
+    <div *ngIf="uploadedFiles?.length > 0" class="attachment-list mt-3">
+      <div
+      *ngFor="let file of uploadedFiles let i = index"
+        class="attachment-item d-flex align-items-center justify-content-between"
+      >
+        <div class="attachment-details d-flex align-items-center">
+          <mat-icon class="attachment-icon">attach_file</mat-icon>
+          <span class="attachment-name">{{ file.name }}</span>
+        </div>
+        <div class="icons d-flex align-items-center">
+          <button type="button" (click)="removeAttachment(i)" class="remove-btn btn btn-sm">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  

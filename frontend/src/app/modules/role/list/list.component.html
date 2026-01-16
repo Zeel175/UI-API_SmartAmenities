@@ -1,0 +1,30 @@
+<!-- list.component.html -->
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <!-- Header -->
+  <div class="relative flex flex-0 flex-col border-b px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
+    <div class="text-4xl font-extrabold tracking-tight">Role List</div>
+    <div class="flex items-center space-x-2">
+      <button mat-flat-button color="primary" *ngIf="IsAddPemission" [routerLink]="['/role/add']">
+        Add New
+        <mat-icon class="ml-1">add</mat-icon>
+      </button>
+      <!-- <app-excel-download
+        [data]="userData"
+        [columns]="userColumns">
+      </app-excel-download> -->
+    </div>
+  </div>
+  <app-column-filter *ngIf="roleColumns?.length" [columns]="roleColumns" [data]="filteredData"
+    (filterChange)="onColumnFilter($event)">
+  </app-column-filter>
+  <!-- Fuse List -->
+  <app-fuse-list *ngIf="roleColumns?.length" [data]="filteredData" [columns]="roleColumns" [loading]="loading"
+    [actions]="{ edit: IsEditPermission, delete: IsDeletePermission }" [pageIndex]="pageIndex - 1" [pageSize]="pageSize"
+    [totalItems]="totalItems" (pageChange)="onPageChange($event)" (editAction)="editRole($event)"
+    (deleteAction)="deleteRole($event)">
+    <!-- custom date cell -->
+    <ng-template #createdDateTemplate let-value>
+      {{ value | date:'MM/dd/yyyy hh:mm a' }}
+    </ng-template>
+  </app-fuse-list>
+</div>

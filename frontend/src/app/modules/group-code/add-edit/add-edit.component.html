@@ -1,0 +1,124 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent sm:absolute sm:inset-0 sm:overflow-hidden">
+  <!-- Header -->
+  <div class="relative flex flex-0 flex-col border-b px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
+    <!-- Title -->
+    <div class="text-4xl font-extrabold tracking-tight">Miscellaneous Details</div>
+    <!-- Actions -->
+    <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
+      <a mat-flat-button color="primary" class="app-button back-Green" (click)="cancel()" *ngIf="IsViewPermission">View
+        List</a>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="flex flex-auto overflow-hidden">
+    <div class="flex flex-auto flex-col overflow-hidden sm:mb-18 sm:overflow-y-auto">
+      <mat-card class="user-add-edit-form mt-4 mx-6 md:mx-8">
+        <mat-card-content>
+          <form [formGroup]="frmGroupCode" (submit)="save()" #form="ngForm" novalidate class="app-form">
+
+            <!-- Basic Details Section -->
+            <div class="mb-8">
+              <div class="font-medium text-lg mb-4">Basic Details</div>
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+                <!-- Code (always visible, bound to disabled form control) -->
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Code</mat-label>
+                  <input matInput formControlName="code" />
+                  <!-- <mat-hint *ngIf="!isEditMode">Code will be generated automatically on save.</mat-hint> -->
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Name</mat-label>
+                  <input type="text" matInput formControlName="name" />
+                  <mat-validation-message [control]="frmGroupCode.controls.name" [message]="'Name'"
+                    [formSubmitted]="isFormSubmitted">
+                  </mat-validation-message>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Group Name</mat-label>
+                  <input type="text" matInput formControlName="groupName" />
+                  <mat-validation-message [control]="frmGroupCode.controls.groupName" [message]="'Group Name'"
+                    [formSubmitted]="isFormSubmitted">
+                  </mat-validation-message>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Priority</mat-label>
+                  <input type="number" matInput formControlName="priority" />
+                  <mat-validation-message [control]="frmGroupCode.controls.priority" [message]="'Priority'"
+                    [formSubmitted]="isFormSubmitted">
+                  </mat-validation-message>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Value</mat-label>
+                  <input type="text" matInput formControlName="value" />
+                  <mat-validation-message [control]="frmGroupCode.controls.value" [message]="'Value'"
+                    [formSubmitted]="isFormSubmitted">
+                  </mat-validation-message>
+                </mat-form-field>
+
+              </div>
+            </div>
+            <!-- <div class="mb-8">
+              <div class="font-medium text-lg mb-4">Basic Details</div>
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Code</mat-label>
+                  <input type="text" matInput formControlName="code" />
+                  <mat-validation-message [control]="frmGroupCode.controls.code" [message]="'Code'" [formSubmitted]="isFormSubmitted"></mat-validation-message>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Name</mat-label>
+                  <input type="text" matInput formControlName="name" />
+                  
+                  <mat-validation-message [control]="frmGroupCode.controls.name" [message]="'Name'" [formSubmitted]="isFormSubmitted"></mat-validation-message>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Group Name</mat-label>
+                                <input type="text" matInput formControlName="groupName">
+                                <mat-validation-message [control]="frmGroupCode.controls.groupName"
+                                    [message]="'Group Name'" [formSubmitted]="isFormSubmitted">
+                                </mat-validation-message>
+                            </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Priority</mat-label>
+                                <input type="number" matInput formControlName="priority">
+                                <mat-validation-message [control]="frmGroupCode.controls.priority"
+                                    [message]="'Priority'" [formSubmitted]="isFormSubmitted">
+                                </mat-validation-message>
+                            </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Value</mat-label>
+                                <input type="text" matInput formControlName="value">
+                                <mat-validation-message [control]="frmGroupCode.controls.value" [message]="'Value'"
+                                    [formSubmitted]="isFormSubmitted">
+                                </mat-validation-message>
+                            </mat-form-field>
+              </div>
+            </div> -->
+
+            <!-- Submit Button -->
+            <div class="flex justify-center mt-6">
+              <button *ngIf="CanSave" type="submit" mat-flat-button color="primary"
+                class="app-button mr-1 back-Green position-relative" [disabled]="isSaving">
+                <ng-container *ngIf="isSaving; else saveText">
+                  <mat-progress-spinner class="spinner-overlay" diameter="24" strokeWidth="3" mode="indeterminate"
+                    color="primary"></mat-progress-spinner>
+                </ng-container>
+                <ng-template #saveText>Save</ng-template>
+              </button>
+            </div>
+
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>

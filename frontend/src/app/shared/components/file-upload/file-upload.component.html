@@ -1,0 +1,14 @@
+<!-- <div class="file-upload">
+    <input type="file" (change)="onFileSelect($event)" [accept]="acceptTypes" [multiple]="multiple" />
+    <button (click)="onUpload()" [disabled]="!selectedFile">Upload</button>
+    <div *ngIf="uploadProgress >= 0">
+      <p>Upload Progress: {{ uploadProgress }}%</p>
+    </div>
+  </div> -->
+<div>
+  <div class="file-upload-wrapper">
+    <label for="fileInput" class="file-upload-label back-Green">Upload File</label>
+    <input id="fileInput" type="file" (change)="onFileSelect($event)" class="file-input" [accept]="acceptTypes" [multiple]="multiple"/>
+  </div>
+</div>
+  

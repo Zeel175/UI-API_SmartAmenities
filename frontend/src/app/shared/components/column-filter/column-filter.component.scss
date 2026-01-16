@@ -1,0 +1,55 @@
+:root {
+  // Default fallback values (for light theme)
+  --fuse-bg-card: #f8f9fa;
+  --fuse-bg-default: #ffffff;
+  --fuse-border: #ccc;
+  --fuse-text-default: #212121;
+  --fuse-primary: #007bff;
+}
+
+.dark-theme {
+  // Overrides for dark mode
+  --fuse-bg-card: #1e1e2f;
+  --fuse-bg-default: #2c2c3e;
+  --fuse-border: #444;
+  --fuse-text-default: #f0f0f0;
+  --fuse-primary: #3f87f5;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: var(--fuse-bg-card);
+  border-radius: 6px;
+  border: 1px solid var(--fuse-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+select,
+input {
+  padding: 8px;
+  border: 1px solid var(--fuse-border);
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--fuse-text-default);
+  background-color: var(--fuse-bg-default);
+  transition: all 0.2s ease;
+}
+
+select {
+  background-color: var(--fuse-bg-default);
+  cursor: pointer;
+}
+
+input {
+  width: 150px;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--fuse-primary);
+  outline: none;
+  box-shadow: 0 0 5px rgba(25, 118, 210, 0.5);
+}

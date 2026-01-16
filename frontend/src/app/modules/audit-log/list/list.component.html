@@ -1,0 +1,51 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <!-- Header -->
+  <div
+    class="relative flex flex-0 flex-col border-b px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8"
+  >
+    <div class="text-4xl font-extrabold tracking-tight">Audit-Log List</div>
+
+    <div class="flex items-center space-x-2">
+      <!-- (usually Audit Log has no Add) - keep if you need -->
+      <button
+        *ngIf="IsAddPemission"
+        mat-flat-button
+        color="primary"
+        [routerLink]="['/audit-log/add']"
+      >
+        Add New
+        <mat-icon class="ml-1">add</mat-icon>
+      </button>
+
+      <!-- Excel export -->
+      <app-excel-download
+        [data]="filteredData"
+        [columns]="auditLogColumns"
+        class="ml-2"
+      ></app-excel-download>
+    </div>
+  </div>
+<app-column-filter
+    *ngIf="auditLogColumns?.length"
+    [columns]="auditLogColumns"
+    [data]="filteredData"
+    (filterChange)="onColumnFilter($event)">
+  </app-column-filter>
+  <!-- Fuse List -->
+  <app-fuse-list
+  *ngIf="auditLogColumns?.length"
+  [data]="filteredData"
+    [columns]="auditLogColumns"
+    [loading]="loading"
+    [actions]="{ edit: false, delete: false }"
+    [pageIndex]="pageIndex - 1"
+    [pageSize]="pageSize"
+    [totalItems]="totalItems"
+    (pageChange)="onPageChange($event)"
+  >
+    <!-- Date cell -->
+    <ng-template #actionDateTemplate let-value>
+      {{ value | date: 'MM/dd/yyyy hh:mm a' }}
+    </ng-template>
+  </app-fuse-list>
+</div>

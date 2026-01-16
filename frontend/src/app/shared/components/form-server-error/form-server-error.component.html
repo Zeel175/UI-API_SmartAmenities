@@ -1,0 +1,7 @@
+<div class="row mx-0  alert alert-danger" *ngIf="error">
+    <div class="col-12 p-0" *ngFor="let item of error | objToArray">
+        <div class="" *ngFor="let text of error[item]">
+            {{text}}
+        </div>
+    </div>
+</div>

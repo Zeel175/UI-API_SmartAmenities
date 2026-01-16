@@ -1,0 +1,14 @@
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# Angular / Node
+**/node_modules/
+**/dist/
+**/.angular/
+**/.cache/
+
+# Logs
+*.log

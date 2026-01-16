@@ -1,0 +1,160 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent hikvision-logs">
+    <div class="relative flex flex-0 flex-col border-b px-3 py-2 sm:flex-row sm:items-center sm:justify-between md:px-8">
+        <div class="text-4xl font-extrabold tracking-tight">Hikvision Logs</div>
+    </div>
+
+    <div class="hikvision-filter-bar">
+        <form class="hikvision-form" [formGroup]="form">
+            <div class="form-row filters-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>Start Date</mat-label>
+                    <input matInput [matDatepicker]="startDatePicker" formControlName="startDate" />
+                    <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #startDatePicker></mat-datepicker>
+                    <mat-error *ngIf="form.get('startDate')?.touched && form.get('startDate')?.invalid">
+                        Start date is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Start Time</mat-label>
+                    <input
+                        matInput
+                        [ngxTimepicker]="startTimePicker"
+                        formControlName="startTime"
+                        readonly
+                    />
+                    <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
+                    <mat-error *ngIf="form.get('startTime')?.touched && form.get('startTime')?.invalid">
+                        Start time is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>End Date</mat-label>
+                    <input matInput [matDatepicker]="endDatePicker" formControlName="endDate" />
+                    <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #endDatePicker></mat-datepicker>
+                    <mat-error *ngIf="form.get('endDate')?.touched && form.get('endDate')?.invalid">
+                        End date is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>End Time</mat-label>
+                    <input
+                        matInput
+                        [ngxTimepicker]="endTimePicker"
+                        formControlName="endTime"
+                        readonly
+                    />
+                    <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
+                    <mat-error *ngIf="form.get('endTime')?.touched && form.get('endTime')?.invalid">
+                        <ng-container *ngIf="form.get('endTime')?.errors?.['endBeforeStart']; else endTimeRequired">
+                            End date must be after start date.
+                        </ng-container>
+                        <ng-template #endTimeRequired>End time is required.</ng-template>
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Building</mat-label>
+                    <mat-select formControlName="buildingId" (selectionChange)="onBuildingChange($event.value)">
+                        <mat-option *ngFor="let building of buildingOptions" [value]="building.id">
+                            {{ building.buildingName || building.name || building.code }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="form.get('buildingId')?.touched && form.get('buildingId')?.invalid">
+                        Building is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Unit</mat-label>
+                    <mat-select formControlName="unitId" (selectionChange)="onUnitChange($event.value)" [disabled]="!unitOptions.length">
+                        <mat-option *ngFor="let unit of unitOptions" [value]="unit.id">
+                            {{ unit.unitName || unit.name || unit.code }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="form.get('unitId')?.touched && form.get('unitId')?.invalid">
+                        Unit is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>User</mat-label>
+                    <mat-select
+                        formControlName="userIds"
+                        [disabled]="!userOptions.length"
+                        multiple
+                        (selectionChange)="onUserSelectionChange($event.value)"
+                    >
+                        <mat-select-trigger>
+                            {{ areAllUsersSelected() ? 'All Users' : (form.get('userIds')?.value?.length || 0) + ' selected' }}
+                        </mat-select-trigger>
+                        <mat-option [value]="allUsersValue">
+                            All Users
+                        </mat-option>
+                        <mat-option *ngFor="let user of userOptions" [value]="user.id">
+                            {{ user.fullName || ((user.firstName || '') + ' ' + (user.lastName || '')).trim() || user.userName || user.name }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="form.get('userIds')?.touched && form.get('userIds')?.invalid">
+                        User is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="actions">
+                    <button mat-flat-button color="primary" type="button" (click)="applyFilters()">
+                        Apply
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- <mat-card class="hikvision-card" *ngIf="previewData">
+        <mat-card-title>Preview</mat-card-title>
+        <mat-card-content>
+            <div class="preview-grid">
+                <div>
+                    <span class="label">Start Date &amp; Time</span>
+                    <span>{{ previewData.startDateTime }}</span>
+                </div>
+                <div>
+                    <span class="label">End Date &amp; Time</span>
+                    <span>{{ previewData.endDateTime }}</span>
+                </div>
+                <div>
+                    <span class="label">Building</span>
+                    <span>{{ previewData.building }}</span>
+                </div>
+                <div>
+                    <span class="label">Unit</span>
+                    <span>{{ previewData.unit }}</span>
+                </div>
+                <div>
+                    <span class="label">User</span>
+                    <span>{{ previewData.user }}</span>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card> -->
+
+    <!-- <app-column-filter
+        *ngIf="logColumns?.length"
+        [columns]="logColumns"
+        [data]="filteredLogData"
+        (filterChange)="onLogColumnFilter($event)">
+    </app-column-filter> -->
+    <app-fuse-list
+        *ngIf="logColumns?.length"
+        [data]="filteredLogData"
+        [columns]="logColumns"
+        [loading]="logLoading"
+        [pageIndex]="logPageIndex"
+        [pageSize]="logPageSize"
+        [totalItems]="logTotalItems"
+        (pageChange)="onLogPageChange($event)">
+    </app-fuse-list>
+</div>

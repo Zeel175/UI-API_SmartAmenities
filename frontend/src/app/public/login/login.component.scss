@@ -1,0 +1,41 @@
+a {
+  font-size: 1em;
+}
+
+.back-Green {
+  background-color: rgb(48, 127, 226) !important;
+  color: white !important;
+}
+
+.head-color {
+  color: black !important;
+}
+
+.white-spinner {
+  color: white !important;
+}
+
+:host ::ng-deep input:-internal-autofill-selected {
+  background-color: lightgreen !important;
+}
+
+.back-Green {
+  background-color: rgb(48, 127, 226) !important;
+  color: white !important;
+  border-radius: 50px;
+  padding: 6px 12px;
+  font-size: 0.8em;
+  width: 200px;
+  margin: 0 auto;
+}
+
+.white-spinner {
+  color: white !important;
+}
+
+button[mat-flat-button] {
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  padding: 0.75rem;
+  height: 40px;
+}

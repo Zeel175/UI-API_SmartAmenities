@@ -1,0 +1,26 @@
+.card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 0.75rem 1.25rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+.mat-icon {
+    vertical-align: middle;
+}
+
+/* Make add buttons/icons appear green */
+.add-green-icon {
+    color: #28a745 !important;
+}
+.highlight-card {
+    border: 2px solid #dc3545;
+}

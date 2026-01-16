@@ -1,0 +1,107 @@
+.row {
+  margin: 0;
+}
+
+/* Header styling */
+h4 {
+  color: #81b4db !important;
+}
+
+/* Table Header */
+::ng-deep .mat-header-cell {
+  background-color: #81b4db !important;
+  color: black !important;
+  padding: 8px 12px !important;
+}
+
+/* Table Row styling */
+::ng-deep .mat-row {
+  height: auto !important;
+  min-height: 30px !important;
+  padding: 0 !important;
+}
+
+/* Table cell styling */
+::ng-deep .mat-cell {
+  border: 1px solid lightgray;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+/* Action icons */
+.icon-green {
+  color: #307fe2 !important;
+}
+
+/* Unified button style */
+.btn,
+a.app-button.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 36px;
+  padding: 0 20px;
+  font-size: 14px;
+  background-color: #307fe2 !important;
+  color: white !important;
+  border-radius: 999px; // <-- updated from 4px to fully rounded pill-style
+  text-decoration: none;
+  gap: 4px;
+  transition: background-color 0.3s ease;
+}
+
+/* Spacing utilities */
+.me-2 {
+  margin-right: 10px;
+}
+
+.ms-2 {
+  margin-left: 10px;
+}
+
+.rightSideHeader {
+  gap: 10px;
+}
+
+/* Header container to align both title and action sections */
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 16px;
+  padding-right: 16px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between; // optional if you want title left, actions right
+  }
+}
+
+/* Title styling */
+.title-section {
+  flex-shrink: 0;
+}
+
+/* Actions section: Search + Button in one line aligned left */
+.actions-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-start; // ensures left alignment
+}
+/* Align action buttons horizontally */
+::ng-deep .action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px; // Reduced gap to make buttons closer
+  padding: 0;
+  margin: 0;
+}
+.text-danger {
+    color: red !important;
+    font-weight: 500;
+}

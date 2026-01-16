@@ -1,0 +1,72 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <!-- Header -->
+  <div
+    class="relative flex flex-0 flex-col border-b px-6 py-8 
+           sm:flex-row sm:items-center sm:justify-between md:px-8"
+  >
+    <div class="text-4xl font-extrabold tracking-tight">Property List</div>
+    <div class="flex items-center space-x-2">
+      <button
+        mat-flat-button
+        color="primary"
+        *ngIf="IsAddPemission"
+        [routerLink]="['/property/add']"
+      >
+        Add New
+        <mat-icon class="ml-1">add</mat-icon>
+      </button>
+
+      <!-- Excel export -->
+      <app-excel-download
+        [data]="filteredData"
+        [columns]="propertyColumns"
+      ></app-excel-download>
+
+      <!-- Configure Mail toggle -->
+      <button
+        mat-flat-button
+        color="accent"
+        (click)="toggleEmailForm()"
+      >
+        <mat-icon class="mr-1">mail_outline</mat-icon>
+        Configure Mail
+      </button>
+    </div>
+  </div>
+
+  <!-- Email Form -->
+  <div *ngIf="isEmailFormVisible" class="px-6 py-4">
+    <mat-card>
+      <mat-card-content>
+        <app-email-sender
+          [receptor]="loggedinUserData.email"
+          [submitLabel]="'Configure'"
+          (formSubmit)="configureMail($event)"
+        ></app-email-sender>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <app-column-filter
+    *ngIf="propertyColumns?.length"
+    [columns]="propertyColumns"
+    [data]="filteredData"
+    (filterChange)="onColumnFilter($event)">
+  </app-column-filter>
+  <!-- Property Table -->
+  <app-fuse-list
+    *ngIf="propertyColumns?.length"
+    [data]="filteredData"
+    [columns]="propertyColumns"
+    [loading]="loading"
+    [actions]="{ edit: IsEditPermission, delete: IsDeletePermission, email: true }"
+    [pageIndex]="pageIndex - 1"
+    [pageSize]="pageSize"
+    [totalItems]="totalItems"
+    (editAction)="editProperty($event)"
+    (deleteAction)="deleteProperty($event)"
+    (pageChange)="onPageChange($event)"
+    (emailAction)="onEmail($event)"
+  >
+  </app-fuse-list>
+</div>

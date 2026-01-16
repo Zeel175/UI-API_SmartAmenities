@@ -1,0 +1,48 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <!-- Header -->
+  <div class="relative flex flex-0 flex-col border-b px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
+    <div class="text-4xl font-extrabold tracking-tight">User List</div>
+    <div class="flex items-center space-x-2">
+      <button
+        mat-flat-button
+        color="primary"
+        *ngIf="IsAddPemission"
+        [routerLink]="['/user/add']"
+      >
+        Add New
+        <mat-icon class="ml-1">add</mat-icon>
+      </button>
+      <!-- ← New Fuse-styled Excel-export button -->
+    <app-excel-download
+      [data]="filteredData"
+      [columns]="userColumns"
+      class="ml-2"
+    ></app-excel-download>
+    </div>
+  </div>
+<app-column-filter
+    *ngIf="userColumns?.length"
+    [columns]="userColumns"
+    [data]="filteredData"
+    (filterChange)="onColumnFilter($event)">
+  </app-column-filter>
+  <!-- Fuse List -->
+  <app-fuse-list
+  *ngIf="userColumns?.length"
+   [data]="filteredData"
+  [columns]="userColumns"
+  [loading]="loading"
+  [actions]="{ edit: IsEditPermission, delete: IsDeletePermission }"
+  [pageIndex]="pageIndex - 1"
+  [pageSize]="pageSize"
+  [totalItems]="totalItems"
+  (editAction)="editUser($event)"
+  (deleteAction)="deleteUser($event)"
+  (pageChange)="onPageChange($event)"
+  >
+  <!-- custom date cell -->
+  <ng-template #createdDateTemplate let-value>
+    {{ value | date:'MM/dd/yyyy hh:mm a' }}
+  </ng-template>
+</app-fuse-list>
+</div>

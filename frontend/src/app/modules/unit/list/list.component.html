@@ -1,0 +1,25 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <div class="relative flex flex-0 flex-col border-b px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
+    <div class="text-4xl font-extrabold tracking-tight">Unit List</div>
+    <div class="flex items-center space-x-2">
+      <button mat-flat-button color="primary" *ngIf="IsAddPermission" [routerLink]="['/unit/add']">
+        Add New
+        <mat-icon class="ml-1">add</mat-icon>
+      </button>
+    </div>
+  </div>
+  <app-column-filter *ngIf="unitColumns?.length" [columns]="unitColumns" [data]="filteredData" (filterChange)="onColumnFilter($event)">
+  </app-column-filter>
+  <app-fuse-list *ngIf="unitColumns?.length"
+    [data]="filteredData"
+    [columns]="unitColumns"
+    [loading]="loading"
+    [actions]="{ edit: IsEditPermission, delete: IsDeletePermission }"
+    [pageIndex]="pageIndex - 1"
+    [pageSize]="pageSize"
+    [totalItems]="totalItems"
+    (pageChange)="onPageChange($event)"
+    (editAction)="editUnit($event)"
+    (deleteAction)="deleteUnit($event)">
+  </app-fuse-list>
+</div>

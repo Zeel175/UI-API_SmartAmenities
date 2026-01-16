@@ -1,0 +1,65 @@
+{node -v}
+{npm -v}
+
+{NPM (Node Package Manager) is a software register and package manager for Node.js 
+that allows developers to find, build, and manage code packages.}
+
+{ng serve is used specifically for running an Angular project locally during development, 
+providing a development server and automatic reloading.The prefix ng stands for "Angular;" }
+
+npm install -g @angular/cli
+
+{npm cache clean --force}
+
+Set-ExecutionPolicy RemoteSigned -Scope Process
+
+ng new angular-project--no-standalone
+(Sass CSS)
+
+npm start
+
+{ng serve}
+
+{ng serve --o}
+
+
+the selector property of the component is just a string that is used to identify 
+the component or an element in the DOM. 
+
+ng generate component user-table
+
+async pipe : 
+The async pipe in Angular is a built-in pipe that's used to automatically 
+subscribe to an Observable or Promise and unwrap the data it emits within your template.
+
+custom pipe:
+custom pipes that convert the data in the format that you desire.
+
+
+
+microsoft.EntityFrameworkCore
+microsoft.EntityFrameworkCore.sql
+
+microsoft.EntityFrameworkCore.design
+
+first create data class
+second class AppDbContext class
+
+public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+ public DbSet<Employee> Employee { get; set; }
+ 
+program file : builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+Appsetting.json : 
+"ConnectionString": {
+  "DefaultConnection": "Server=localhost\\MSSQLSERVER01;DataBase=EmployeeDb;Trusted_connection=true;TrustServerCertificate=true;"
+}
+
+create database EmployeeDb
+
+microsoft.EntityFrameworkCore.tools
+
+migration : Add-Migration MigrationName
+
+update-database : Update-Database -Migration MigrationName

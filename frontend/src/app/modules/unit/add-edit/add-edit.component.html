@@ -1,0 +1,77 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <div class="relative flex flex-0 flex-col border-b px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
+    <div class="text-4xl font-extrabold tracking-tight">{{ isEditMode ? 'Edit Unit' : 'Add Unit' }}</div>
+    <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
+      <button mat-flat-button color="primary" class="app-button back-Green" (click)="cancel()">View List</button>
+    </div>
+  </div>
+
+  <div class="flex flex-auto overflow-visible">
+    <div class="flex flex-auto flex-col overflow-visible sm:mb-18 sm:overflow-y-auto">
+      <mat-card class="property-add-edit-form mt-4 mx-6 md:mx-8">
+        <mat-card-content>
+          <form [formGroup]="frmUnit" (ngSubmit)="save()" novalidate class="app-form">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min">
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Code</mat-label>
+                <input matInput formControlName="code" readonly />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Unit Name</mat-label>
+                <input matInput formControlName="unitName" />
+                <mat-error *ngIf="frmUnit.get('unitName')?.invalid && frmUnit.get('unitName')?.touched">
+                  Unit Name is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Building</mat-label>
+                <mat-select formControlName="buildingId">
+                  <mat-option *ngFor="let b of buildings" [value]="b.id">
+                    {{ b.buildingName || b.name }} - {{ b.code }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmUnit.get('buildingId')?.invalid && frmUnit.get('buildingId')?.touched">
+                  Building is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Floor</mat-label>
+                <mat-select formControlName="floorId">
+                  <mat-option *ngFor="let f of floors" [value]="f.id">
+                    {{ f.floorName || f.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmUnit.get('floorId')?.invalid && frmUnit.get('floorId')?.touched">
+                  Floor is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Occupancy Status</mat-label>
+                <mat-select formControlName="occupancyStatusId">
+                  <mat-option *ngFor="let o of occupancyStatuses" [value]="o.id">
+                    {{ o.name || o.groupName }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmUnit.get('occupancyStatusId')?.invalid && frmUnit.get('occupancyStatusId')?.touched">
+                  Occupancy Status is required.
+                </mat-error>
+              </mat-form-field>
+
+            </div>
+
+            <div class="flex justify-center mt-6">
+              <button mat-flat-button color="primary" type="submit" class="app-button back-Green">
+                Save
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

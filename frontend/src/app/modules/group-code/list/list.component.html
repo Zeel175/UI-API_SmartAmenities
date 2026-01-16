@@ -1,0 +1,64 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+    <!-- Header -->
+    <div class="relative flex flex-0 flex-col border-b px-6 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
+        <!-- Loader -->
+        <!-- <div *ngIf="loading" class="absolute inset-x-0 bottom-0">
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        </div> -->
+        <!-- Title -->
+        <div class="text-4xl font-extrabold tracking-tight">Miscellaneous List</div>
+        <!-- Actions -->
+        <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
+            <!-- Search -->
+            <mat-form-field class="fuse-mat-dense fuse-mat-rounded min-w-64" [subscriptSizing]="'dynamic'">
+                <mat-icon class="icon-size-5" matPrefix [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+                <input matInput [formControl]="searchInputControl" [autocomplete]="'off'" placeholder="Search miscellaneous" />
+            </mat-form-field>
+            <!-- Show All Customers checkbox -->
+            <mat-checkbox [formControl]="showAllGroupCodesControl" class="ml-4">
+                Show All Miscellaneous (Active + Inactive)
+            </mat-checkbox>
+            <!-- Add customer button -->
+            <a *ngIf="hasAddPermission" class="ml-4" mat-flat-button color="primary" [routerLink]="['/group-code','add']">
+                <mat-icon>add</mat-icon>
+                <span class="ml-2 mr-1">Add</span>
+            </a>
+        </div>
+    </div>
+    <app-column-filter
+  *ngIf="columns?.length"
+  [columns]="columns"
+  [data]="filteredData"
+  (filterChange)="onColumnFilter($event)">
+</app-column-filter>
+
+<app-fuse-list
+  *ngIf="columns?.length"
+  [data]="filteredData"
+  [columns]="columns"
+  [loading]="loading"
+  [actions]="{ edit: hasEditPermission }"
+  [pageIndex]="pageIndex"
+  [pageSize]="pageSize"
+  [totalItems]="totalItems"
+  (pageChange)="onPageChange($event)"
+  (editAction)="editGroupCode($event)"
+  [actionsTemplate]="actionsTpl"
+  [rowClassFn]="rowClass">
+</app-fuse-list>
+<ng-template #actionsTpl let-row>
+  <a *ngIf="hasEditPermission"
+     class="icon-green"
+     [routerLink]="['/group-code/edit', row.id]"
+     matTooltip="Edit">
+    <mat-icon>edit</mat-icon>
+  </a>
+
+  <a *ngIf="hasDeletePermission"
+     (click)="toggleActivate(row.id, !asBool(row.isActive))"
+     matTooltip="{{ asBool(row.isActive) ? 'Deactivate' : 'Activate' }}"
+     [ngClass]="asBool(row.isActive) ? 'text-danger' : 'text-success'">
+    <mat-icon>{{ asBool(row.isActive) ? 'lock' : 'lock_open' }}</mat-icon>
+  </a>
+</ng-template>
+</div>

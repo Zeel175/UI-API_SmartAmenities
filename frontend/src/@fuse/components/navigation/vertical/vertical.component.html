@@ -1,0 +1,77 @@
+<div class="fuse-vertical-navigation-wrapper">
+    <!-- Header -->
+    <div class="fuse-vertical-navigation-header">
+        <ng-content select="[fuseVerticalNavigationHeader]"></ng-content>
+    </div>
+
+    <!-- Scrollable Content Area -->
+    <div class="fuse-vertical-navigation-content" fuseScrollbar [fuseScrollbarOptions]="{
+            wheelPropagation: false,
+            suppressScrollX: true
+        }" #navigationContent>
+        
+        <!-- Optional Content Header -->
+        <div class="fuse-vertical-navigation-content-header">
+            <ng-content select="[fuseVerticalNavigationContentHeader]"></ng-content>
+        </div>
+
+        <!-- Navigation Items -->
+        @for (item of navigation; track trackByFn($index, item)) {
+            @if ((item.hidden && !item.hidden(item)) || !item.hidden) {
+                @if (item.type === 'aside') {
+                    <fuse-vertical-navigation-aside-item [item]="item" [name]="name" [activeItemId]="activeAsideItemId"
+                        [autoCollapse]="autoCollapse" [skipChildren]="true"
+                        (click)="toggleAside(item)">
+                    </fuse-vertical-navigation-aside-item>
+                }
+                @if (item.type === 'basic') {
+                    <fuse-vertical-navigation-basic-item [item]="item" [name]="name"></fuse-vertical-navigation-basic-item>
+                }
+                @if (item.type === 'collapsable') {
+                    <fuse-vertical-navigation-collapsable-item [item]="item" [name]="name"
+                        [autoCollapse]="autoCollapse"></fuse-vertical-navigation-collapsable-item>
+                }
+                @if (item.type === 'divider') {
+                    <fuse-vertical-navigation-divider-item [item]="item" [name]="name"></fuse-vertical-navigation-divider-item>
+                }
+                @if (item.type === 'group') {
+                    <fuse-vertical-navigation-group-item [item]="item" [name]="name"
+                        [autoCollapse]="autoCollapse"></fuse-vertical-navigation-group-item>
+                }
+                @if (item.type === 'spacer') {
+                    <fuse-vertical-navigation-spacer-item [item]="item" [name]="name"></fuse-vertical-navigation-spacer-item>
+                }
+            }
+        }
+
+        <!-- Optional Content Footer -->
+        <div class="fuse-vertical-navigation-content-footer">
+            <ng-content select="[fuseVerticalNavigationContentFooter]"></ng-content>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="fuse-vertical-navigation-footer">
+        <ng-content select="[fuseVerticalNavigationFooter]"></ng-content>
+    </div>
+</div>
+
+<!-- Aside Panel -->
+@if (activeAsideItemId) {
+    <div class="fuse-vertical-navigation-aside-wrapper" fuseScrollbar [fuseScrollbarOptions]="{
+            wheelPropagation: false,
+            suppressScrollX: true
+        }" [@fadeInLeft]="position === 'left'" [@fadeInRight]="position === 'right'"
+        [@fadeOutLeft]="position === 'left'" [@fadeOutRight]="position === 'right'">
+        
+        @for (item of navigation; track trackByFn($index, item)) {
+            @if ((item.hidden && !item.hidden(item)) || !item.hidden) {
+                @if (item.type === 'aside' && item.id === activeAsideItemId) {
+                    <fuse-vertical-navigation-aside-item [item]="item" [name]="name"
+                        [autoCollapse]="autoCollapse">
+                    </fuse-vertical-navigation-aside-item>
+                }
+            }
+        }
+    </div>
+}

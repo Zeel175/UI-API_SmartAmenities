@@ -1,0 +1,369 @@
+ 
+ Budget Details(used):-
+
+    ALTER TABLE [MIS8].[dbo].[BudgetDetail]
+ADD 
+        BudgetedAmountRemark NVARCHAR(MAX) NULL,
+        AdjustedAmountRemark NVARCHAR(MAX) NULL;
+ADD 
+    BudgetedAmountRemark NVARCHAR(MAX) NULL,
+    AdjustedAmountRemark NVARCHAR(MAX) NULL;
+
+    Permission (not used):-
+    
+  SET IDENTITY_INSERT [dbo].[adm_Permission] ON;
+
+-- Assuming the next available Id is 78 (adjust if needed)
+DECLARE @Id INT = 78;
+DECLARE @CreatedDate DATETIME2 = GETDATE();
+DECLARE @CreatedBy INT = 1;
+
+DECLARE @PermissionCodes TABLE (Code NVARCHAR(100), Name NVARCHAR(100));
+INSERT INTO @PermissionCodes (Code, Name)
+VALUES 
+('PER_DESIGNATION', 'Designation'),
+('PER_PROJECT_MASTER', 'Project Master'),
+('PER_LOCATION', 'Location'),
+('PER_SERVICE_CATEGORY', 'Service Category'),
+('PER_GROUP_LINEITEM', 'Group Line Item'),
+('PER_WORK_FLOW', 'Work Flow'),
+('PER_PROJECT_ASSIGNMENT', 'Project Assignment'),
+('PER_BUDGET_ENTRY', 'Budget Entry'),
+('PER_ACTUAL_INPUT', 'Actual Input'),
+('PER_PROVISIONAL_INPUT', 'Provisional Input');
+
+-- Loop over each permission code and add for PermissionTypeId 72–76
+DECLARE @PermissionTypeId INT;
+DECLARE @Code NVARCHAR(100);
+DECLARE @Name NVARCHAR(100);
+
+DECLARE cur CURSOR FOR
+    SELECT Code, Name FROM @PermissionCodes;
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @Code, @Name;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @PermissionTypeId = 72;
+    WHILE @PermissionTypeId <= 76
+    BEGIN
+        INSERT INTO [dbo].[adm_Permission]
+        ([Id], [Code], [Name], [IsDefault], [PermissionTypeId], [DisplayOrder], [Controller], [ActionName], [IsActive], [CreatedDate], [CreatedBy], [ModifiedDate], [ModifiedBy])
+        VALUES
+        (@Id, @Code, @Name, 1, @PermissionTypeId, 1, NULL, NULL, 1, @CreatedDate, @CreatedBy, @CreatedDate, @CreatedBy);
+
+        SET @Id += 1;
+        SET @PermissionTypeId += 1;
+    END
+
+    FETCH NEXT FROM cur INTO @Code, @Name;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+SET IDENTITY_INSERT [dbo].[adm_Permission] OFF;
+
+Status Table(used):    
+  INSERT INTO [MIS12].[dbo].[status] ([StatusName])
+VALUES ('Rejected');   
+
+ProvisionalInputDetail(used):
+ ALTER TABLE [MIS12].[dbo].[ProvisionalInputDetail]
+ADD [Remarks] NVARCHAR(MAX) NULL;
+ActualInputDetail(not used):
+ ALTER TABLE [MIS12].[dbo].[ActualInputDetail]
+ADD [Remarks] NVARCHAR(MAX) NULL;
+
+ALTER TABLE [MIS12].[dbo].[BudgetMaster]
+ADD [StatusId] BIGINT NULL;  -- Make it NULL if not every record has a status yet
+
+ALTER TABLE [MIS12].[dbo].[BudgetMaster]
+ADD CONSTRAINT FK_BudgetMaster_Status
+FOREIGN KEY ([StatusId]) REFERENCES [MIS12].[dbo].[status]([Id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+
+ Provisional Input status(notused):-
+  ALTER TABLE [MIS9].[dbo].[ProvisionalInputScreen]
+ADD StatusId BIGINT NULL;
+
+UPDATE [MIS9].[dbo].[ProvisionalInputScreen]
+SET StatusId = 1 -- Replace with actual valid StatusId from [Status] table
+WHERE StatusId IS NULL;
+
+ALTER TABLE [MIS9].[dbo].[ProvisionalInputScreen]
+ADD CONSTRAINT FK_ProvisionalInputScreen_Status
+FOREIGN KEY (StatusId) REFERENCES [MIS9].[dbo].[Status](Id);
+
+
+-------------------------------------------------------------------------------
+
+Transaction and Project(not used) :- 
+
+ALTER TABLE [MIS9].[dbo].[ProjectMasters]
+ADD [ManpowerQuantity] BIGINT NULL;
+
+ALTER TABLE [MIS9].[dbo].[ActualInputScreen]
+ADD [MonthFreezeDate] DATETIME NULL;
+
+ALTER TABLE [MIS9].[dbo].[BudgetMaster]
+ADD [MonthFreezeDate] DATETIME NULL;
+
+ALTER TABLE [MIS9].[dbo].[ProvisionalInputScreen]
+ADD [MonthFreezeDate] DATETIME NULL;
+
+--------------------------------------------------------------------------
+
+
+  INSERT INTO [MIS9].[dbo].[FreezeDate] ([Id], [FreezeDate])
+VALUES 
+    (2, 8),
+    (3, 15);
+
+----------------------------------------------------------------------------
+
+  ALTER TABLE [MIS9].[dbo].[LineItems]
+ADD 
+    [Type] NVARCHAR(50) NULL,
+    [ItemType] NVARCHAR(50) NULL;
+-----------------------------------------------------------------------------
+INSERT INTO [MIS9].[dbo].[FreezeDate] ([Id], [FreezeDate])
+VALUES 
+    (2, 8),
+    (3, 15);
+----------------------------------------------------------------------------
+ALTER TABLE [MIS9].[dbo].[projectAssignment]
+ADD [EffectiveDate] DATETIME NULL;
+ALTER TABLE [MIS9].[dbo].[ProvisionalInputDetail] [not used ]
+ALTER COLUMN [LineItemId] BIGINT NULL;
+
+ALTER TABLE [MIS9].[dbo].[ActualInputDetail]
+ALTER COLUMN [LineItemId] BIGINT NULL;
+
+ALTER TABLE [MIS9].[dbo].[BudgetDetail]
+ALTER COLUMN [LineItemId] BIGINT NULL;
+
+------------------------------------------------------------------------------
+
+ALTER TABLE [MIS9].[dbo].[LineItems]
+ADD [ParentType] INT NULL;
+
+ALTER TABLE [MIS9].[dbo].[LineItems]
+DROP COLUMN [ItemType];
+
+ALTER TABLE [MIS9].[dbo].[LineItems]
+ADD [ItemType] INT NULL;
+--------------------------------------------------------------------------------
+  CREATE TABLE [dbo].[BudgetApprover]
+(
+    [Id] BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [BudgetId] BIGINT NOT NULL,
+    [ApproverId] BIGINT NOT NULL,
+);
+--------------------------------------------------------------------------------
+  CREATE TABLE [dbo].[ActualInputScreenApprover]
+(
+    [Id] BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [ActualInputScreenId] BIGINT NOT NULL,
+    [ApproverId] BIGINT NOT NULL,
+);
+--------------------------------------------------------------------------------
+    CREATE TABLE [dbo].[ProvisionalInputScreenApprover]
+(
+    [Id] BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [ProvisionalInputScreenId] BIGINT NOT NULL,
+    [ApproverId] BIGINT NOT NULL,
+);
+---------------------------------------------------------------------------------
+INSERT INTO [MIS9].[dbo].[adm_Permission]
+(
+    [Code],
+    [Name],
+    [IsDefault],
+    [PermissionTypeId],
+    [DisplayOrder],
+    [Controller],
+    [ActionName],
+    [IsActive],
+    [CreatedDate],
+    [CreatedBy],
+    [ModifiedDate],
+    [ModifiedBy]
+)
+VALUES
+(
+    'PRE_MTD_REPORT',              -- Code
+    'MTD-Report',          -- Name
+    1,                      -- IsDefault (0 = false, 1 = true)
+    74,                      -- PermissionTypeId (FK? Make sure it exists)
+    1,                     -- DisplayOrder
+    NULL,              -- Controller
+    NULL,                  -- ActionName
+    1,                      -- IsActive
+    GETDATE(),              -- CreatedDate
+    1,                -- CreatedBy
+    GETDATE(),              -- ModifiedDate
+    1                 -- ModifiedBy
+)
+INSERT INTO [MIS9].[dbo].[adm_Permission]
+(
+    [Code],
+    [Name],
+    [IsDefault],
+    [PermissionTypeId],
+    [DisplayOrder],
+    [Controller],
+    [ActionName],
+    [IsActive],
+    [CreatedDate],
+    [CreatedBy],
+    [ModifiedDate],
+    [ModifiedBy]
+)
+VALUES
+(
+    'PRE_YTD_REPORT',              -- Code
+    'YTD-Report',          -- Name
+    1,                      -- IsDefault (0 = false, 1 = true)
+    74,                      -- PermissionTypeId (FK? Make sure it exists)
+    1,                     -- DisplayOrder
+    NULL,              -- Controller
+    NULL,                  -- ActionName
+    1,                      -- IsActive
+    GETDATE(),              -- CreatedDate
+    1,                -- CreatedBy
+    GETDATE(),              -- ModifiedDate
+    1                 -- ModifiedBy
+)
+--------------------------------------------------------------------------------------------------------------------
+Provisional----
+ ALTER TABLE dbo.[ProvisionalInputAttachments]
+ADD FileData VARBINARY(MAX) NULL; 
+
+UPDATE dbo.[ProvisionalInputAttachments]
+SET    FileData = CAST('' AS XML)
+               .value('xs:base64Binary(sql:column("FilePath"))', 'varbinary(max)')
+WHERE  FilePath IS NOT NULL
+  AND  FileData IS NULL;
+
+   SELECT COUNT(*) AS MigratedRows
+FROM dbo.[ProvisionalInputAttachments]
+WHERE FileData IS NOT NULL;
+
+
+Actual-----
+  
+  ALTER TABLE dbo.ActualInputAttachment
+ADD FileData VARBINARY(MAX) NULL; 
+
+UPDATE dbo.ActualInputAttachment
+SET    FileData = CAST('' AS XML)
+               .value('xs:base64Binary(sql:column("FilePath"))', 'varbinary(max)')
+WHERE  FilePath IS NOT NULL
+  AND  FileData IS NULL;
+
+   SELECT COUNT(*) AS MigratedRows
+FROM dbo.ActualInputAttachment
+WHERE FileData IS NOT NULL;
+
+Budget-------
+ALTER TABLE dbo.BudgetAttachment
+ADD FileData VARBINARY(MAX) NULL;      -- allow NULL during migration
+
+
+UPDATE dbo.BudgetAttachment
+SET    FileData = CAST('' AS XML)
+               .value('xs:base64Binary(sql:column("FilePath"))', 'varbinary(max)')
+WHERE  FilePath IS NOT NULL
+  AND  FileData IS NULL;
+
+
+  SELECT COUNT(*) AS MigratedRows
+FROM dbo.BudgetAttachment
+WHERE FileData IS NOT NULL;
+
+
+-------------------------------------------------------------------------------------------------------------------
+
+  Alter Table [MIS9].[dbo].[ProvisionalInputDetail]
+  ADD
+      [AdjustedAmount] DECIMAL(18,2) NULL,
+	  [AdjustedDate] DATETIME2(7) NULL,
+      [AdjustedAmountRemark] NVARCHAR(MAX) NULL
+-------------------------------------------------------------------------------------------------------------------      
+
+  ALTER TABLE BudgetDetail
+ADD CashAmount DECIMAL(18, 2) NULL;
+------------------------------------------------------------------------------------------------------------------
+  CREATE TABLE [dbo].[BudgetDetailAdjusteddate]
+(
+    [Id] BIGINT IDENTITY(1,1) PRIMARY KEY,
+    
+    -- Foreign key to BudgetDetail table
+    [BudgetDetailId] BIGINT NOT NULL,
+
+    [AdjustedDate] DATETIME NULL,
+    [AdjustedAmount] DECIMAL(18, 2) NULL,
+    [AdjustedAmountRemark] NVARCHAR(MAX) NULL,
+    [AdjustedCashAmount] DECIMAL(18, 2) NULL,
+    
+    [IsActive] BIT NOT NULL DEFAULT 1,
+
+    -- BaseAuditable fields
+    [CreatedDate] DATETIME NOT NULL DEFAULT GETDATE(),
+    [CreatedBy] BIGINT NOT NULL,
+    [ModifiedDate] DATETIME NULL,
+    [ModifiedBy] BIGINT NULL,
+
+    -- Foreign key constraint
+    CONSTRAINT FK_BudgetDetailAdjusteddate_BudgetDetail FOREIGN KEY (BudgetDetailId)
+        REFERENCES [dbo].[BudgetDetail](Id)
+        ON DELETE CASCADE
+);
+---------------------------------------------------------------------------------------------------------------------
+
+ ALTER TABLE [MIS9].[dbo].[LineItems]
+ADD ActualmappingType NVARCHAR(MAX);
+
+--------------------------------------------------------------------------------------------------------------------
+  CREATE TABLE [MIS9].[dbo].[ProjectAssignmentApprover] (
+    [Id] BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [ProjectAssignmentCode] NVARCHAR(100) NOT NULL,
+    [ApproverId] BIGINT NOT NULL
+);
+--------------------------------------------------------------------------------------------------------------------- Step 1: Add the nullable boolean column
+ALTER TABLE [MIS9].[dbo].[LineItems]
+ADD [Creditnote] BIT NULL;
+
+-- Step 2: Set all existing rows to false (0)
+UPDATE [MIS9].[dbo].[LineItems]
+SET [Creditnote] = 0;
+---------------------------------------------------------------------------------------------------------------------------------------
+ALTER TABLE [MIS9].[dbo].[ActualInputScreen] [not used]
+ADD RejectRemarks NVARCHAR(MAX) NULL;
+
+
+ALTER TABLE [MIS9].[dbo].[ProvisionalInputScreen]
+ADD RejectRemarks NVARCHAR(MAX) NULL;
+
+
+ALTER TABLE [MIS9].[dbo].[BudgetMaster]
+ADD RejectRemarks NVARCHAR(MAX) NULL;
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE [MIS9].[dbo].[ProjectMasters]
+ALTER COLUMN [ProjectCode] NVARCHAR(max);
+  
+ALTER TABLE [MIS9].[dbo].[ProjectMasters]
+ALTER COLUMN [ProjectName] NVARCHAR(max);
+
+ALTER TABLE [MIS9].[dbo].[ProjectMasters]
+ALTER COLUMN [Address] NVARCHAR(max);
+-------------------------------------------------------------
+ALTER TABLE [MIS9].[dbo].[ParentGroups]
+ALTER COLUMN [Type] NVARCHAR(max);
+  ALTER TABLE [MIS9].[dbo].[ParentGroups]
+ALTER COLUMN [Name] NVARCHAR(max);
+  

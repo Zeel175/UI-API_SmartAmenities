@@ -1,0 +1,47 @@
+<div class="row gutter" *ngIf="label || !hideUploader">
+    <div class="col-lg-6" *ngIf="label">
+        <label class="">{{label}}</label>
+    </div>
+    <ng-container *ngIf="!hideUploader">
+        <div class="upload-btn-wrapper" [ngClass]="(label=='')?'col-lg-12':'col-lg-6'">
+            <button mat-flat-button color="primary" type="button" (click)="triggerFileInput()"
+                class="pull-right">Browse</button>
+            <div *ngIf="selectedFileName" class="mt-2 text-sm text-gray-600">
+                Selected File: <strong>{{ selectedFileName }}</strong>
+            </div>
+            <input [id]="fileInputId" type="file" class="pull-right" style="display:none" ng2FileSelect
+                 [uploader]="uploader" (change)="fileSelected($event)" />
+        </div>
+    </ng-container>
+</div>
+<ng-container *ngIf="uploadType === 'page'">
+    <div class="file-list">
+       
+        <div class="row mt-1" *ngIf="isEditMode && documents">
+            <div class=" col-sm-12">
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a style="color:#0a317a !important;text-decoration: underline;"
+                            (click)="filePreview(basePath + documents.path, 'path',documents.name)"
+                            href="javascript:void(0);">{{documents.name}}</a>
+                        <span style="cursor: pointer;background-color: red;float: none;margin-left: 10px;"
+                            class="badge badge-primary badge-pill" (click)="remove(documents.id)">
+                            <span class="fa fa-times"></span>
+                        </span>
+                        <!-- <a href="javascript:void(0);" (click)="remove(i)">
+                            <img src="assets/img/delete.png" alt="" class="icon-action">
+                        </a> -->
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="row my-2" *ngIf="uploader.progress">
+            <div class="col-sm-12">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped bg-success" role="progressbar"
+                        [ngStyle]="{ 'width': uploader.progress + '%' }">{{uploader.progress}}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-container>

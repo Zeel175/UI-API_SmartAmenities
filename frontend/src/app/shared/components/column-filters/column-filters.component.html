@@ -1,0 +1,46 @@
+<!-- <div class="filter-container"> -->
+  <!-- Column Selection -->
+  <!-- <select [(ngModel)]="selectedColumn">
+    <option value="" disabled>Select Column</option>
+    <option *ngFor="let col of columns" [value]="col.prop">{{ col.name }}</option>
+  </select> -->
+
+  <!-- Operator Selection -->
+  <!-- <select [(ngModel)]="selectedOperator">
+    <option value="contains">Contains</option>
+    <option value="equals">Equals</option>
+    <option value="startsWith">Starts With</option>
+    <option value="endsWith">Ends With</option>
+  </select> -->
+
+  <!-- Filter Value Input -->
+  <!-- <input type="text" [(ngModel)]="filterValue" (input)="applyFilter()" placeholder="Enter filter value" />
+</div> -->
+<div class="filter-container">
+  <!-- Column Selection -->
+  <select
+    [(ngModel)]="selectedColumn"
+    (ngModelChange)="applyFilter()">
+    <option value="" disabled>Select Column</option>
+    <option *ngFor="let col of columns" [value]="col.prop">
+      {{ col.name }}
+    </option>
+  </select>
+
+  <!-- Operator Selection -->
+  <select
+    [(ngModel)]="selectedOperator"
+    (ngModelChange)="applyFilter()">
+    <option value="contains">Contains</option>
+    <option value="equals">Equals</option>
+    <option value="startsWith">Starts With</option>
+    <option value="endsWith">Ends With</option>
+  </select>
+
+  <!-- Filter Value Input -->
+  <input
+    type="text"
+    [(ngModel)]="filterValue"
+    (ngModelChange)="applyFilter()"
+    placeholder="Enter filter value" />
+</div>

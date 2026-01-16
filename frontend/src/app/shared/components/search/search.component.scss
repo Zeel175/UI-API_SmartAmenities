@@ -1,0 +1,46 @@
+.search-container {
+  width: 250px;
+  max-width: 100%;
+}
+
+.custom-search-bar {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: 40px; // Match the height of the "Add New" button
+  padding: 0 8px;
+  background-color: #fff;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  height: 100%;
+  padding: 0 8px;
+  font-size: 14px;
+}
+
+.clear-button,
+.search-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.clear-button mat-icon,
+.search-icon mat-icon {
+  font-size: 20px;
+  color: #666;
+}
+
+.clear-button:hover mat-icon {
+  color: #ff0000;
+}
