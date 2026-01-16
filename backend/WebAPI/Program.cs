@@ -137,6 +137,9 @@ builder.Services.AddScoped<DeviceSyncService>();
 builder.Services.Configure<DeviceSyncOptions>(
     builder.Configuration.GetSection("DeviceSync"));
 builder.Services.AddHostedService<DeviceSyncHostedService>();
+builder.Services.Configure<BiometricSyncOptions>(
+    builder.Configuration.GetSection("BiometricSync"));
+builder.Services.AddHostedService<HikvisionBiometricSyncHostedService>();
 builder.Services.AddSingleton<ISecretProtector, SecretProtector>();
 builder.Services.AddScoped<IResidentProfilePhotoRepository, ResidentProfilePhotoRepository>();
 builder.Services.AddScoped<IResidentProfilePhotoService, ResidentProfilePhotoService>();

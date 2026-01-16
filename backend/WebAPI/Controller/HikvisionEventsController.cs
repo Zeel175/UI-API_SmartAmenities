@@ -12,14 +12,16 @@ namespace WebAPI.Controller
     public class HikvisionEventsController : ControllerBase
     {
         private readonly IHikvisionSyncService _sync;
+        private readonly ILogger<HikvisionEventsController> _logger;
 
-        public HikvisionEventsController(IHikvisionSyncService sync)
+        public HikvisionEventsController(IHikvisionSyncService sync, ILogger<HikvisionEventsController> logger)
         {
             _sync = sync;
+            _logger = logger;
         }
         [AllowAnonymous]
         [HttpPost("events")]
-        public async Task<IActionResult> ReceiveEvent()
+        public async Task<IActionResult> ReceiveEvent([FromQuery] int? buildingId = null)
         {
             // Read raw body safely
             string raw;
@@ -44,7 +46,24 @@ namespace WebAPI.Controller
 
             System.IO.File.AppendAllText(logPath, text);
 
-            return Ok();
+            var employeeNo = HikvisionEventParser.TryGetEmployeeNo(raw);
+            if (!string.IsNullOrWhiteSpace(employeeNo))
+            {
+                var remoteIpAddress = HttpContext.Connection.RemoteIpAddress;
+                var remoteIp = remoteIpAddress?.IsIPv4MappedToIPv6 == true
+                    ? remoteIpAddress.MapToIPv4().ToString()
+                    : remoteIpAddress?.ToString();
+                try
+                {
+                    await _sync.SyncUserBiometricStatusAsync(employeeNo, buildingId, remoteIp, HttpContext.RequestAborted);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to sync Hikvision biometric status for {EmployeeNo}.", employeeNo);
+                }
+            }
+
+            return Ok(new { Status = "OK" });
         }
 
     }

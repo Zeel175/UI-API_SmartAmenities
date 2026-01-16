@@ -66,6 +66,9 @@ export class ResidentMasterListComponent implements OnInit {
         { name: 'Parent Name', prop: 'parentName', visible: true },
         { name: 'Email', prop: 'email', visible: true },
         { name: 'Mobile', prop: 'mobile', visible: true },
+        { name: 'Face', prop: 'faceStatus', visible: true },
+        { name: 'Fingerprint', prop: 'fingerStatus', visible: true },
+        { name: 'Card', prop: 'cardStatus', visible: true },
         { name: 'Family Members', prop: 'familyMemberCount', visible: true },
         { name: 'Is Active', prop: 'isActive', visible: true }
     ];
@@ -94,7 +97,10 @@ export class ResidentMasterListComponent implements OnInit {
                 this.residentData = (items || []).map((resident: any) => ({
                     ...resident,
                     parentName: `${resident.parentFirstName || ''} ${resident.parentLastName || ''}`.trim(),
-                    familyMemberCount: resident.familyMembers ? resident.familyMembers.length : 0
+                    familyMemberCount: resident.familyMembers ? resident.familyMembers.length : 0,
+                    faceStatus: this.getEnrollmentStatus(resident.faceId),
+                    fingerStatus: this.getEnrollmentStatus(resident.fingerId),
+                    cardStatus: this.getEnrollmentStatus(resident.cardId)
                 }));
                 this.totalItems = result.totalCount || this.residentData.length;
                 this.applyFilters();
@@ -145,5 +151,9 @@ export class ResidentMasterListComponent implements OnInit {
             const cell = (row && row[prop] != null) ? row[prop] : '';
             return cell.toString().toLowerCase().includes(val);
         });
+    }
+
+    private getEnrollmentStatus(value?: string): string {
+        return value && value.toString().trim() !== '' ? 'Enrolled' : 'Not Enrolled';
     }
 }

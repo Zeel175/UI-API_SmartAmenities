@@ -142,6 +142,17 @@ namespace Infrastructure.Integrations.Hikvision
         [JsonPropertyName("UserInfo")]
         public HikvisionUserInfo UserInfo { get; set; } = new();
     }
+
+    public sealed class HikvisionBiometricStatus
+    {
+        public bool HasFace { get; set; }
+        public bool HasFingerprint { get; set; }
+        public bool HasCard { get; set; }
+        public string? FaceId { get; set; }
+        public string? FingerprintId { get; set; }
+        public string? CardNo { get; set; }
+    }
+
     public sealed class HikvisionClient
     {
         private readonly HttpClient _http;
@@ -521,6 +532,183 @@ namespace Infrastructure.Integrations.Hikvision
                     $"{responseBody}\nREQUEST:\n{jsonBody}"
                 );
             }
+        }
+
+        public async Task<HikvisionBiometricStatus?> GetUserBiometricStatusAsync(
+            string ipAddress,
+            int port,
+            string username,
+            string password,
+            string employeeNo,
+            string? devIndex = null,
+            CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(employeeNo))
+                return null;
+
+            using var http = CreateAuthHttpClient(ipAddress, port, username, password);
+
+            var searchId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            var payload = new
+            {
+                UserInfoSearchCond = new
+                {
+                    searchID = searchId,
+                    searchResultPosition = 0,
+                    maxResults = 1,
+                    employeeNo = employeeNo
+                }
+            };
+
+            var jsonBody = JsonSerializer.Serialize(payload, _jsonOptions);
+
+            var url = string.IsNullOrWhiteSpace(devIndex)
+                ? "/ISAPI/AccessControl/UserInfo/Search?format=json"
+                : $"/ISAPI/AccessControl/UserInfo/Search?format=json&devIndex={Uri.EscapeDataString(devIndex)}";
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+            };
+
+            var response = await http.SendAsync(request, ct);
+            var responseBody = await response.Content.ReadAsStringAsync(ct);
+
+            if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
+                return null;
+
+            var status = new HikvisionBiometricStatus();
+            using var doc = JsonDocument.Parse(responseBody);
+
+            if (doc.RootElement.TryGetProperty("UserInfoSearch", out var userInfoSearch)
+                && userInfoSearch.TryGetProperty("UserInfo", out var userInfo))
+            {
+                JsonElement? record = null;
+
+                if (userInfo.ValueKind == JsonValueKind.Array && userInfo.GetArrayLength() > 0)
+                    record = userInfo[0];
+                else if (userInfo.ValueKind == JsonValueKind.Object)
+                    record = userInfo;
+
+                if (record.HasValue)
+                {
+                    status.HasFace = (TryGetFirstInt(record.Value, "numOfFace", "faceNum") ?? 0) > 0;
+                    status.HasFingerprint = (TryGetFirstInt(record.Value, "numOfFP", "numOfFingerprint", "fingerprintNum") ?? 0) > 0;
+                    status.HasCard = (TryGetFirstInt(record.Value, "numOfCard", "cardNum") ?? 0) > 0;
+
+                    status.FaceId = TryGetFirstString(record.Value, "faceId");
+                    status.FingerprintId = TryGetFirstString(record.Value, "fingerPrintID", "fingerId");
+                    status.CardNo = TryGetFirstString(record.Value, "cardNo");
+                }
+            }
+
+            if (status.HasCard && string.IsNullOrWhiteSpace(status.CardNo))
+            {
+                status.CardNo = await TryFetchCardNoAsync(http, devIndex, employeeNo, ct);
+            }
+
+            return status;
+        }
+
+        private static HttpClient CreateAuthHttpClient(string ipAddress, int port, string username, string password)
+        {
+            var baseUri = new Uri($"http://{ipAddress}:{port}/");
+
+            var handler = new HttpClientHandler
+            {
+                PreAuthenticate = true,
+                UseCookies = false,
+                Credentials = new CredentialCache
+                {
+                    { baseUri, "Digest", new NetworkCredential(username, password) },
+                    { baseUri, "Basic", new NetworkCredential(username, password) }
+                }
+            };
+
+            var http = new HttpClient(handler) { BaseAddress = baseUri };
+            http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            return http;
+        }
+
+        private static int? TryGetFirstInt(JsonElement element, params string[] names)
+        {
+            foreach (var name in names)
+            {
+                if (!element.TryGetProperty(name, out var value))
+                    continue;
+
+                if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var num))
+                    return num;
+
+                if (value.ValueKind == JsonValueKind.String && int.TryParse(value.GetString(), out num))
+                    return num;
+            }
+
+            return null;
+        }
+
+        private static string? TryGetFirstString(JsonElement element, params string[] names)
+        {
+            foreach (var name in names)
+            {
+                if (!element.TryGetProperty(name, out var value))
+                    continue;
+
+                if (value.ValueKind == JsonValueKind.String)
+                    return value.GetString();
+            }
+
+            return null;
+        }
+
+        private static async Task<string?> TryFetchCardNoAsync(
+            HttpClient http,
+            string? devIndex,
+            string employeeNo,
+            CancellationToken ct)
+        {
+            var searchId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            var payload = new
+            {
+                CardInfoSearchCond = new
+                {
+                    searchID = searchId,
+                    searchResultPosition = 0,
+                    maxResults = 1,
+                    employeeNo = employeeNo
+                }
+            };
+
+            var jsonBody = JsonSerializer.Serialize(payload, _jsonOptions);
+            var url = string.IsNullOrWhiteSpace(devIndex)
+                ? "/ISAPI/AccessControl/CardInfo/Search?format=json"
+                : $"/ISAPI/AccessControl/CardInfo/Search?format=json&devIndex={Uri.EscapeDataString(devIndex)}";
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+            };
+
+            var response = await http.SendAsync(request, ct);
+            var responseBody = await response.Content.ReadAsStringAsync(ct);
+
+            if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
+                return null;
+
+            using var doc = JsonDocument.Parse(responseBody);
+            if (!doc.RootElement.TryGetProperty("CardInfoSearch", out var cardInfoSearch))
+                return null;
+
+            if (!cardInfoSearch.TryGetProperty("CardInfo", out var cardInfo))
+                return null;
+
+            JsonElement? record = null;
+            if (cardInfo.ValueKind == JsonValueKind.Array && cardInfo.GetArrayLength() > 0)
+                record = cardInfo[0];
+            else if (cardInfo.ValueKind == JsonValueKind.Object)
+                record = cardInfo;
+
+            return record.HasValue ? TryGetFirstString(record.Value, "cardNo") : null;
         }
     }
 }
