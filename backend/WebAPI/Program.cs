@@ -146,7 +146,7 @@ builder.Services.AddScoped<IHikvisionLogsService, HikvisionLogsService>();
 builder.Services.AddScoped<IHikvisionSyncService, HikvisionSyncService>();
 // Register generic and specific repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddHostedService<HikvisionAlertStreamWorker>();
+//builder.Services.AddHostedService<HikvisionAlertStreamWorker>();
 
 // Configure CORS policy
 builder.Services.AddCors(options =>
