@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Integrations.Hikvision
 {
@@ -156,8 +157,32 @@ namespace Infrastructure.Integrations.Hikvision
     public sealed class HikvisionClient
     {
         private readonly HttpClient _http;
+        private readonly ILogger<HikvisionClient> _logger;
+        private const string LogPrefix = "[HIKVISION]";
 
-        public HikvisionClient(HttpClient http) => _http = http;
+        public HikvisionClient(HttpClient http, ILogger<HikvisionClient> logger)
+        {
+            _http = http;
+            _logger = logger;
+        }
+
+        private void LogInfo(string message)
+        {
+            _logger.LogInformation("{Prefix} {Message}", LogPrefix, message);
+        }
+
+        private void LogWarning(string message)
+        {
+            _logger.LogWarning("{Prefix} {Message}", LogPrefix, message);
+        }
+
+        private static string Truncate(string? value, int maxLength = 2000)
+        {
+            if (string.IsNullOrEmpty(value) || value.Length <= maxLength)
+                return value ?? string.Empty;
+
+            return value.Substring(0, maxLength) + "...(truncated)";
+        }
 
         public async Task<DeviceListResponse?> GetDeviceListAsync(CancellationToken ct = default)
         {
@@ -187,12 +212,18 @@ namespace Infrastructure.Integrations.Hikvision
             req.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+            LogInfo($"Device list request\nURL: {url}\nMethod: POST\nPayload: {jsonBody}");
+
             var res = await _http.SendAsync(req, ct);
             var json = await res.Content.ReadAsStringAsync(ct);
 
             if (!res.IsSuccessStatusCode)
+            {
+                LogWarning($"Device list response\nStatus: {(int)res.StatusCode} {res.ReasonPhrase}\nBody: {Truncate(json)}");
                 throw new Exception($"Hikvision API failed: {(int)res.StatusCode} {res.ReasonPhrase}\n{json}");
+            }
 
+            LogInfo($"Device list response\nStatus: {(int)res.StatusCode} {res.ReasonPhrase}\nBody: {Truncate(json)}");
             return JsonSerializer.Deserialize<DeviceListResponse>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
@@ -221,6 +252,8 @@ namespace Infrastructure.Integrations.Hikvision
         ? "ISAPI/System/deviceInfo?format=json"
         : $"ISAPI/System/deviceInfo?format=json&devIndex={Uri.EscapeDataString(devIndex)}";
 
+            LogInfo($"Credential check request\nURL: {new Uri(baseUri, path)}\nMethod: GET\nDevIndex: {devIndex ?? "none"}");
+
             var response = await http.GetAsync(path, ct);
             var body = await response.Content.ReadAsStringAsync(ct);
 
@@ -230,6 +263,8 @@ namespace Infrastructure.Integrations.Hikvision
 
             var unauthorized = response.StatusCode == HttpStatusCode.Unauthorized
                 || (body?.Contains("<statusValue>401</statusValue>", StringComparison.OrdinalIgnoreCase) == true);
+
+            LogInfo($"Credential check response\nURL: {new Uri(baseUri, path)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nAuthorized: {!unauthorized}\nBody: {Truncate(body)}");
 
             return new DeviceCredentialCheckResult
             {
@@ -310,7 +345,6 @@ namespace Infrastructure.Integrations.Hikvision
                     LocalUIRight = false
                 }
             };
-            Console.WriteLine("payload-----" + payload);
             var jsonBody = JsonSerializer.Serialize(payload, _jsonOptions);
 
             var url = string.IsNullOrWhiteSpace(devIndex)
@@ -322,6 +356,8 @@ namespace Infrastructure.Integrations.Hikvision
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
+            LogInfo($"Add person request\nURL: {new Uri(baseUri, url)}\nMethod: POST\nEmployeeNo: {person.EmployeeNo}\nPayload: {jsonBody}");
+
             var response = await http.SendAsync(request, ct);
             var responseBody = await response.Content.ReadAsStringAsync(ct);
 
@@ -331,6 +367,7 @@ namespace Infrastructure.Integrations.Hikvision
                     ? string.Join(" | ", response.Headers.WwwAuthenticate.Select(h => h.ToString()))
                     : null;
 
+                LogWarning($"Add person response\nURL: {new Uri(baseUri, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
                 throw new Exception(
                     $"Hikvision Add Person failed: {(int)response.StatusCode} {response.ReasonPhrase}\n" +
                     $"URL: {new Uri(baseUri, url)}\n" +
@@ -338,6 +375,8 @@ namespace Infrastructure.Integrations.Hikvision
                     $"{responseBody}\nREQUEST:\n{jsonBody}"
                 );
             }
+
+            LogInfo($"Add person response\nURL: {new Uri(baseUri, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
         }
 
         public async Task UpdatePersonInDeviceAsync(
@@ -403,6 +442,8 @@ namespace Infrastructure.Integrations.Hikvision
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
+            LogInfo($"Update person request\nURL: {new Uri(baseUri, url)}\nMethod: PUT\nEmployeeNo: {person.EmployeeNo}\nPayload: {jsonBody}");
+
             var response = await http.SendAsync(request, ct);
             var responseBody = await response.Content.ReadAsStringAsync(ct);
 
@@ -412,6 +453,7 @@ namespace Infrastructure.Integrations.Hikvision
                     ? string.Join(" | ", response.Headers.WwwAuthenticate.Select(h => h.ToString()))
                     : null;
 
+                LogWarning($"Update person response\nURL: {new Uri(baseUri, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
                 throw new Exception(
                     $"Hikvision Update Person failed: {(int)response.StatusCode} {response.ReasonPhrase}\n" +
                     $"URL: {new Uri(baseUri, url)}\n" +
@@ -419,6 +461,8 @@ namespace Infrastructure.Integrations.Hikvision
                     $"{responseBody}\nREQUEST:\n{jsonBody}"
                 );
             }
+
+            LogInfo($"Update person response\nURL: {new Uri(baseUri, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
         }
         //public async Task AddCardAsync(
         //   string ipAddress,
@@ -516,6 +560,8 @@ namespace Infrastructure.Integrations.Hikvision
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
+            LogInfo($"Add card request\nURL: {new Uri(baseUri, url)}\nMethod: POST\nEmployeeNo: {card.EmployeeNo}\nPayload: {jsonBody}");
+
             var response = await http.SendAsync(request, ct);
             var responseBody = await response.Content.ReadAsStringAsync(ct);
 
@@ -525,6 +571,7 @@ namespace Infrastructure.Integrations.Hikvision
                     ? string.Join(" | ", response.Headers.WwwAuthenticate.Select(h => h.ToString()))
                     : null;
 
+                LogWarning($"Add card response\nURL: {new Uri(baseUri, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
                 throw new Exception(
                     $"Hikvision Add Person failed: {(int)response.StatusCode} {response.ReasonPhrase}\n" +
                     $"URL: {new Uri(baseUri, url)}\n" +
@@ -532,6 +579,8 @@ namespace Infrastructure.Integrations.Hikvision
                     $"{responseBody}\nREQUEST:\n{jsonBody}"
                 );
             }
+
+            LogInfo($"Add card response\nURL: {new Uri(baseUri, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
         }
 
         public async Task<HikvisionBiometricStatus?> GetUserBiometricStatusAsync(
@@ -571,11 +620,18 @@ namespace Infrastructure.Integrations.Hikvision
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
+            LogInfo($"User biometric status request\nURL: {new Uri(http.BaseAddress!, url)}\nMethod: POST\nEmployeeNo: {employeeNo}\nPayload: {jsonBody}");
+
             var response = await http.SendAsync(request, ct);
             var responseBody = await response.Content.ReadAsStringAsync(ct);
 
             if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
+            {
+                LogWarning($"User biometric status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
                 return null;
+            }
+
+            LogInfo($"User biometric status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
 
             var status = new HikvisionBiometricStatus();
             using var doc = JsonDocument.Parse(responseBody);
