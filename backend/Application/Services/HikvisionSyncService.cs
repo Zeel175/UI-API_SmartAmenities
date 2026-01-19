@@ -93,10 +93,20 @@ namespace Application.Services
                     resident.FaceId = status.FaceId ?? "ENROLLED";
                     updates.Add("FaceId");
                 }
+                else if (!status.HasFace && !string.IsNullOrWhiteSpace(resident.FaceId))
+                {
+                    resident.FaceId = null;
+                    updates.Add("FaceId");
+                }
 
                 if (status.HasFingerprint && string.IsNullOrWhiteSpace(resident.FingerId))
                 {
                     resident.FingerId = status.FingerprintId ?? "ENROLLED";
+                    updates.Add("FingerId");
+                }
+                else if (!status.HasFingerprint && !string.IsNullOrWhiteSpace(resident.FingerId))
+                {
+                    resident.FingerId = null;
                     updates.Add("FingerId");
                 }
 
@@ -107,6 +117,11 @@ namespace Application.Services
                         resident.CardId = status.CardNo;
                         updates.Add("CardId");
                     }
+                }
+                else if (!status.HasCard && !string.IsNullOrWhiteSpace(resident.CardId))
+                {
+                    resident.CardId = null;
+                    updates.Add("CardId");
                 }
 
                 resident.HasFace = status.HasFace;
@@ -134,10 +149,20 @@ namespace Application.Services
                     family.FaceId = status.FaceId ?? "ENROLLED";
                     updates.Add("FaceId");
                 }
+                else if (!status.HasFace && !string.IsNullOrWhiteSpace(family.FaceId))
+                {
+                    family.FaceId = null;
+                    updates.Add("FaceId");
+                }
 
                 if (status.HasFingerprint && string.IsNullOrWhiteSpace(family.FingerId))
                 {
                     family.FingerId = status.FingerprintId ?? "ENROLLED";
+                    updates.Add("FingerId");
+                }
+                else if (!status.HasFingerprint && !string.IsNullOrWhiteSpace(family.FingerId))
+                {
+                    family.FingerId = null;
                     updates.Add("FingerId");
                 }
 
@@ -148,6 +173,11 @@ namespace Application.Services
                         family.CardId = status.CardNo;
                         updates.Add("CardId");
                     }
+                }
+                else if (!status.HasCard && !string.IsNullOrWhiteSpace(family.CardId))
+                {
+                    family.CardId = null;
+                    updates.Add("CardId");
                 }
 
                 family.HasFace = status.HasFace;

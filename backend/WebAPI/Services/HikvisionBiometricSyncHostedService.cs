@@ -47,24 +47,13 @@ namespace WebAPI.Services
                     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                     var syncService = scope.ServiceProvider.GetRequiredService<IHikvisionSyncService>();
 
-                    var now = DateTime.UtcNow;
-                    var staleBefore = now.AddMinutes(-_options.MinResyncMinutes);
-
                     var residentQuery =
                         from r in db.ResidentMasters
                         join ru in db.ResidentMasterUnits on r.Id equals ru.ResidentMasterId
                         join u in db.Units on ru.UnitId equals u.Id
                         where r.IsActive
                             && ru.IsActive
-                            && (string.IsNullOrWhiteSpace(r.FaceId)
-                                || string.IsNullOrWhiteSpace(r.FingerId)
-                                || string.IsNullOrWhiteSpace(r.CardId)
-                                || !r.HasFace
-                                || !r.HasFingerprint)
-                            && (r.LastBiometricSyncUtc == null
-                                || r.LastBiometricSyncUtc <= staleBefore
-                                || !r.HasFace
-                                || !r.HasFingerprint)
+                        orderby r.LastBiometricSyncUtc ?? DateTime.MinValue
                         select new { EmployeeNo = r.Code, BuildingId = (int?)u.BuildingId };
 
                     var residents = await residentQuery
@@ -83,15 +72,7 @@ namespace WebAPI.Services
                             join u in db.Units on fu.UnitId equals u.Id
                             where f.IsActive
                                 && fu.IsActive
-                                && (string.IsNullOrWhiteSpace(f.FaceId)
-                                    || string.IsNullOrWhiteSpace(f.FingerId)
-                                    || string.IsNullOrWhiteSpace(f.CardId)
-                                    || !f.HasFace
-                                    || !f.HasFingerprint)
-                                && (f.LastBiometricSyncUtc == null
-                                    || f.LastBiometricSyncUtc <= staleBefore
-                                    || !f.HasFace
-                                    || !f.HasFingerprint)
+                                orderby f.LastBiometricSyncUtc ?? DateTime.MinValue
                             select new { EmployeeNo = f.Code, BuildingId = (int?)u.BuildingId };
 
                         var family = await familyQuery
