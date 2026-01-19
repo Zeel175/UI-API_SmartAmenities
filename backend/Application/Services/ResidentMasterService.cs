@@ -1130,6 +1130,7 @@ namespace Application.Services
                         Email = m.Email,
                         Mobile = m.Mobile,
                         FaceId = m.FaceId,
+                        FaceUrl = m.FaceUrl,
                         FingerId = m.FingerId,
                         CardId = m.CardId,
                         QrId = m.QrId,
@@ -1453,6 +1454,7 @@ namespace Application.Services
                 Mobile = r.Mobile,
                 CountryCode = r.CountryCode,
                 FaceId = r.FaceId,
+                FaceUrl = r.FaceUrl,
                 FingerId = r.FingerId,
                 CardId = r.CardId,
                 QrId = r.QrId,
@@ -1478,6 +1480,7 @@ namespace Application.Services
                     Email = f.Email,
                     Mobile = f.Mobile,
                     FaceId = f.FaceId,
+                    FaceUrl = f.FaceUrl,
                     FingerId = f.FingerId,
                     CardId = f.CardId,
                     QrId = f.QrId,
@@ -1535,6 +1538,7 @@ namespace Application.Services
                 entity.Mobile = resident.Mobile;
                 entity.CountryCode = resident.CountryCode;
                 entity.FaceId = resident.FaceId;
+                entity.FaceUrl = resident.FaceUrl;
                 entity.FingerId = resident.FingerId;
                 entity.IsActive = resident.IsActive;
                 entity.IsResident = resident.IsResident;
@@ -1595,6 +1599,7 @@ namespace Application.Services
                         existingMember.Email = memberModel.Email;
                         existingMember.Mobile = memberModel.Mobile;
                         existingMember.FaceId = memberModel.FaceId;
+                        existingMember.FaceUrl = memberModel.FaceUrl;
                         existingMember.FingerId = memberModel.FingerId;
                         existingMember.CardId = memberModel.CardId;
                         existingMember.QrId = memberModel.QrId;
@@ -1636,6 +1641,7 @@ namespace Application.Services
                             Email = memberModel.Email,
                             Mobile = memberModel.Mobile,
                             FaceId = memberModel.FaceId,
+                            FaceUrl = memberModel.FaceUrl,
                             FingerId = memberModel.FingerId,
                             CardId = memberModel.CardId,
                             QrId = memberModel.QrId,
@@ -1982,6 +1988,7 @@ namespace Application.Services
                 if (dto.Mobile != null) memberEntity.Mobile = string.IsNullOrWhiteSpace(dto.Mobile) ? null : dto.Mobile.Trim();
 
                 if (dto.FaceId != null) memberEntity.FaceId = dto.FaceId;
+                if (dto.FaceUrl != null) memberEntity.FaceUrl = dto.FaceUrl;
                 if (dto.FingerId != null) memberEntity.FingerId = dto.FingerId;
 
                 if (dto.ProfilePhoto != null && !string.IsNullOrWhiteSpace(dto.ProfilePhoto))
@@ -2173,6 +2180,7 @@ namespace Application.Services
 
                 if (dto.CountryCode != null) entity.CountryCode = dto.CountryCode;
                 if (dto.FaceId != null) entity.FaceId = dto.FaceId;
+                if (dto.FaceUrl != null) entity.FaceUrl = dto.FaceUrl;
                 if (dto.FingerId != null) entity.FingerId = dto.FingerId;
 
                 if (dto.ProfilePhoto != null && !string.IsNullOrWhiteSpace(dto.ProfilePhoto))
@@ -2329,6 +2337,7 @@ namespace Application.Services
             entity.Mobile = resident.Mobile;
             entity.CountryCode = resident.CountryCode;
             entity.FaceId = resident.FaceId;
+            entity.FaceUrl = resident.FaceUrl;
             entity.FingerId = resident.FingerId;
             var wantsCardUpdate = !string.IsNullOrWhiteSpace(resident.CardId);
 
@@ -2468,6 +2477,7 @@ namespace Application.Services
             memberEntity.Email = member.Email;
             memberEntity.Mobile = member.Mobile;
             memberEntity.FaceId = member.FaceId;
+            memberEntity.FaceUrl = member.FaceUrl;
             memberEntity.FingerId = member.FingerId;
             var wantsCardUpdate = !string.IsNullOrWhiteSpace(member.CardId);
 
@@ -2620,6 +2630,7 @@ namespace Application.Services
                 entity.Mobile = resident.Mobile;
                 entity.CountryCode = resident.CountryCode;
                 entity.FaceId = resident.FaceId;
+                entity.FaceUrl = resident.FaceUrl;
                 entity.FingerId = resident.FingerId;
 
                 if (!string.IsNullOrWhiteSpace(resident.Password))
@@ -2863,6 +2874,7 @@ namespace Application.Services
                 existingMember.Email = member.Email;
                 existingMember.Mobile = member.Mobile;
                 existingMember.FaceId = member.FaceId;
+                existingMember.FaceUrl = member.FaceUrl;
                 existingMember.FingerId = member.FingerId;
                 existingMember.CardId = member.CardId;
                 existingMember.QrId = member.QrId;
@@ -3048,6 +3060,7 @@ namespace Application.Services
                 Email = f.Email,
                 Mobile = f.Mobile,
                 FaceId = f.FaceId,
+                FaceUrl = f.FaceUrl,
                 FingerId = f.FingerId,
                 CardId = f.CardId,
                 QrId = f.QrId,

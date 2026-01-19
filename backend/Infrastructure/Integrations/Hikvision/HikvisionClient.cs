@@ -151,6 +151,7 @@ namespace Infrastructure.Integrations.Hikvision
         public bool HasFingerprint { get; set; }
         public bool HasCard { get; set; }
         public string? FaceId { get; set; }
+        public string? FaceUrl { get; set; }
         public string? FingerprintId { get; set; }
         public string? CardNo { get; set; }
     }
@@ -768,6 +769,17 @@ namespace Infrastructure.Integrations.Hikvision
                         status.HasCard = (TryGetFirstInt(record.Value, "numOfCard", "cardNum") ?? 0) > 0;
 
                         status.FaceId = TryGetFirstString(record.Value, "faceId");
+                        status.FaceUrl = TryGetFirstString(
+                            record.Value,
+                            "faceURL",
+                            "faceUrl",
+                            "facePicURL",
+                            "facePicUrl",
+                            "facePicture",
+                            "facePictureUrl",
+                            "faceImageUrl",
+                            "faceImageURL",
+                            "faceImage");
                         status.FingerprintId = TryGetFirstString(record.Value, "fingerPrintID", "fingerId");
                         status.CardNo = TryGetFirstString(record.Value, "cardNo");
 
@@ -783,7 +795,7 @@ namespace Infrastructure.Integrations.Hikvision
                         LogInfo(
                             $"User biometric status parsed\nEmployeeNo: {employeeNo}\n" +
                             $"HasFace: {status.HasFace} HasFingerprint: {status.HasFingerprint} HasCard: {status.HasCard}\n" +
-                            $"FaceId: {status.FaceId ?? "null"} FingerprintId: {status.FingerprintId ?? "null"} CardNo: {status.CardNo ?? "null"}\n" +
+                            $"FaceId: {status.FaceId ?? "null"} FaceUrl: {status.FaceUrl ?? "null"} FingerprintId: {status.FingerprintId ?? "null"} CardNo: {status.CardNo ?? "null"}\n" +
                             $"UserInfoKeys: {string.Join(", ", record.Value.EnumerateObject().Select(p => p.Name))}");
                         break;
                     }
@@ -833,6 +845,44 @@ namespace Infrastructure.Integrations.Hikvision
             return status;
         }
 
+        public async Task<(byte[] Data, string? ContentType)?> DownloadFaceImageAsync(
+            string ipAddress,
+            int port,
+            string username,
+            string password,
+            string faceUrl,
+            CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(faceUrl))
+                return null;
+
+            using var http = CreateAuthHttpClient(ipAddress, port, username, password);
+
+            if (!TryBuildRequestUri(http.BaseAddress!, faceUrl, out var requestUri))
+            {
+                LogWarning($"Face image download skipped. Invalid faceUrl: {faceUrl}");
+                return null;
+            }
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            LogInfo($"Face image download request\nURL: {requestUri}");
+
+            var response = await http.SendAsync(request, ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync(ct);
+                LogWarning(
+                    $"Face image download failed\nURL: {requestUri}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(body)}");
+                return null;
+            }
+
+            var data = await response.Content.ReadAsByteArrayAsync(ct);
+            var contentType = response.Content.Headers.ContentType?.MediaType;
+            LogInfo($"Face image download success\nURL: {requestUri}\nBytes: {data.Length}\nContent-Type: {contentType}");
+
+            return (data, contentType);
+        }
+
         private static HttpClient CreateAuthHttpClient(string ipAddress, int port, string username, string password)
         {
             var baseUri = new Uri($"http://{ipAddress}:{port}/");
@@ -851,6 +901,25 @@ namespace Infrastructure.Integrations.Hikvision
             var http = new HttpClient(handler) { BaseAddress = baseUri };
             http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             return http;
+        }
+
+        private static bool TryBuildRequestUri(Uri baseUri, string faceUrl, out Uri requestUri)
+        {
+            if (Uri.TryCreate(faceUrl, UriKind.Absolute, out var absolute))
+            {
+                requestUri = absolute;
+                return true;
+            }
+
+            var sanitized = faceUrl.TrimStart('/');
+            if (Uri.TryCreate(baseUri, sanitized, out var relative))
+            {
+                requestUri = relative;
+                return true;
+            }
+
+            requestUri = baseUri;
+            return false;
         }
 
         private static int? TryGetFirstInt(JsonElement element, params string[] names)
