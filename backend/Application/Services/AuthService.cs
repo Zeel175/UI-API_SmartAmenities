@@ -99,7 +99,7 @@ namespace Application.Services
             if (user == null)
             {
                 response.IsSuccess = false;
-                response.Message = "Invalid username or password";
+                response.Message = "User not found";
                 return response;
             }
 
