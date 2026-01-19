@@ -744,9 +744,6 @@ namespace Infrastructure.Integrations.Hikvision
                                 break;
                             }
                         }
-
-                        if (!record.HasValue && recordsReturned > 0)
-                            record = userInfo[0];
                     }
                     else if (userInfo.ValueKind == JsonValueKind.Object)
                     {
@@ -789,6 +786,10 @@ namespace Infrastructure.Integrations.Hikvision
                             $"FaceId: {status.FaceId ?? "null"} FingerprintId: {status.FingerprintId ?? "null"} CardNo: {status.CardNo ?? "null"}\n" +
                             $"UserInfoKeys: {string.Join(", ", record.Value.EnumerateObject().Select(p => p.Name))}");
                         break;
+                    }
+                    else
+                    {
+                        LogInfo($"User biometric status record not found for employeeNo {employeeNo} on current page.");
                     }
 
                     hasMore = userInfoSearch.TryGetProperty("responseStatusStrg", out var statusStrg)
