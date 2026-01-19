@@ -33,6 +33,8 @@ namespace Domain.ViewModels
         public string FaceId { get; set; }
 
         public string? FaceUrl { get; set; }
+        public string? FaceImageBase64 { get; set; }
+        public string? FaceImageContentType { get; set; }
 
         public string FingerId { get; set; }
 

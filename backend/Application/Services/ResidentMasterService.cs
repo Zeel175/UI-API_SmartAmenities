@@ -1397,6 +1397,8 @@ namespace Application.Services
                 var resident = await GetResidentByIdAsync(residentMasterId.Value, includeFamilyMembers: false);
                 if (resident == null) return null;
 
+                await TryAttachFaceImageAsync(resident, CancellationToken.None);
+
                 return new ResidentDetailResponse
                 {
                     Type = "Resident",
@@ -1416,6 +1418,8 @@ namespace Application.Services
 
                 var member = _dataMapper.Map<ResidentFamilyMember, ResidentFamilyMemberAddEdit>(memberEntity);
 
+                await TryAttachFaceImageAsync(memberEntity, member, CancellationToken.None);
+
                 return new ResidentDetailResponse
                 {
                     Type = "FamilyMember",
@@ -1425,6 +1429,91 @@ namespace Application.Services
             }
 
             return null;
+        }
+
+        private async Task TryAttachFaceImageAsync(ResidentMasterAddEdit resident, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(resident.FaceUrl) || resident.UnitIds == null || resident.UnitIds.Count == 0)
+                return;
+
+            var buildingId = await _context.Set<Unit>()
+                .Where(unit => resident.UnitIds.Contains(unit.Id))
+                .Select(unit => unit.BuildingId)
+                .FirstOrDefaultAsync(ct);
+
+            if (buildingId == 0)
+                return;
+
+            var result = await TryDownloadFaceImageAsync(buildingId, resident.FaceUrl, ct);
+            if (result == null || result.Value.Data.Length == 0)
+                return;
+
+            resident.FaceImageBase64 = Convert.ToBase64String(result.Value.Data);
+            resident.FaceImageContentType = result.Value.ContentType;
+        }
+
+        private async Task TryAttachFaceImageAsync(
+            ResidentFamilyMember memberEntity,
+            ResidentFamilyMemberAddEdit member,
+            CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(member.FaceUrl))
+                return;
+
+            var buildingId = memberEntity.MemberUnits?
+                .Select(mu => mu.Unit?.BuildingId)
+                .FirstOrDefault(id => id.HasValue)
+                ?.GetValueOrDefault();
+
+            if (!buildingId.HasValue || buildingId.Value == 0)
+                return;
+
+            var result = await TryDownloadFaceImageAsync(buildingId.Value, member.FaceUrl, ct);
+            if (result == null || result.Value.Data.Length == 0)
+                return;
+
+            member.FaceImageBase64 = Convert.ToBase64String(result.Value.Data);
+            member.FaceImageContentType = result.Value.ContentType;
+        }
+
+        private async Task<(byte[] Data, string? ContentType)?> TryDownloadFaceImageAsync(
+            long buildingId,
+            string faceUrl,
+            CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(faceUrl))
+                return null;
+
+            var device = await (
+                from b in _context.Buildings
+                join d in _context.HikDevices on b.DeviceId equals d.Id
+                where b.IsActive && b.Id == buildingId
+                select new
+                {
+                    d.IpAddress,
+                    d.PortNo,
+                    d.DevIndex,
+                    b.DeviceUserName,
+                    b.DevicePassword
+                }).FirstOrDefaultAsync(ct);
+
+            if (device == null
+                || string.IsNullOrWhiteSpace(device.IpAddress)
+                || string.IsNullOrWhiteSpace(device.DeviceUserName)
+                || string.IsNullOrWhiteSpace(device.DevicePassword))
+            {
+                return null;
+            }
+
+            var password = _secretProtector.Unprotect(device.DevicePassword);
+
+            return await _hikvisionClient.DownloadFaceImageAsync(
+                device.IpAddress,
+                device.PortNo ?? 80,
+                device.DeviceUserName,
+                password,
+                faceUrl,
+                ct);
         }
         public async Task<PaginatedList<ResidentMasterList>> GetResidentsAsync(int pageIndex, int pageSize)
         {
