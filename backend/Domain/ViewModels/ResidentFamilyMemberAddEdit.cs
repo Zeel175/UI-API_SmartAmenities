@@ -39,6 +39,9 @@ namespace Domain.ViewModels
         public string QrId { get; set; }
         public string? QrCodeValue { get; set; }
         public string? QrCodeImagePath { get; set; }
+        public bool HasFace { get; set; }
+        public bool HasFingerprint { get; set; }
+        public DateTime? LastBiometricSyncUtc { get; set; }
         public bool IsActive { get; set; }
         public bool IsResident { get; set; }
 
