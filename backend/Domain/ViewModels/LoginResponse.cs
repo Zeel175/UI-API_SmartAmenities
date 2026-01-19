@@ -17,6 +17,9 @@ public class LoginResponse
     public long? Id { get; set; }
     public long? ResidentMasterId { get; set; }
     public long? ResidentFamilyMemberId { get; set; }
+    public bool HasFace { get; set; }
+    public bool HasFingerprint { get; set; }
+    public DateTime? LastBiometricSyncUtc { get; set; }
     public List<long> UnitIds { get; set; }
     public List<UnitInfo> Units { get; set; }
     public string Token { get; set; }

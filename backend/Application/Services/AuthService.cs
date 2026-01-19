@@ -158,6 +158,7 @@ namespace Application.Services
 
             response.ResidentMasterId = residentMap?.ResidentMasterId;
             response.ResidentFamilyMemberId = residentMap?.ResidentFamilyMemberId;
+            await PopulateBiometricStatusAsync(response, response.ResidentMasterId, response.ResidentFamilyMemberId);
             var unitSummaries = await GetUnitSummariesAsync(residentMap?.ResidentMasterId, residentMap?.ResidentFamilyMemberId);
             response.UnitIds = unitSummaries.Select(unit => unit.UnitId).ToList();
             response.Units = unitSummaries;
@@ -184,6 +185,43 @@ namespace Application.Services
                     .ToListAsync();
             }
             return response;
+        }
+
+        private async Task PopulateBiometricStatusAsync(LoginResponse response, long? residentMasterId, long? residentFamilyMemberId)
+        {
+            if (residentMasterId.HasValue)
+            {
+                var status = await _db.ResidentMasters
+                    .AsNoTracking()
+                    .Where(r => r.Id == residentMasterId.Value)
+                    .Select(r => new { r.HasFace, r.HasFingerprint, r.LastBiometricSyncUtc })
+                    .FirstOrDefaultAsync();
+
+                if (status != null)
+                {
+                    response.HasFace = status.HasFace;
+                    response.HasFingerprint = status.HasFingerprint;
+                    response.LastBiometricSyncUtc = status.LastBiometricSyncUtc;
+                }
+
+                return;
+            }
+
+            if (residentFamilyMemberId.HasValue)
+            {
+                var status = await _db.ResidentFamilyMembers
+                    .AsNoTracking()
+                    .Where(f => f.Id == residentFamilyMemberId.Value)
+                    .Select(f => new { f.HasFace, f.HasFingerprint, f.LastBiometricSyncUtc })
+                    .FirstOrDefaultAsync();
+
+                if (status != null)
+                {
+                    response.HasFace = status.HasFace;
+                    response.HasFingerprint = status.HasFingerprint;
+                    response.LastBiometricSyncUtc = status.LastBiometricSyncUtc;
+                }
+            }
         }
 
         public async Task LogoutAsync()
