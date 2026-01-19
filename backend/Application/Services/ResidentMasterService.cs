@@ -1462,8 +1462,7 @@ namespace Application.Services
 
             var buildingId = memberEntity.MemberUnits?
                 .Select(mu => mu.Unit?.BuildingId)
-                .FirstOrDefault(id => id.HasValue)
-                ?.GetValueOrDefault();
+                .FirstOrDefault(id => id.HasValue);
 
             if (!buildingId.HasValue || buildingId.Value == 0)
                 return;
