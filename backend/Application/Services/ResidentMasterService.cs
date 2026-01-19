@@ -1386,6 +1386,8 @@ namespace Application.Services
                 CreatedDate = d.CreatedDate
             }).ToList();
 
+            await TryAttachFaceImageAsync(model, CancellationToken.None);
+
             return model;
         }
 
@@ -3131,7 +3133,7 @@ namespace Application.Services
                 .ThenBy(f => f.LastName)
                 .ToListAsync();
 
-            return members.Select(f => new ResidentFamilyMemberList
+            var mapped = members.Select(f => new ResidentFamilyMemberList
             {
                 Id = f.Id,
                 ResidentMasterId = f.ResidentMasterId,
@@ -3160,6 +3162,34 @@ namespace Application.Services
                 IsActive = f.IsActive,
                 IsResident = f.IsResident
             }).ToList();
+
+            foreach (var member in mapped)
+            {
+                await TryAttachFaceImageAsync(member, CancellationToken.None);
+            }
+
+            return mapped;
+        }
+
+        private async Task TryAttachFaceImageAsync(ResidentFamilyMemberList member, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(member.FaceUrl) || member.UnitIds == null || member.UnitIds.Count == 0)
+                return;
+
+            var buildingId = await _context.Set<Unit>()
+                .Where(unit => member.UnitIds.Contains(unit.Id))
+                .Select(unit => unit.BuildingId)
+                .FirstOrDefaultAsync(ct);
+
+            if (buildingId == 0)
+                return;
+
+            var result = await TryDownloadFaceImageAsync(buildingId, member.FaceUrl, ct);
+            if (result == null || result.Value.Data.Length == 0)
+                return;
+
+            member.FaceImageBase64 = Convert.ToBase64String(result.Value.Data);
+            member.FaceImageContentType = result.Value.ContentType;
         }
         private static (string begin, string end) BuildValidPeriod10Years()
         {
