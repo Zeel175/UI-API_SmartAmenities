@@ -58,8 +58,13 @@ namespace WebAPI.Services
                             && ru.IsActive
                             && (string.IsNullOrWhiteSpace(r.FaceId)
                                 || string.IsNullOrWhiteSpace(r.FingerId)
-                                || string.IsNullOrWhiteSpace(r.CardId))
-                            && (r.LastBiometricSyncUtc == null || r.LastBiometricSyncUtc <= staleBefore)
+                                || string.IsNullOrWhiteSpace(r.CardId)
+                                || !r.HasFace
+                                || !r.HasFingerprint)
+                            && (r.LastBiometricSyncUtc == null
+                                || r.LastBiometricSyncUtc <= staleBefore
+                                || !r.HasFace
+                                || !r.HasFingerprint)
                         select new { EmployeeNo = r.Code, BuildingId = (int?)u.BuildingId };
 
                     var residents = await residentQuery
@@ -80,7 +85,13 @@ namespace WebAPI.Services
                                 && fu.IsActive
                                 && (string.IsNullOrWhiteSpace(f.FaceId)
                                     || string.IsNullOrWhiteSpace(f.FingerId)
-                                    || string.IsNullOrWhiteSpace(f.CardId))
+                                    || string.IsNullOrWhiteSpace(f.CardId)
+                                    || !f.HasFace
+                                    || !f.HasFingerprint)
+                                && (f.LastBiometricSyncUtc == null
+                                    || f.LastBiometricSyncUtc <= staleBefore
+                                    || !f.HasFace
+                                    || !f.HasFingerprint)
                             select new { EmployeeNo = f.Code, BuildingId = (int?)u.BuildingId };
 
                         var family = await familyQuery
