@@ -99,8 +99,27 @@
                             {{ user.fullName || ((user.firstName || '') + ' ' + (user.lastName || '')).trim() || user.userName || user.name }}
                         </mat-option>
                     </mat-select>
-                    <mat-error *ngIf="form.get('userIds')?.touched && form.get('userIds')?.invalid">
-                        User is required.
+                    <mat-error *ngIf="(form.get('userIds')?.touched || form.get('guestIds')?.touched) && form.errors?.['userOrGuestRequired']">
+                        Select at least one user or guest.
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Guest</mat-label>
+                    <mat-select
+                        formControlName="guestIds"
+                        [disabled]="!guestOptions.length"
+                        multiple
+                    >
+                        <mat-select-trigger>
+                            {{ (form.get('guestIds')?.value?.length || 0) + ' selected' }}
+                        </mat-select-trigger>
+                        <mat-option *ngFor="let guest of guestOptions" [value]="guest.id">
+                            {{ ((guest.firstName || '') + ' ' + (guest.lastName || '')).trim() || guest.name || guest.code }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="(form.get('userIds')?.touched || form.get('guestIds')?.touched) && form.errors?.['userOrGuestRequired']">
+                        Select at least one user or guest.
                     </mat-error>
                 </mat-form-field>
 

@@ -135,6 +135,7 @@ export const APIConstant = {
     GuestMasterDelete: `${basePath}GuestMaster/DeleteGuest`,
     GuestMasterDocuments: `${basePath}GuestMaster/Documents`,
     GuestMasterDocumentDelete: `${basePath}GuestMaster/Documents/Delete`,
+    GuestMasterByUnit: `${basePath}GuestMaster/List/by-unit`,
 
     //Floor
     FloorMasterList: `${basePath}Floor/GetAllFloor`,

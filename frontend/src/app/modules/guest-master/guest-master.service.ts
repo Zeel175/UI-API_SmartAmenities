@@ -55,6 +55,9 @@ export class GuestMasterService extends CRUDService<GuestMaster> {
   deleteGuest(id: number): Observable<void> {
     return this.http.delete<void>(`${APIConstant.GuestMasterDelete}?id=${id}`);
   }
+  getGuestsByUnit(unitId: number) {
+    return this.http.get(`${APIConstant.GuestMasterByUnit}?unitId=${unitId}`);
+  }
   getGuestDocuments(guestId: number) {
   return this.http.get<any[]>(
     `${APIConstant.GuestMasterDocuments}?guestId=${guestId}`
