@@ -35,8 +35,18 @@ namespace SmartAmenities_API.Controllers
             var result = await _otpService.VerifyOtpAsync(request);
 
             if (!result.IsSuccess)
-                return BadRequest(result);
+            {
+                if (string.Equals(result.Message, "User not found", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return NotFound(result);
+                }
+                if (string.Equals(result.Message, "Invalid username or password", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest(new { error = "InvalidCredentials", message = result.Message });
+                }
 
+                return BadRequest(result);
+            }
             return Ok(result);
         }
     }

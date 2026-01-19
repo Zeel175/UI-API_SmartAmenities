@@ -12,3 +12,4 @@
 
 # Logs
 *.log
+/backend/.vs/SmartAmenities/FileContentIndex
