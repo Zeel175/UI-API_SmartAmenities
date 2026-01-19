@@ -110,19 +110,7 @@ namespace Application.Services
                     updates.Add("FingerId");
                 }
 
-                if (status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
-                {
-                    if (string.IsNullOrWhiteSpace(resident.CardId) || resident.CardId != status.CardNo)
-                    {
-                        resident.CardId = status.CardNo;
-                        updates.Add("CardId");
-                    }
-                }
-                else if (!status.HasCard && !string.IsNullOrWhiteSpace(resident.CardId))
-                {
-                    resident.CardId = null;
-                    updates.Add("CardId");
-                }
+                // Keep CardId/QrId stable after creation. Do not override from device sync.
 
                 resident.HasFace = status.HasFace;
                 resident.HasFingerprint = status.HasFingerprint;
@@ -166,19 +154,7 @@ namespace Application.Services
                     updates.Add("FingerId");
                 }
 
-                if (status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
-                {
-                    if (string.IsNullOrWhiteSpace(family.CardId) || family.CardId != status.CardNo)
-                    {
-                        family.CardId = status.CardNo;
-                        updates.Add("CardId");
-                    }
-                }
-                else if (!status.HasCard && !string.IsNullOrWhiteSpace(family.CardId))
-                {
-                    family.CardId = null;
-                    updates.Add("CardId");
-                }
+                // Keep CardId/QrId stable after creation. Do not override from device sync.
 
                 family.HasFace = status.HasFace;
                 family.HasFingerprint = status.HasFingerprint;
