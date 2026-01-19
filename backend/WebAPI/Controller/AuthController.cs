@@ -76,6 +76,10 @@ namespace WebAPI.Controller
             {
                 return NotFound(response);
             }
+            if (string.Equals(response.Message, "Invalid username or password", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new { error = "InvalidCredentials", message = response.Message });
+            }
             return Unauthorized(response);
         }
     }
