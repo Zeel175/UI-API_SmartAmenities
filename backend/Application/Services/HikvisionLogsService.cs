@@ -70,11 +70,22 @@ namespace Application.Services
     .Distinct()
     .ToList() ?? new List<string>();
 
-            // B) If EmployeeNos empty, resolve from UserIds
-            if (selectedEmployeeNos.Count == 0 && request.UserIds != null && request.UserIds.Count > 0)
+            // B) Resolve from UserIds (Residents) and GuestIds
+            if (request.UserIds != null && request.UserIds.Count > 0)
             {
-                selectedEmployeeNos = await ResolveEmployeeNosFromUserIdsAsync(request.UserIds, request.UnitId);
+                selectedEmployeeNos.AddRange(await ResolveEmployeeNosFromUserIdsAsync(request.UserIds, request.UnitId));
             }
+
+            if (request.GuestIds != null && request.GuestIds.Count > 0)
+            {
+                selectedEmployeeNos.AddRange(await ResolveEmployeeNosFromGuestIdsAsync(request.GuestIds, request.UnitId));
+            }
+
+            selectedEmployeeNos = selectedEmployeeNos
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct()
+                .ToList();
 
             // C) AllUsers only when checkbox true AND no selected users
             var fetchAllUsers = request.AllUsers && selectedEmployeeNos.Count == 0;
@@ -205,6 +216,30 @@ namespace Application.Services
                 .ToListAsync();
 
             return directCodes;
+        }
+
+        private async Task<List<string>> ResolveEmployeeNosFromGuestIdsAsync(List<long> guestIds, long? unitId)
+        {
+            if (guestIds == null || guestIds.Count == 0)
+            {
+                return new List<string>();
+            }
+
+            var query = _db.GuestMasters
+                .AsNoTracking()
+                .Where(guest => guest.IsActive && guestIds.Contains(guest.Id));
+
+            if (unitId.HasValue)
+            {
+                query = query.Where(guest => guest.UnitId == unitId.Value);
+            }
+
+            return await query
+                .Select(guest => guest.Code)
+                .Where(code => !string.IsNullOrWhiteSpace(code))
+                .Select(code => code.Trim())
+                .Distinct()
+                .ToListAsync();
         }
 
         private static TimeZoneInfo GetIstTimeZone()

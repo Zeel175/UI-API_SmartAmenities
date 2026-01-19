@@ -19,6 +19,7 @@ namespace Application.Interfaces
         long guestId,
         CancellationToken ct = default);
         Task<IReadOnlyList<GuestMasterList>> GetGuestsByResidentAsync(long? residentMasterId, long? residentFamilyMemberId);
+        Task<IReadOnlyList<GuestMasterList>> GetGuestsByUnitAsync(long unitId);
         Task<GuestMasterAddEdit?> GetGuestByQrIdAsync(string qrId, CancellationToken ct = default);
     }
 }

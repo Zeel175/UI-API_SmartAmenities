@@ -1,6 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -12,6 +12,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { HikvisionLogsService } from 'app/modules/hikvision-logs/hikvision-logs.service';
+import { GuestMasterService } from 'app/modules/guest-master/guest-master.service';
 import { ResidentMasterService } from 'app/modules/resident-master/resident-master.service';
 import { UnitService } from 'app/modules/unit/unit.service';
 import { ColumnFilterComponent } from 'app/shared/components/column-filter/column-filter.component';
@@ -38,6 +39,14 @@ interface UserOption {
     lastName?: string;
     userName?: string;
     name?: string;
+}
+
+interface GuestOption {
+    id: number;
+    firstName?: string;
+    lastName?: string;
+    name?: string;
+    code?: string;
 }
 
 interface HikvisionLogEntry {
@@ -87,11 +96,13 @@ export class HikvisionLogsComponent implements OnInit {
         building: string;
         unit: string;
         user: string;
+        guest: string;
     } | null = null;
 
     buildingOptions: BuildingOption[] = [];
     unitOptions: UnitOption[] = [];
     userOptions: UserOption[] = [];
+    guestOptions: GuestOption[] = [];
     logData: HikvisionLogEntry[] = [];
     filteredLogData: HikvisionLogEntry[] = [];
     logLoading = false;
@@ -120,6 +131,7 @@ export class HikvisionLogsComponent implements OnInit {
         private hikvisionLogsService: HikvisionLogsService,
         private unitService: UnitService,
         private residentMasterService: ResidentMasterService,
+        private guestMasterService: GuestMasterService,
         private datePipe: DatePipe
     ) {
         this.form = this.fb.group({
@@ -129,8 +141,9 @@ export class HikvisionLogsComponent implements OnInit {
             endTime: ['', Validators.required],
             buildingId: ['', Validators.required],
             unitId: ['', Validators.required],
-            userIds: [[], Validators.required]
-        });
+            userIds: [[]],
+            guestIds: [[]]
+        }, { validators: [this.requireUserOrGuestSelection] });
     }
 
     ngOnInit(): void {
@@ -141,7 +154,8 @@ export class HikvisionLogsComponent implements OnInit {
     onBuildingChange(buildingId: number): void {
         this.unitOptions = [];
         this.userOptions = [];
-        this.form.patchValue({ unitId: '', userIds: [] });
+        this.guestOptions = [];
+        this.form.patchValue({ unitId: '', userIds: [], guestIds: [] });
 
         if (!buildingId) {
             return;
@@ -154,7 +168,8 @@ export class HikvisionLogsComponent implements OnInit {
 
     onUnitChange(unitId: number): void {
         this.userOptions = [];
-        this.form.patchValue({ userIds: [] });
+        this.guestOptions = [];
+        this.form.patchValue({ userIds: [], guestIds: [] });
 
         if (!unitId) {
             return;
@@ -162,6 +177,10 @@ export class HikvisionLogsComponent implements OnInit {
 
         this.residentMasterService.getUsersByUnit(unitId).subscribe((users: any) => {
             this.userOptions = users?.items || users || [];
+        });
+
+        this.guestMasterService.getGuestsByUnit(unitId).subscribe((guests: any) => {
+            this.guestOptions = guests?.items || guests || [];
         });
     }
 
@@ -203,7 +222,7 @@ export class HikvisionLogsComponent implements OnInit {
             return;
         }
 
-        const { startDate, startTime, endDate, endTime, buildingId, unitId, userIds } = this.form.value;
+        const { startDate, startTime, endDate, endTime, buildingId, unitId, userIds, guestIds } = this.form.value;
         const startDateTime = this.buildDateTime(startDate, startTime);
         const endDateTime = this.buildDateTime(endDate, endTime);
 
@@ -223,6 +242,7 @@ export class HikvisionLogsComponent implements OnInit {
         const building = this.buildingOptions.find(item => item.id === buildingId);
         const unit = this.unitOptions.find(item => item.id === unitId);
         const selectedUsers = this.userOptions.filter(user => userIds?.includes(user.id));
+        const selectedGuests = this.guestOptions.filter(guest => guestIds?.includes(guest.id));
 
         this.logLoading = true;
         this.hikvisionLogsService
@@ -231,7 +251,8 @@ export class HikvisionLogsComponent implements OnInit {
                 end: endDateTime.toISOString(),
                 buildingId,
                 unitId,
-                userIds
+                userIds,
+                guestIds
             })
             .subscribe((result: any) => {
                 this.previewData = {
@@ -239,7 +260,8 @@ export class HikvisionLogsComponent implements OnInit {
                     endDateTime: this.datePipe.transform(endDateTime, 'dd-MM-yyyy HH:mm') ?? '',
                     building: building?.buildingName || building?.name || building?.code || '',
                     unit: unit?.unitName || unit?.name || unit?.code || '',
-                    user: this.getSelectedUsersDisplay(selectedUsers)
+                    user: this.getSelectedUsersDisplay(selectedUsers),
+                    guest: this.getSelectedGuestsDisplay(selectedGuests)
                 };
                 const items = result?.data || result?.items || result || [];
                 this.logData = (items || []).map((entry: HikvisionLogEntry) => ({
@@ -282,6 +304,38 @@ export class HikvisionLogsComponent implements OnInit {
         }
 
         return users.map(user => this.getUserDisplayName(user)).filter(Boolean).join(', ');
+    }
+
+    private getGuestDisplayName(guest?: GuestOption): string {
+        if (!guest) {
+            return '';
+        }
+
+        const fullName = [guest.firstName, guest.lastName].filter(Boolean).join(' ').trim();
+        if (fullName) {
+            return fullName;
+        }
+
+        return guest.name || guest.code || '';
+    }
+
+    private getSelectedGuestsDisplay(guests: GuestOption[]): string {
+        if (!guests?.length) {
+            return '';
+        }
+
+        return guests.map(guest => this.getGuestDisplayName(guest)).filter(Boolean).join(', ');
+    }
+
+    private requireUserOrGuestSelection(group: FormGroup): ValidationErrors | null {
+        const userIds = group.get('userIds')?.value as number[] | null;
+        const guestIds = group.get('guestIds')?.value as number[] | null;
+
+        if ((userIds?.length || 0) === 0 && (guestIds?.length || 0) === 0) {
+            return { userOrGuestRequired: true };
+        }
+
+        return null;
     }
 
     private buildDateTime(date: Date | null, time: string): Date | null {

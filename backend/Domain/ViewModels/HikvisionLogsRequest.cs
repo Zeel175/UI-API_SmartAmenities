@@ -16,6 +16,7 @@ namespace Domain.ViewModels
 
         // NEW: UI sends these
         public List<long> UserIds { get; set; } = new();
+        public List<long> GuestIds { get; set; } = new();
 
         // Optional: keep this for direct testing / Postman
         public List<string> EmployeeNos { get; set; } = new();

@@ -112,6 +112,18 @@ namespace WebAPI.Controller
             var guests = await _guestMasterService.GetGuestsByResidentAsync(residentMasterId, residentFamilyMemberId);
             return Ok(guests);
         }
+
+        [HttpGet("List/by-unit")]
+        public async Task<IActionResult> GetByUnit(long unitId)
+        {
+            if (unitId <= 0)
+            {
+                return BadRequest("unitId is required.");
+            }
+
+            var guests = await _guestMasterService.GetGuestsByUnitAsync(unitId);
+            return Ok(guests);
+        }
         [HttpGet("{guestId:long}/qr-code-value")]
         [ProducesResponseType(typeof(QrCodeDecryptionResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

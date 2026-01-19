@@ -79,8 +79,8 @@ export class GuestMasterAddEditComponent implements OnInit {
     email: ['', Validators.email],
     mobile: [''],
     unitId: [null, Validators.required],
-    cardId: [''],   // ✅ add
-    qrId: [''],     // ✅ add (if backend supports this field)
+    cardId: [{ value: '', disabled: true }],   // ✅ add
+    qrId: [{ value: '', disabled: true }],     // ✅ add (if backend supports this field)
     isActive: [true],
 
     // backend will set these; keep null or remove from form

@@ -9,6 +9,7 @@ export interface HikvisionLogsRequest {
     buildingId: number;
     unitId: number;
     userIds: number[];
+    guestIds: number[];
 }
 
 @Injectable({

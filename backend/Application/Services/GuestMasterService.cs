@@ -1040,6 +1040,39 @@ private string DecryptQrValue(string encryptedQrValue)
                 QrCodeImagePath = guest.QrCodeImagePath
             }).ToList();
         }
+
+        public async Task<IReadOnlyList<GuestMasterList>> GetGuestsByUnitAsync(long unitId)
+        {
+            if (unitId <= 0)
+            {
+                return Array.Empty<GuestMasterList>();
+            }
+
+            var guests = await _guestMasterRepository
+                .Get(guest => guest.IsActive && guest.UnitId == unitId)
+                .AsNoTracking()
+                .OrderBy(guest => guest.FirstName)
+                .ThenBy(guest => guest.LastName)
+                .ToListAsync();
+
+            return guests.Select(guest => new GuestMasterList
+            {
+                Id = guest.Id,
+                Code = guest.Code,
+                FirstName = guest.FirstName,
+                LastName = guest.LastName,
+                Email = guest.Email,
+                Mobile = guest.Mobile,
+                CountryCode = guest.CountryCode,
+                UnitId = guest.UnitId,
+                CardId = guest.CardId,
+                IsActive = guest.IsActive,
+                FromDateTime = guest.FromDateTime,
+                ToDateTime = guest.ToDateTime,
+                QrCodeValue = guest.QrCodeValue,
+                QrCodeImagePath = guest.QrCodeImagePath
+            }).ToList();
+        }
         public async Task<GuestMasterAddEdit?> GetGuestByQrIdAsync(string qrId, CancellationToken ct = default)
         {
             qrId = qrId?.Trim() ?? "";
