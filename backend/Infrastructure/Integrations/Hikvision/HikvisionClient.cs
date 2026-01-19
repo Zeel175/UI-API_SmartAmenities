@@ -218,6 +218,24 @@ namespace Infrastructure.Integrations.Hikvision
         public string EmployeeNo { get; set; } = string.Empty;
     }
 
+    public sealed class HikvisionFingerprintSearchRequest
+    {
+        [JsonPropertyName("FingerPrintCond")]
+        public HikvisionFingerprintSearchCondition FingerPrintCond { get; set; } = new();
+    }
+
+    public sealed class HikvisionFingerprintSearchCondition
+    {
+        [JsonPropertyName("searchID")]
+        public string SearchID { get; set; } = string.Empty;
+        [JsonPropertyName("searchResultPosition")]
+        public int SearchResultPosition { get; set; }
+        [JsonPropertyName("maxResults")]
+        public int MaxResults { get; set; }
+        [JsonPropertyName("employeeNo")]
+        public string EmployeeNo { get; set; } = string.Empty;
+    }
+
     public sealed class HikvisionClient
     {
         private readonly HttpClient _http;
@@ -728,12 +746,31 @@ namespace Infrastructure.Integrations.Hikvision
 
                     if (!status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
                         status.HasCard = true;
+
+                    LogInfo(
+                        $"User biometric status parsed\nEmployeeNo: {employeeNo}\n" +
+                        $"HasFace: {status.HasFace} HasFingerprint: {status.HasFingerprint} HasCard: {status.HasCard}\n" +
+                        $"FaceId: {status.FaceId ?? "null"} FingerprintId: {status.FingerprintId ?? "null"} CardNo: {status.CardNo ?? "null"}\n" +
+                        $"UserInfoKeys: {string.Join(", ", record.Value.EnumerateObject().Select(p => p.Name))}");
                 }
             }
 
-            if (status.HasCard && string.IsNullOrWhiteSpace(status.CardNo))
+            if (!status.HasCard || string.IsNullOrWhiteSpace(status.CardNo))
             {
                 status.CardNo = await TryFetchCardNoAsync(http, devIndex, employeeNo, ct);
+                if (!string.IsNullOrWhiteSpace(status.CardNo))
+                    status.HasCard = true;
+            }
+
+            if (!status.HasFingerprint)
+            {
+                var fingerprint = await TryFetchFingerprintStatusAsync(http, devIndex, employeeNo, ct);
+                if (fingerprint.HasFingerprint)
+                {
+                    status.HasFingerprint = true;
+                    if (!string.IsNullOrWhiteSpace(fingerprint.FingerprintId))
+                        status.FingerprintId = fingerprint.FingerprintId;
+                }
             }
 
             return status;
@@ -838,6 +875,131 @@ namespace Infrastructure.Integrations.Hikvision
                 record = cardInfo;
 
             return record.HasValue ? TryGetFirstString(record.Value, "cardNo") : null;
+        }
+
+        private async Task<(bool HasFingerprint, string? FingerprintId)> TryFetchFingerprintStatusAsync(
+            HttpClient http,
+            string? devIndex,
+            string employeeNo,
+            CancellationToken ct)
+        {
+            var searchId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            var payload = new HikvisionFingerprintSearchRequest
+            {
+                FingerPrintCond = new HikvisionFingerprintSearchCondition
+                {
+                    SearchID = searchId,
+                    SearchResultPosition = 0,
+                    MaxResults = 1,
+                    EmployeeNo = employeeNo
+                }
+            };
+
+            var jsonBody = JsonSerializer.Serialize(payload, _jsonOptions);
+            var urls = new[]
+            {
+                string.IsNullOrWhiteSpace(devIndex)
+                    ? "/ISAPI/AccessControl/FingerPrint/Query?format=json"
+                    : $"/ISAPI/AccessControl/FingerPrint/Query?format=json&devIndex={Uri.EscapeDataString(devIndex)}",
+                string.IsNullOrWhiteSpace(devIndex)
+                    ? "/ISAPI/AccessControl/FingerPrint/Search?format=json"
+                    : $"/ISAPI/AccessControl/FingerPrint/Search?format=json&devIndex={Uri.EscapeDataString(devIndex)}"
+            };
+
+            foreach (var url in urls)
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+                };
+
+                LogInfo($"Fingerprint status request\nURL: {new Uri(http.BaseAddress!, url)}\nMethod: POST\nEmployeeNo: {employeeNo}\nPayload: {jsonBody}");
+
+                HttpResponseMessage response;
+                string responseBody;
+
+                try
+                {
+                    response = await http.SendAsync(request, ct);
+                    responseBody = await response.Content.ReadAsStringAsync(ct);
+                }
+                catch (Exception ex)
+                {
+                    LogWarning($"Fingerprint status request failed\nURL: {new Uri(http.BaseAddress!, url)}\nEmployeeNo: {employeeNo}\nError: {ex.Message}");
+                    continue;
+                }
+
+                if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
+                {
+                    LogWarning($"Fingerprint status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
+                    continue;
+                }
+
+                LogInfo($"Fingerprint status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
+
+                using var doc = JsonDocument.Parse(responseBody);
+                if (TryGetFingerprintInfo(doc.RootElement, out var fingerprintId))
+                    return (true, fingerprintId);
+            }
+
+            return (false, null);
+        }
+
+        private static bool TryGetFingerprintInfo(JsonElement root, out string? fingerprintId)
+        {
+            fingerprintId = null;
+
+            if (!TryGetFirstContainer(root, out var container))
+                return false;
+
+            if (!TryGetFirstArrayElement(container, "FingerPrintInfo", "fingerPrintInfo", out var record))
+                return false;
+
+            fingerprintId = TryGetFirstString(record, "fingerPrintID", "fingerId", "fingerPrintId");
+            return true;
+        }
+
+        private static bool TryGetFirstContainer(JsonElement root, out JsonElement container)
+        {
+            var names = new[] { "FingerPrintSearch", "FingerPrintInfoSearch", "FingerPrintInfo", "FingerPrint" };
+            foreach (var name in names)
+            {
+                if (root.TryGetProperty(name, out var value))
+                {
+                    container = value;
+                    return true;
+                }
+            }
+
+            container = default;
+            return false;
+        }
+
+        private static bool TryGetFirstArrayElement(
+            JsonElement container,
+            string arrayName,
+            string fallbackArrayName,
+            out JsonElement record)
+        {
+            record = default;
+
+            if (!container.TryGetProperty(arrayName, out var arrayElement)
+                && !container.TryGetProperty(fallbackArrayName, out arrayElement))
+                return false;
+
+            if (arrayElement.ValueKind == JsonValueKind.Array && arrayElement.GetArrayLength() > 0)
+            {
+                record = arrayElement[0];
+                return true;
+            }
+
+            if (arrayElement.ValueKind == JsonValueKind.Object)
+            {
+                record = arrayElement;
+                return true;
+            }
+
+            return false;
         }
     }
 }
