@@ -680,78 +680,131 @@ namespace Infrastructure.Integrations.Hikvision
             using var http = CreateAuthHttpClient(ipAddress, port, username, password);
 
             var searchId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            var payload = new HikvisionUserInfoSearchRequest
-            {
-                UserInfoSearchCond = new HikvisionUserInfoSearchCondition
-                {
-                    SearchID = searchId,
-                    SearchResultPosition = 0,
-                    MaxResults = 1,
-                    EmployeeNo = employeeNo
-                }
-            };
-
-            var jsonBody = JsonSerializer.Serialize(payload, _jsonOptions);
-
             var url = string.IsNullOrWhiteSpace(devIndex)
                 ? "/ISAPI/AccessControl/UserInfo/Search?format=json"
                 : $"/ISAPI/AccessControl/UserInfo/Search?format=json&devIndex={Uri.EscapeDataString(devIndex)}";
-
-            using var request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
-            };
-
-            LogInfo($"User biometric status request\nURL: {new Uri(http.BaseAddress!, url)}\nMethod: POST\nEmployeeNo: {employeeNo}\nPayload: {jsonBody}");
-
-            var response = await http.SendAsync(request, ct);
-            var responseBody = await response.Content.ReadAsStringAsync(ct);
-
-            if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
-            {
-                LogWarning($"User biometric status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
-                return null;
-            }
-
-            LogInfo($"User biometric status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
-
             var status = new HikvisionBiometricStatus();
-            using var doc = JsonDocument.Parse(responseBody);
+            var searchPosition = 0;
+            var pageSize = 50;
+            var hasMore = true;
 
-            if (doc.RootElement.TryGetProperty("UserInfoSearch", out var userInfoSearch)
-                && userInfoSearch.TryGetProperty("UserInfo", out var userInfo))
+            while (hasMore)
             {
-                JsonElement? record = null;
-
-                if (userInfo.ValueKind == JsonValueKind.Array && userInfo.GetArrayLength() > 0)
-                    record = userInfo[0];
-                else if (userInfo.ValueKind == JsonValueKind.Object)
-                    record = userInfo;
-
-                if (record.HasValue)
+                var payload = new HikvisionUserInfoSearchRequest
                 {
-                    status.HasFace = (TryGetFirstInt(record.Value, "numOfFace", "faceNum") ?? 0) > 0;
-                    status.HasFingerprint = (TryGetFirstInt(record.Value, "numOfFP", "numOfFingerprint", "fingerprintNum") ?? 0) > 0;
-                    status.HasCard = (TryGetFirstInt(record.Value, "numOfCard", "cardNum") ?? 0) > 0;
+                    UserInfoSearchCond = new HikvisionUserInfoSearchCondition
+                    {
+                        SearchID = searchId,
+                        SearchResultPosition = searchPosition,
+                        MaxResults = pageSize,
+                        EmployeeNo = employeeNo
+                    }
+                };
 
-                    status.FaceId = TryGetFirstString(record.Value, "faceId");
-                    status.FingerprintId = TryGetFirstString(record.Value, "fingerPrintID", "fingerId");
-                    status.CardNo = TryGetFirstString(record.Value, "cardNo");
+                var jsonBody = JsonSerializer.Serialize(payload, _jsonOptions);
 
-                    if (!status.HasFace && !string.IsNullOrWhiteSpace(status.FaceId))
-                        status.HasFace = true;
+                using var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+                };
 
-                    if (!status.HasFingerprint && !string.IsNullOrWhiteSpace(status.FingerprintId))
-                        status.HasFingerprint = true;
+                LogInfo($"User biometric status request\nURL: {new Uri(http.BaseAddress!, url)}\nMethod: POST\nEmployeeNo: {employeeNo}\nPayload: {jsonBody}");
 
-                    if (!status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
-                        status.HasCard = true;
+                var response = await http.SendAsync(request, ct);
+                var responseBody = await response.Content.ReadAsStringAsync(ct);
 
-                    LogInfo(
-                        $"User biometric status parsed\nEmployeeNo: {employeeNo}\n" +
-                        $"HasFace: {status.HasFace} HasFingerprint: {status.HasFingerprint} HasCard: {status.HasCard}\n" +
-                        $"FaceId: {status.FaceId ?? "null"} FingerprintId: {status.FingerprintId ?? "null"} CardNo: {status.CardNo ?? "null"}\n" +
-                        $"UserInfoKeys: {string.Join(", ", record.Value.EnumerateObject().Select(p => p.Name))}");
+                if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
+                {
+                    LogWarning($"User biometric status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
+                    return null;
+                }
+
+                LogInfo($"User biometric status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
+
+                using var doc = JsonDocument.Parse(responseBody);
+
+                if (doc.RootElement.TryGetProperty("UserInfoSearch", out var userInfoSearch)
+                    && userInfoSearch.TryGetProperty("UserInfo", out var userInfo))
+                {
+                    JsonElement? record = null;
+                    var recordsReturned = 0;
+
+                    if (userInfo.ValueKind == JsonValueKind.Array)
+                    {
+                        recordsReturned = userInfo.GetArrayLength();
+                        foreach (var candidate in userInfo.EnumerateArray())
+                        {
+                            var candidateEmployeeNo = TryGetEmployeeNo(candidate);
+                            if (string.Equals(candidateEmployeeNo, employeeNo, StringComparison.OrdinalIgnoreCase))
+                            {
+                                record = candidate;
+                                break;
+                            }
+                        }
+
+                        if (!record.HasValue && recordsReturned > 0)
+                            record = userInfo[0];
+                    }
+                    else if (userInfo.ValueKind == JsonValueKind.Object)
+                    {
+                        recordsReturned = 1;
+                        record = userInfo;
+                    }
+
+                    if (record.HasValue)
+                    {
+                        var recordEmployeeNo = TryGetEmployeeNo(record.Value);
+                        if (!string.IsNullOrWhiteSpace(recordEmployeeNo)
+                            && !string.Equals(recordEmployeeNo, employeeNo, StringComparison.OrdinalIgnoreCase))
+                        {
+                            record = null;
+                        }
+                    }
+
+                    if (record.HasValue)
+                    {
+                        status.HasFace = (TryGetFirstInt(record.Value, "numOfFace", "faceNum") ?? 0) > 0;
+                        status.HasFingerprint = (TryGetFirstInt(record.Value, "numOfFP", "numOfFingerprint", "fingerprintNum") ?? 0) > 0;
+                        status.HasCard = (TryGetFirstInt(record.Value, "numOfCard", "cardNum") ?? 0) > 0;
+
+                        status.FaceId = TryGetFirstString(record.Value, "faceId");
+                        status.FingerprintId = TryGetFirstString(record.Value, "fingerPrintID", "fingerId");
+                        status.CardNo = TryGetFirstString(record.Value, "cardNo");
+
+                        if (!status.HasFace && !string.IsNullOrWhiteSpace(status.FaceId))
+                            status.HasFace = true;
+
+                        if (!status.HasFingerprint && !string.IsNullOrWhiteSpace(status.FingerprintId))
+                            status.HasFingerprint = true;
+
+                        if (!status.HasCard && !string.IsNullOrWhiteSpace(status.CardNo))
+                            status.HasCard = true;
+
+                        LogInfo(
+                            $"User biometric status parsed\nEmployeeNo: {employeeNo}\n" +
+                            $"HasFace: {status.HasFace} HasFingerprint: {status.HasFingerprint} HasCard: {status.HasCard}\n" +
+                            $"FaceId: {status.FaceId ?? "null"} FingerprintId: {status.FingerprintId ?? "null"} CardNo: {status.CardNo ?? "null"}\n" +
+                            $"UserInfoKeys: {string.Join(", ", record.Value.EnumerateObject().Select(p => p.Name))}");
+                        break;
+                    }
+
+                    hasMore = userInfoSearch.TryGetProperty("responseStatusStrg", out var statusStrg)
+                        && statusStrg.ValueKind == JsonValueKind.String
+                        && string.Equals(statusStrg.GetString(), "MORE", StringComparison.OrdinalIgnoreCase);
+
+                    searchPosition += Math.Max(recordsReturned, 1);
+
+                    if (userInfoSearch.TryGetProperty("totalMatches", out var totalMatches)
+                        && totalMatches.ValueKind == JsonValueKind.Number
+                        && totalMatches.TryGetInt32(out var total)
+                        && searchPosition >= total)
+                    {
+                        hasMore = false;
+                    }
+                }
+                else
+                {
+                    hasMore = false;
                 }
             }
 
@@ -811,6 +864,19 @@ namespace Infrastructure.Integrations.Hikvision
             }
 
             return null;
+        }
+
+        private static string? TryGetEmployeeNo(JsonElement element)
+        {
+            if (!element.TryGetProperty("employeeNo", out var value))
+                return null;
+
+            return value.ValueKind switch
+            {
+                JsonValueKind.String => value.GetString(),
+                JsonValueKind.Number => value.GetRawText(),
+                _ => null
+            };
         }
 
         private static string? TryGetFirstString(JsonElement element, params string[] names)
@@ -931,6 +997,12 @@ namespace Infrastructure.Integrations.Hikvision
 
                 if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
                 {
+                    if (IsNotSupportedResponse(responseBody))
+                    {
+                        LogInfo($"Fingerprint status not supported\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
+                        continue;
+                    }
+
                     LogWarning($"Fingerprint status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
                     continue;
                 }
@@ -997,6 +1069,44 @@ namespace Infrastructure.Integrations.Hikvision
             {
                 record = arrayElement;
                 return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsNotSupportedResponse(string? responseBody)
+        {
+            if (string.IsNullOrWhiteSpace(responseBody))
+                return false;
+
+            try
+            {
+                using var doc = JsonDocument.Parse(responseBody);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("subStatusCode", out var subStatus)
+                    && subStatus.ValueKind == JsonValueKind.String
+                    && string.Equals(subStatus.GetString(), "notSupport", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (root.TryGetProperty("errorMsg", out var errorMsg)
+                    && errorMsg.ValueKind == JsonValueKind.String
+                    && string.Equals(errorMsg.GetString(), "notSupport", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (root.TryGetProperty("statusString", out var statusString)
+                    && statusString.ValueKind == JsonValueKind.String
+                    && string.Equals(statusString.GetString(), "Invalid Operation", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            catch (JsonException)
+            {
             }
 
             return false;
