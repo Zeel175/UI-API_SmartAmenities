@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Context;          // AppDbContext
+using Infrastructure.Integrations.Hikvision;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,8 @@ namespace Application.Services
         private readonly IJwtTokenService _jwtTokenService;
         private readonly RoleManager<Role> _roleManager;
         private readonly AppDbContext _db;
+        private readonly HikvisionClient _hikvisionClient;
+        private readonly ISecretProtector _secretProtector;
         private readonly ILogger<AuthService> _logger;
 
         public AuthService(
@@ -27,6 +30,8 @@ namespace Application.Services
             IJwtTokenService jwtTokenService,
             RoleManager<Role> roleManager,
             AppDbContext db,
+            HikvisionClient hikvisionClient,
+            ISecretProtector secretProtector,
             ILogger<AuthService> logger)
         {
             _signInManager = signInManager;
@@ -34,6 +39,8 @@ namespace Application.Services
             _jwtTokenService = jwtTokenService;
             _roleManager = roleManager;
             _db = db;
+            _hikvisionClient = hikvisionClient;
+            _secretProtector = secretProtector;
             _logger = logger;
         }
 
@@ -184,7 +191,114 @@ namespace Application.Services
                     .OrderBy(d => d.FileName)
                     .ToListAsync();
             }
+
+            await TryAttachFaceImageAsync(response);
             return response;
+        }
+
+        private async Task TryAttachFaceImageAsync(LoginResponse response)
+        {
+            if (response.ResidentMasterId.HasValue)
+            {
+                var residentData = await _db.ResidentMasters
+                    .AsNoTracking()
+                    .Where(r => r.Id == response.ResidentMasterId.Value)
+                    .Select(r => new { r.FaceUrl, r.Id })
+                    .FirstOrDefaultAsync();
+
+                if (residentData == null || string.IsNullOrWhiteSpace(residentData.FaceUrl))
+                    return;
+
+                var unitIds = await _db.ResidentMasterUnits
+                    .AsNoTracking()
+                    .Where(u => u.ResidentMasterId == residentData.Id && u.IsActive)
+                    .Select(u => u.UnitId)
+                    .ToListAsync();
+
+                await TryAttachFaceImageAsync(response, residentData.FaceUrl, unitIds);
+                return;
+            }
+
+            if (response.ResidentFamilyMemberId.HasValue)
+            {
+                var memberData = await _db.ResidentFamilyMembers
+                    .AsNoTracking()
+                    .Where(m => m.Id == response.ResidentFamilyMemberId.Value)
+                    .Select(m => new { m.FaceUrl, m.Id })
+                    .FirstOrDefaultAsync();
+
+                if (memberData == null || string.IsNullOrWhiteSpace(memberData.FaceUrl))
+                    return;
+
+                var unitIds = await _db.ResidentFamilyMemberUnits
+                    .AsNoTracking()
+                    .Where(u => u.ResidentFamilyMemberId == memberData.Id && u.IsActive)
+                    .Select(u => u.UnitId)
+                    .ToListAsync();
+
+                await TryAttachFaceImageAsync(response, memberData.FaceUrl, unitIds);
+            }
+        }
+
+        private async Task TryAttachFaceImageAsync(LoginResponse response, string faceUrl, List<long> unitIds)
+        {
+            if (string.IsNullOrWhiteSpace(faceUrl) || unitIds == null || unitIds.Count == 0)
+                return;
+
+            var buildingId = await _db.Set<Unit>()
+                .AsNoTracking()
+                .Where(unit => unitIds.Contains(unit.Id))
+                .Select(unit => unit.BuildingId)
+                .FirstOrDefaultAsync();
+
+            if (buildingId == 0)
+                return;
+
+            var result = await TryDownloadFaceImageAsync(buildingId, faceUrl);
+            if (result == null || result.Value.Data.Length == 0)
+                return;
+
+            response.FaceImageBase64 = Convert.ToBase64String(result.Value.Data);
+            response.FaceImageContentType = result.Value.ContentType;
+        }
+
+        private async Task<(byte[] Data, string? ContentType)?> TryDownloadFaceImageAsync(
+            long buildingId,
+            string faceUrl)
+        {
+            if (string.IsNullOrWhiteSpace(faceUrl))
+                return null;
+
+            var device = await (
+                from b in _db.Buildings
+                join d in _db.HikDevices on b.DeviceId equals d.Id
+                where b.IsActive && b.Id == buildingId
+                select new
+                {
+                    d.IpAddress,
+                    d.PortNo,
+                    d.DevIndex,
+                    b.DeviceUserName,
+                    b.DevicePassword
+                }).FirstOrDefaultAsync();
+
+            if (device == null
+                || string.IsNullOrWhiteSpace(device.IpAddress)
+                || string.IsNullOrWhiteSpace(device.DeviceUserName)
+                || string.IsNullOrWhiteSpace(device.DevicePassword))
+            {
+                return null;
+            }
+
+            var password = _secretProtector.Unprotect(device.DevicePassword);
+
+            return await _hikvisionClient.DownloadFaceImageAsync(
+                device.IpAddress,
+                device.PortNo ?? 80,
+                device.DeviceUserName,
+                password,
+                faceUrl,
+                CancellationToken.None);
         }
 
         private async Task PopulateBiometricStatusAsync(LoginResponse response, long? residentMasterId, long? residentFamilyMemberId)

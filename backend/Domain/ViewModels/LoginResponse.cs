@@ -27,6 +27,8 @@ public class LoginResponse
     public DateTime ExpireAt { get; set; }
     public string UserImageFilePath { get; set; }
     public string? ProfilePhoto { get; set; }
+    public string? FaceImageBase64 { get; set; }
+    public string? FaceImageContentType { get; set; }
     public bool IsAdmin { get; set; }
     public string SignaturePath { get; set; }
     public bool IsSuccess { get; set; }

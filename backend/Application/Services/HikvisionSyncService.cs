@@ -5,7 +5,6 @@ using Infrastructure.Integrations.Hikvision;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
 
 namespace Application.Services
 {
@@ -15,7 +14,6 @@ namespace Application.Services
         private readonly HikvisionClient _hikvisionClient;
         private readonly ISecretProtector _secretProtector;
         private readonly ILogger<HikvisionSyncService> _logger;
-        private readonly string _webRootPath;
 
         public HikvisionSyncService(
             AppDbContext db,
@@ -27,7 +25,6 @@ namespace Application.Services
             _hikvisionClient = hikvisionClient;
             _secretProtector = secretProtector;
             _logger = logger;
-            _webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         }
 
         public async Task SyncUserBiometricStatusAsync(
@@ -109,17 +106,9 @@ namespace Application.Services
 
                 if (status.HasFace && !string.IsNullOrWhiteSpace(status.FaceUrl))
                 {
-                    var storedUrl = await TryStoreFaceImageAsync(
-                        device,
-                        employeeNo,
-                        status.FaceUrl,
-                        Path.Combine("hikvision-faces", "residents"),
-                        ct);
-
-                    if (!string.IsNullOrWhiteSpace(storedUrl)
-                        && !string.Equals(resident.FaceUrl, storedUrl, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(resident.FaceUrl, status.FaceUrl, StringComparison.OrdinalIgnoreCase))
                     {
-                        resident.FaceUrl = storedUrl;
+                        resident.FaceUrl = status.FaceUrl;
                         updates.Add("FaceUrl");
                     }
                 }
@@ -175,17 +164,9 @@ namespace Application.Services
 
                 if (status.HasFace && !string.IsNullOrWhiteSpace(status.FaceUrl))
                 {
-                    var storedUrl = await TryStoreFaceImageAsync(
-                        device,
-                        employeeNo,
-                        status.FaceUrl,
-                        Path.Combine("hikvision-faces", "family"),
-                        ct);
-
-                    if (!string.IsNullOrWhiteSpace(storedUrl)
-                        && !string.Equals(family.FaceUrl, storedUrl, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(family.FaceUrl, status.FaceUrl, StringComparison.OrdinalIgnoreCase))
                     {
-                        family.FaceUrl = storedUrl;
+                        family.FaceUrl = status.FaceUrl;
                         updates.Add("FaceUrl");
                     }
                 }
@@ -220,75 +201,6 @@ namespace Application.Services
                     employeeNo,
                     updates.Count == 0 ? Array.Empty<string>() : updates.ToArray());
             }
-        }
-
-        private async Task<string?> TryStoreFaceImageAsync(
-            DeviceSyncInfo device,
-            string employeeNo,
-            string faceUrl,
-            string folderName,
-            CancellationToken ct)
-        {
-            var result = await _hikvisionClient.DownloadFaceImageAsync(
-                device.IpAddress,
-                device.Port,
-                device.UserName,
-                device.Password,
-                faceUrl,
-                ct);
-
-            if (result == null || result.Value.Data.Length == 0)
-                return null;
-
-            var extension = ResolveFaceImageExtension(result.Value.ContentType, faceUrl);
-            var fileName = $"hikvision_face_{employeeNo}_{Guid.NewGuid():N}{extension}";
-            var folder = Path.Combine(_webRootPath, "uploads", folderName);
-            Directory.CreateDirectory(folder);
-
-            var filePath = Path.Combine(folder, fileName);
-            await File.WriteAllBytesAsync(filePath, result.Value.Data, ct);
-
-            var urlPath = $"/uploads/{NormalizeUrlPath(folderName)}/{fileName}";
-            return urlPath;
-        }
-
-        private static string ResolveFaceImageExtension(string? contentType, string faceUrl)
-        {
-            if (!string.IsNullOrWhiteSpace(contentType))
-            {
-                if (contentType.Contains("jpeg", StringComparison.OrdinalIgnoreCase)
-                    || contentType.Contains("jpg", StringComparison.OrdinalIgnoreCase))
-                {
-                    return ".jpg";
-                }
-
-                if (contentType.Contains("png", StringComparison.OrdinalIgnoreCase))
-                {
-                    return ".png";
-                }
-
-                if (contentType.Contains("bmp", StringComparison.OrdinalIgnoreCase))
-                {
-                    return ".bmp";
-                }
-            }
-
-            if (Uri.TryCreate(faceUrl, UriKind.RelativeOrAbsolute, out var uri))
-            {
-                var ext = Path.GetExtension(uri.IsAbsoluteUri ? uri.LocalPath : uri.OriginalString);
-                if (!string.IsNullOrWhiteSpace(ext))
-                    return ext;
-            }
-
-            return ".jpg";
-        }
-
-        private static string NormalizeUrlPath(string folderName)
-        {
-            return folderName
-                .Replace(Path.DirectorySeparatorChar, '/')
-                .Replace(Path.AltDirectorySeparatorChar, '/')
-                .Trim('/');
         }
 
         private async Task<DeviceSyncInfo?> ResolveDeviceAsync(int? buildingId, string? deviceIp, CancellationToken ct)
