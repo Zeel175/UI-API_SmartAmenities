@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -241,6 +242,8 @@ namespace Infrastructure.Integrations.Hikvision
         private readonly HttpClient _http;
         private readonly ILogger<HikvisionClient> _logger;
         private const string LogPrefix = "[HIKVISION]";
+        private static readonly ConcurrentDictionary<string, bool> FingerprintNotSupportedByDevice =
+            new(StringComparer.OrdinalIgnoreCase);
 
         public HikvisionClient(HttpClient http, ILogger<HikvisionClient> logger)
         {
@@ -949,6 +952,14 @@ namespace Infrastructure.Integrations.Hikvision
             string employeeNo,
             CancellationToken ct)
         {
+            var deviceKey = GetFingerprintDeviceKey(devIndex, http);
+            if (FingerprintNotSupportedByDevice.ContainsKey(deviceKey))
+            {
+                LogInfo(
+                    $"Fingerprint status skipped (device not supported)\nDeviceKey: {deviceKey}\nEmployeeNo: {employeeNo}");
+                return (false, null);
+            }
+
             var searchId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
             var payload = new HikvisionFingerprintSearchRequest
             {
@@ -999,8 +1010,9 @@ namespace Infrastructure.Integrations.Hikvision
                 {
                     if (IsNotSupportedResponse(responseBody))
                     {
+                        FingerprintNotSupportedByDevice[deviceKey] = true;
                         LogInfo($"Fingerprint status not supported\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
-                        continue;
+                        return (false, null);
                     }
 
                     LogWarning($"Fingerprint status response\nURL: {new Uri(http.BaseAddress!, url)}\nStatus: {(int)response.StatusCode} {response.ReasonPhrase}\nBody: {Truncate(responseBody)}");
@@ -1015,6 +1027,14 @@ namespace Infrastructure.Integrations.Hikvision
             }
 
             return (false, null);
+        }
+
+        private static string GetFingerprintDeviceKey(string? devIndex, HttpClient http)
+        {
+            if (!string.IsNullOrWhiteSpace(devIndex))
+                return devIndex;
+
+            return http.BaseAddress?.Host ?? "unknown";
         }
 
         private static bool TryGetFingerprintInfo(JsonElement root, out string? fingerprintId)
