@@ -3053,6 +3053,9 @@ namespace Application.Services
                 QrId = f.QrId,
                 QrCodeValue = f.QrCodeValue,
                 QrCodeImagePath = f.QrCodeImagePath,
+                HasFace = f.HasFace,
+                HasFingerprint = f.HasFingerprint,
+                LastBiometricSyncUtc = f.LastBiometricSyncUtc,
                 IsActive = f.IsActive,
                 IsResident = f.IsResident
             }).ToList();
