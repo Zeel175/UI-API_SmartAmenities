@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace WebAPI.Controller
 {
@@ -28,6 +29,10 @@ namespace WebAPI.Controller
             if (response.IsSuccess)
             {
                 return Ok(response);
+            }
+            if (string.Equals(response.Message, "User not found", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound(response);
             }
             return Unauthorized(response);
         }
@@ -66,6 +71,10 @@ namespace WebAPI.Controller
             if (response.IsSuccess)
             {
                 return Ok(response);
+            }
+            if (string.Equals(response.Message, "User not found", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound(response);
             }
             return Unauthorized(response);
         }
