@@ -34,6 +34,8 @@ namespace Domain.ViewModels
 
         public string FaceId { get; set; }
 
+        public string? FaceUrl { get; set; }
+
         public string FingerId { get; set; }
 
         public string CardId { get; set; }

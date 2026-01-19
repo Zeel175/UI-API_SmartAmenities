@@ -39,6 +39,9 @@ namespace Domain.Entities
             [MaxLength(200)]
             public string FaceId { get; set; }
 
+            [MaxLength(500)]
+            public string? FaceUrl { get; set; }
+
             [MaxLength(200)]
             public string FingerId { get; set; }
 
