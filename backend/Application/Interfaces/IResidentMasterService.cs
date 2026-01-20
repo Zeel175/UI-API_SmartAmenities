@@ -18,6 +18,8 @@ namespace Application.Interfaces
        Task<InsertResponseModel> UpdateResidentDetailsAsync(ResidentDetailUpdateRequest_Profile request);
         Task<ResidentDetailResponse> GetResidentDetailsAsync(long? residentMasterId, long? residentFamilyMemberId);
         Task<IReadOnlyList<ResidentFamilyMemberList>> GetFamilyMembersByResidentIdAsync(long residentMasterId);
+        Task<InsertResponseModel> AddFamilyMembersAsync(long residentMasterId, IReadOnlyList<ResidentFamilyMemberAddEdit> members);
+        Task<InsertResponseModel> UpdateFamilyMembersAsync(long residentMasterId, IReadOnlyList<ResidentFamilyMemberAddEdit> members);
         Task<bool> UpdateResidentProfilePhotoAsync(long residentId, string photoPath, long userId);
         Task<bool> UpdateFamilyMemberProfilePhotoAsync(long familyMemberId, string photoPath, long userId);
         Task<IReadOnlyList<ResidentUserDropdownItem>> GetResidentUsersByUnitAsync(long unitId);

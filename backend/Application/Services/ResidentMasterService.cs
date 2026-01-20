@@ -445,6 +445,59 @@ namespace Application.Services
             return null;
         }
 
+        private async Task<string?> ValidateFamilyMembersIdsAsync(IReadOnlyList<ResidentFamilyMemberAddEdit> members)
+        {
+            var requestedCardIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var member in members)
+            {
+                if (string.IsNullOrWhiteSpace(member.CardId) && !string.IsNullOrWhiteSpace(member.QrId))
+                {
+                    member.CardId = member.QrId;
+                }
+
+                if (!string.IsNullOrWhiteSpace(member.CardId)
+                    && !string.IsNullOrWhiteSpace(member.QrId)
+                    && !string.Equals(member.CardId.Trim(), member.QrId.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    return "QrId must match CardId.";
+                }
+
+                if (!TryNormalizeCardId(member.CardId, out var memberCardId, out var memberCardError))
+                {
+                    return memberCardError;
+                }
+
+                member.CardId = memberCardId;
+                member.QrId = memberCardId;
+
+                if (!string.IsNullOrWhiteSpace(memberCardId))
+                {
+                    if (!requestedCardIds.Add(memberCardId))
+                    {
+                        return $"CardId '{memberCardId}' already exists in the request.";
+                    }
+
+                    var cardExists = await _context.Set<ResidentMaster>()
+                        .AnyAsync(x => x.CardId == memberCardId || x.QrId == memberCardId);
+
+                    if (!cardExists)
+                    {
+                        cardExists = await _context.Set<ResidentFamilyMember>()
+                            .AnyAsync(x => x.Id != member.Id
+                                && (x.CardId == memberCardId || x.QrId == memberCardId));
+                    }
+
+                    if (cardExists)
+                    {
+                        return $"CardId '{memberCardId}' already exists.";
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private sealed class FamilyQrSnapshot
         {
             public string QrId { get; init; }
@@ -3169,6 +3222,497 @@ namespace Application.Services
             }
 
             return mapped;
+        }
+
+        public async Task<InsertResponseModel> AddFamilyMembersAsync(long residentMasterId, IReadOnlyList<ResidentFamilyMemberAddEdit> members)
+        {
+            try
+            {
+                var entity = await _residentMasterRepository.Get(r => r.Id == residentMasterId)
+                    .Include(r => r.ParentUnits)
+                    .Include(r => r.FamilyMembers)
+                        .ThenInclude(f => f.MemberUnits)
+                    .FirstOrDefaultAsync();
+
+                if (entity == null)
+                {
+                    return new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = "404",
+                        Message = "Resident not found."
+                    };
+                }
+
+                var newMembers = members?
+                    .Where(member => !member.IsEmpty())
+                    .ToList() ?? new List<ResidentFamilyMemberAddEdit>();
+
+                if (newMembers.Count == 0)
+                {
+                    return new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = "400",
+                        Message = "FamilyMembers payload required."
+                    };
+                }
+
+                var nextFamilySequence = GetNextFamilyMemberSequence(entity.FamilyMembers, entity.Code);
+                foreach (var member in newMembers)
+                {
+                    member.ResidentMasterId = entity.Id;
+                    member.IsActive = true;
+
+                    if (string.IsNullOrWhiteSpace(member.Code))
+                    {
+                        member.Code = $"{entity.Code}-FM-{nextFamilySequence:0000}";
+                        nextFamilySequence++;
+                    }
+                }
+
+                var phoneConflict = await ValidateResidentPhoneNumbersAsync(
+                    newMembers.Select(member => new ResidentUserCandidate
+                    {
+                        Email = member.Email,
+                        Mobile = member.Mobile,
+                        FallbackUserName = member.Code,
+                        IsResident = member.IsResident
+                    }));
+
+                if (!string.IsNullOrWhiteSpace(phoneConflict))
+                {
+                    return new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = "409",
+                        Message = phoneConflict
+                    };
+                }
+
+                var idConflict = await ValidateFamilyMembersIdsAsync(newMembers);
+                if (!string.IsNullOrWhiteSpace(idConflict))
+                {
+                    return new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = "409",
+                        Message = idConflict
+                    };
+                }
+
+                var oldParentQrId = entity.QrId;
+                var oldParentUnitIds = new HashSet<long>(entity.ParentUnits?.Select(mu => mu.UnitId) ?? Enumerable.Empty<long>());
+                var oldFamilySnapshots = entity.FamilyMembers?.ToDictionary(
+                    member => member.Id,
+                    member => new FamilyQrSnapshot
+                    {
+                        QrId = member.QrId,
+                        UnitIds = new HashSet<long>(member.MemberUnits?.Select(mu => mu.UnitId) ?? Enumerable.Empty<long>()),
+                        QrCodeValue = member.QrCodeValue
+                    }) ?? new Dictionary<long, FamilyQrSnapshot>();
+
+                var userId = 1;
+                entity.FamilyMembers ??= new List<ResidentFamilyMember>();
+                var addedMembers = new List<ResidentFamilyMember>();
+
+                foreach (var memberModel in newMembers)
+                {
+                    var added = new ResidentFamilyMember
+                    {
+                        ResidentMasterId = entity.Id,
+                        Code = memberModel.Code,
+                        FirstName = memberModel.FirstName,
+                        LastName = memberModel.LastName,
+                        Email = memberModel.Email,
+                        Mobile = memberModel.Mobile,
+                        FaceId = memberModel.FaceId,
+                        FaceUrl = memberModel.FaceUrl,
+                        FingerId = memberModel.FingerId,
+                        CardId = memberModel.CardId,
+                        QrId = memberModel.QrId,
+                        IsActive = true,
+                        IsResident = memberModel.IsResident,
+                        CreatedBy = userId,
+                        CreatedDate = DateTime.Now,
+                        ModifiedBy = userId,
+                        ModifiedDate = DateTime.Now,
+                        MemberUnits = memberModel.UnitIds?.Distinct().Select(unitId => new ResidentFamilyMemberUnit
+                        {
+                            UnitId = unitId,
+                            IsActive = true,
+                            CreatedBy = userId,
+                            CreatedDate = DateTime.Now,
+                            ModifiedBy = userId,
+                            ModifiedDate = DateTime.Now
+                        }).ToList()
+                    };
+
+                    entity.FamilyMembers.Add(added);
+                    addedMembers.Add(added);
+                }
+
+                await _residentMasterRepository.UpdateAsync(entity, userId.ToString(), "AddFamilyMembers");
+
+                foreach (var member in addedMembers)
+                {
+                    var memberMapUserId = await GetMappedUserIdAsync(null, member.Id);
+                    var (memberUser, memberUserErr) = await EnsureOrUpdateResidentUserAsync(
+                        preferredUserId: memberMapUserId,
+                        name: $"{member.FirstName} {member.LastName}".Trim(),
+                        email: member.Email,
+                        mobile: member.Mobile,
+                        fallbackUserName: BuildFamilyMemberFallback(entity, member),
+                        actorUserId: userId,
+                        plainPassword: null,
+                        isResident: member.IsResident,
+                        isActive: member.IsActive
+                    );
+
+                    if (!string.IsNullOrWhiteSpace(memberUserErr))
+                    {
+                        return new InsertResponseModel { Id = 0, Code = "409", Message = memberUserErr };
+                    }
+
+                    await SyncResidentUserMapAsync(
+                        memberUser,
+                        null,
+                        member.Id,
+                        member.IsResident,
+                        member.IsActive,
+                        userId
+                    );
+                }
+
+                await _context.SaveChangesAsync();
+                await EnsureResidentQrDataAsync(entity, oldParentQrId, oldParentUnitIds, oldFamilySnapshots);
+                await _context.SaveChangesAsync();
+
+                var hikvisionWarnings = new List<string>();
+                foreach (var member in addedMembers)
+                {
+                    var shouldSync = member.IsResident && member.IsActive;
+                    if (!shouldSync)
+                    {
+                        continue;
+                    }
+
+                    var unitId = member.MemberUnits?.FirstOrDefault()?.UnitId
+                        ?? entity.ParentUnits?.FirstOrDefault()?.UnitId
+                        ?? 0;
+
+                    if (unitId <= 0)
+                    {
+                        hikvisionWarnings.Add($"Family member {member.Id}: Unit not found.");
+                        continue;
+                    }
+
+                    var employeeNo = ToEmployeeNo(!string.IsNullOrWhiteSpace(member.Code)
+                        ? member.Code
+                        : $"{entity.Code}FM{member.Id}");
+
+                    var warning = await TryUpsertPersonAndCardInHikvisionAsync(
+                        unitId,
+                        employeeNo,
+                        $"{member.FirstName} {member.LastName}".Trim(),
+                        member.CardId
+                    );
+
+                    if (!string.IsNullOrWhiteSpace(warning))
+                    {
+                        hikvisionWarnings.Add($"Family member {member.Id}: {warning}");
+                    }
+                }
+
+                var message = "Family members added successfully.";
+                if (hikvisionWarnings.Any())
+                {
+                    message = $"{message} Hikvision update warning: {string.Join(" | ", hikvisionWarnings)}";
+                }
+
+                return new InsertResponseModel
+                {
+                    Id = entity.Id,
+                    Code = entity.Code,
+                    Message = message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new InsertResponseModel
+                {
+                    Id = 0,
+                    Code = ex.HResult.ToString(),
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<InsertResponseModel> UpdateFamilyMembersAsync(long residentMasterId, IReadOnlyList<ResidentFamilyMemberAddEdit> members)
+        {
+            try
+            {
+                var entity = await _residentMasterRepository.Get(r => r.Id == residentMasterId)
+                    .Include(r => r.ParentUnits)
+                    .Include(r => r.FamilyMembers)
+                        .ThenInclude(f => f.MemberUnits)
+                    .FirstOrDefaultAsync();
+
+                if (entity == null)
+                {
+                    return new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = "404",
+                        Message = "Resident not found."
+                    };
+                }
+
+                var updatedMembers = members?
+                    .Where(member => !member.IsEmpty())
+                    .ToList() ?? new List<ResidentFamilyMemberAddEdit>();
+
+                if (updatedMembers.Count == 0)
+                {
+                    return new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = "400",
+                        Message = "FamilyMembers payload required."
+                    };
+                }
+
+                if (updatedMembers.Any(member => member.Id == 0))
+                {
+                    return new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = "400",
+                        Message = "FamilyMember Id is required for update."
+                    };
+                }
+
+                var phoneConflict = await ValidateResidentPhoneNumbersAsync(
+                    updatedMembers.Select(member =>
+                    {
+                        var existing = entity.FamilyMembers?.FirstOrDefault(f => f.Id == member.Id);
+                        var fallback = member.Code
+                            ?? existing?.Code
+                            ?? $"{entity.Code}-FM-{member.Id:0000}";
+
+                        return new ResidentUserCandidate
+                        {
+                            Email = member.Email,
+                            Mobile = member.Mobile,
+                            FallbackUserName = fallback,
+                            IsResident = member.IsResident
+                        };
+                    }));
+
+                if (!string.IsNullOrWhiteSpace(phoneConflict))
+                {
+                    return new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = "409",
+                        Message = phoneConflict
+                    };
+                }
+
+                var idConflict = await ValidateFamilyMembersIdsAsync(updatedMembers);
+                if (!string.IsNullOrWhiteSpace(idConflict))
+                {
+                    return new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = "409",
+                        Message = idConflict
+                    };
+                }
+
+                var oldParentQrId = entity.QrId;
+                var oldParentUnitIds = new HashSet<long>(entity.ParentUnits?.Select(mu => mu.UnitId) ?? Enumerable.Empty<long>());
+                var oldFamilySnapshots = entity.FamilyMembers?.ToDictionary(
+                    member => member.Id,
+                    member => new FamilyQrSnapshot
+                    {
+                        QrId = member.QrId,
+                        UnitIds = new HashSet<long>(member.MemberUnits?.Select(mu => mu.UnitId) ?? Enumerable.Empty<long>()),
+                        QrCodeValue = member.QrCodeValue
+                    }) ?? new Dictionary<long, FamilyQrSnapshot>();
+
+                var userId = 1;
+
+                foreach (var memberModel in updatedMembers)
+                {
+                    var existingMember = entity.FamilyMembers?.FirstOrDefault(member => member.Id == memberModel.Id);
+                    if (existingMember == null)
+                    {
+                        return new InsertResponseModel
+                        {
+                            Id = 0,
+                            Code = "404",
+                            Message = $"Family member not found. Id={memberModel.Id}."
+                        };
+                    }
+
+                    existingMember.FirstName = memberModel.FirstName;
+                    existingMember.LastName = memberModel.LastName;
+                    existingMember.Email = memberModel.Email;
+                    existingMember.Mobile = memberModel.Mobile;
+                    existingMember.FaceId = memberModel.FaceId;
+                    existingMember.FaceUrl = memberModel.FaceUrl;
+                    existingMember.FingerId = memberModel.FingerId;
+                    existingMember.CardId = memberModel.CardId;
+                    existingMember.QrId = memberModel.QrId;
+                    existingMember.IsActive = memberModel.IsActive;
+                    existingMember.IsResident = memberModel.IsResident;
+
+                    if (!string.IsNullOrWhiteSpace(memberModel.Code))
+                    {
+                        existingMember.Code = memberModel.Code;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(memberModel.ProfilePhoto))
+                    {
+                        existingMember.ProfilePhoto = memberModel.ProfilePhoto;
+                    }
+
+                    existingMember.ModifiedBy = userId;
+                    existingMember.ModifiedDate = DateTime.Now;
+
+                    existingMember.MemberUnits ??= new List<ResidentFamilyMemberUnit>();
+                    var incomingUnitIds = memberModel.UnitIds?.Distinct().ToHashSet() ?? new HashSet<long>();
+                    foreach (var link in existingMember.MemberUnits.ToList())
+                    {
+                        if (!incomingUnitIds.Contains(link.UnitId))
+                        {
+                            existingMember.MemberUnits.Remove(link);
+                        }
+                    }
+
+                    var currentUnitIds = existingMember.MemberUnits.Select(mu => mu.UnitId).ToHashSet();
+                    foreach (var unitId in incomingUnitIds)
+                    {
+                        if (!currentUnitIds.Contains(unitId))
+                        {
+                            existingMember.MemberUnits.Add(new ResidentFamilyMemberUnit
+                            {
+                                UnitId = unitId,
+                                IsActive = true,
+                                CreatedBy = userId,
+                                CreatedDate = DateTime.Now,
+                                ModifiedBy = userId,
+                                ModifiedDate = DateTime.Now
+                            });
+                        }
+                    }
+                }
+
+                await _residentMasterRepository.UpdateAsync(entity, userId.ToString(), "UpdateFamilyMembers");
+
+                foreach (var member in updatedMembers)
+                {
+                    var existingMember = entity.FamilyMembers?.FirstOrDefault(f => f.Id == member.Id);
+                    if (existingMember == null)
+                    {
+                        continue;
+                    }
+
+                    var memberMapUserId = await GetMappedUserIdAsync(null, existingMember.Id);
+                    var (memberUser, memberUserErr) = await EnsureOrUpdateResidentUserAsync(
+                        preferredUserId: memberMapUserId,
+                        name: $"{existingMember.FirstName} {existingMember.LastName}".Trim(),
+                        email: existingMember.Email,
+                        mobile: existingMember.Mobile,
+                        fallbackUserName: BuildFamilyMemberFallback(entity, existingMember),
+                        actorUserId: userId,
+                        plainPassword: null,
+                        isResident: existingMember.IsResident,
+                        isActive: existingMember.IsActive
+                    );
+
+                    if (!string.IsNullOrWhiteSpace(memberUserErr))
+                    {
+                        return new InsertResponseModel { Id = 0, Code = "409", Message = memberUserErr };
+                    }
+
+                    await SyncResidentUserMapAsync(
+                        memberUser,
+                        null,
+                        existingMember.Id,
+                        existingMember.IsResident,
+                        existingMember.IsActive,
+                        userId
+                    );
+                }
+
+                await _context.SaveChangesAsync();
+                await EnsureResidentQrDataAsync(entity, oldParentQrId, oldParentUnitIds, oldFamilySnapshots);
+                await _context.SaveChangesAsync();
+
+                var hikvisionWarnings = new List<string>();
+                foreach (var member in updatedMembers)
+                {
+                    var existingMember = entity.FamilyMembers?.FirstOrDefault(f => f.Id == member.Id);
+                    if (existingMember == null)
+                    {
+                        continue;
+                    }
+
+                    if (!existingMember.IsResident || !existingMember.IsActive)
+                    {
+                        continue;
+                    }
+
+                    var unitId = member.UnitIds?.FirstOrDefault()
+                        ?? existingMember.MemberUnits?.FirstOrDefault()?.UnitId
+                        ?? entity.ParentUnits?.FirstOrDefault()?.UnitId
+                        ?? 0;
+
+                    if (unitId <= 0)
+                    {
+                        hikvisionWarnings.Add($"Family member {existingMember.Id}: Unit not found.");
+                        continue;
+                    }
+
+                    var employeeNo = ToEmployeeNo(!string.IsNullOrWhiteSpace(existingMember.Code)
+                        ? existingMember.Code
+                        : $"{entity.Code}FM{existingMember.Id}");
+
+                    var warning = await TryUpdatePersonInHikvisionAsync(
+                        unitId,
+                        employeeNo,
+                        $"{existingMember.FirstName} {existingMember.LastName}".Trim());
+
+                    if (!string.IsNullOrWhiteSpace(warning))
+                    {
+                        hikvisionWarnings.Add($"Family member {existingMember.Id}: {warning}");
+                    }
+                }
+
+                var message = "Family members updated successfully.";
+                if (hikvisionWarnings.Any())
+                {
+                    message = $"{message} Hikvision update warning: {string.Join(" | ", hikvisionWarnings)}";
+                }
+
+                return new InsertResponseModel
+                {
+                    Id = entity.Id,
+                    Code = entity.Code,
+                    Message = message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new InsertResponseModel
+                {
+                    Id = 0,
+                    Code = ex.HResult.ToString(),
+                    Message = ex.Message
+                };
+            }
         }
 
         private async Task TryAttachFaceImageAsync(ResidentFamilyMemberList member, CancellationToken ct)

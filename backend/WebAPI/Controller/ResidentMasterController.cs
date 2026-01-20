@@ -338,6 +338,51 @@ namespace WebAPI.Controller
 
             return Ok(members);
         }
+        [HttpPost("{residentMasterId:long}/FamilyMembers/BatchAdd")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> AddFamilyMembers(long residentMasterId, [FromBody] ResidentFamilyMembersBulkRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Request body is required.");
+            }
+
+            var response = await _residentMasterService.AddFamilyMembersAsync(residentMasterId, request.FamilyMembers);
+            if (response.Id <= 0)
+            {
+                if (int.TryParse(response.Code, out var statusCode) && statusCode >= 400 && statusCode < 600)
+                {
+                    return StatusCode(statusCode, response);
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+
+            return Ok(response);
+        }
+
+        [HttpPut("{residentMasterId:long}/FamilyMembers/BatchUpdate")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> UpdateFamilyMembers(long residentMasterId, [FromBody] ResidentFamilyMembersBulkRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Request body is required.");
+            }
+
+            var response = await _residentMasterService.UpdateFamilyMembersAsync(residentMasterId, request.FamilyMembers);
+            if (response.Id <= 0)
+            {
+                if (int.TryParse(response.Code, out var statusCode) && statusCode >= 400 && statusCode < 600)
+                {
+                    return StatusCode(statusCode, response);
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+
+            return Ok(response);
+        }
         //[HttpPost("Update")]
         //public async Task<IActionResult> UpdateAsync(ResidentMasterAddEdit resident)
         //{
