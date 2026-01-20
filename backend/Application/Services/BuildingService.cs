@@ -104,6 +104,7 @@ namespace Application.Services
             entity.ModifiedDate = DateTime.Now;
 
             await _buildingRepository.UpdateAsync(entity, userId.ToString(), "Delete");
+            await DeactivateBuildingChildrenAsync(entity.Id, userId);
         }
 
         public async Task<PaginatedList<BuildingList>> GetAllBuildingsAsync(int pageIndex, int pageSize)
@@ -190,9 +191,13 @@ namespace Application.Services
                 // Map incoming fields onto tracked entity
                 var updated = _dataMapper.Map<BuildingAddEdit, Building>(building, entity);
                 updated.Code = existingCode;
-                updated.IsActive = existingIsActive;
+                updated.IsActive = building.IsActive;
 
                 await _buildingRepository.UpdateAsync(updated, userId.ToString(), "Update");
+                if (existingIsActive && !updated.IsActive)
+                {
+                    await DeactivateBuildingChildrenAsync(updated.Id, userId);
+                }
                 return new InsertResponseModel
                 {
                     Id = updated.Id,
@@ -259,6 +264,25 @@ namespace Application.Services
             }
 
             return null;
+        }
+
+        private async Task DeactivateBuildingChildrenAsync(long buildingId, long userId)
+        {
+            var now = DateTime.Now;
+
+            await _context.Set<Floor>()
+                .Where(f => f.BuildingId == buildingId && f.IsActive)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(f => f.IsActive, false)
+                    .SetProperty(f => f.ModifiedBy, userId)
+                    .SetProperty(f => f.ModifiedDate, now));
+
+            await _context.Set<global::Unit>()
+                .Where(u => u.BuildingId == buildingId && u.IsActive)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(u => u.IsActive, false)
+                    .SetProperty(u => u.ModifiedBy, userId)
+                    .SetProperty(u => u.ModifiedDate, now));
         }
 
     }
