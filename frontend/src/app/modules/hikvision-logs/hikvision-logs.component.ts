@@ -449,4 +449,83 @@ export class HikvisionLogsComponent implements OnInit {
         this.logPageIndex = evt.pageIndex;
         this.logPageSize = evt.pageSize;
     }
+    /**
+ * Trigger text for the multi-select. Shows the selected name instead of "1 selected".
+ * Examples:
+ * - "Karan Bhatt"
+ * - "Karan Bhatt (+2)"
+ * - "All Users"
+ */
+getUserTriggerText(): string {
+  if (this.areAllUsersSelected()) {
+    return 'All Users';
+  }
+
+  const selectedIds = (this.form.get('userIds')?.value || []) as number[];
+  if (!selectedIds.length) {
+    return 'Select User';
+  }
+
+  const names = selectedIds
+    .map(id => this.getUserNameById(id))
+    .filter((x): x is string => !!x);
+
+  // If options are not loaded yet, fallback to count
+  if (!names.length) {
+    return `${selectedIds.length} selected`;
+  }
+
+  if (names.length === 1) {
+    return names[0];
+  }
+
+  return `${names[0]} (+${names.length - 1})`;
+}
+
+/** Trigger text for Guest multi-select */
+getGuestTriggerText(): string {
+  const selectedIds = (this.form.get('guestIds')?.value || []) as number[];
+  if (!selectedIds.length) {
+    return 'Select Guest';
+  }
+
+  const names = selectedIds
+    .map(id => this.getGuestNameById(id))
+    .filter((x): x is string => !!x);
+
+  if (!names.length) {
+    return `${selectedIds.length} selected`;
+  }
+
+  if (names.length === 1) {
+    return names[0];
+  }
+
+  return `${names[0]} (+${names.length - 1})`;
+}
+
+private getUserNameById(id: number): string | null {
+  const user = this.userOptions?.find(u => u.id === id);
+  if (!user) return null;
+
+  return (
+    user.fullName ||
+    `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
+    user.userName ||
+    user.name ||
+    null
+  );
+}
+
+private getGuestNameById(id: number): string | null {
+  const guest = this.guestOptions?.find(g => g.id === id);
+  if (!guest) return null;
+
+  return (
+    `${guest.firstName || ''} ${guest.lastName || ''}`.trim() ||
+    guest.name ||
+    guest.code ||
+    null
+  );
+}
 }

@@ -6,17 +6,17 @@
     <div class="hikvision-filter-bar">
         <form class="hikvision-form" [formGroup]="form">
             <div class="form-row filters-row">
-                <mat-form-field appearance="outline" floatLabel="never">
+                <mat-form-field appearance="outline" floatLabel="never" subscriptSizing="dynamic">
                     <mat-label>Start Date</mat-label>
                     <input matInput [matDatepicker]="startDatePicker" formControlName="startDate" />
                     <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #startDatePicker></mat-datepicker>
-                    <mat-error *ngIf="form.get('startDate')?.touched && form.get('startDate')?.invalid">
+                    <!-- <mat-error *ngIf="form.get('startDate')?.touched && form.get('startDate')?.invalid">
                         Start date is required.
-                    </mat-error>
+                    </mat-error> -->
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" floatLabel="never">
+                <mat-form-field appearance="outline" floatLabel="never" subscriptSizing="dynamic">
                     <mat-label>Start Time</mat-label>
                     <input
                         matInput
@@ -25,22 +25,22 @@
                         readonly
                     />
                     <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
-                    <mat-error *ngIf="form.get('startTime')?.touched && form.get('startTime')?.invalid">
+                    <!-- <mat-error *ngIf="form.get('startTime')?.touched && form.get('startTime')?.invalid">
                         Start time is required.
-                    </mat-error>
+                    </mat-error> -->
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" floatLabel="never">
+                <mat-form-field appearance="outline" floatLabel="never" subscriptSizing="dynamic">
                     <mat-label>End Date</mat-label>
                     <input matInput [matDatepicker]="endDatePicker" formControlName="endDate" />
                     <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #endDatePicker></mat-datepicker>
-                    <mat-error *ngIf="form.get('endDate')?.touched && form.get('endDate')?.invalid">
+                    <!-- <mat-error *ngIf="form.get('endDate')?.touched && form.get('endDate')?.invalid">
                         End date is required.
-                    </mat-error>
+                    </mat-error> -->
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" floatLabel="never">
+                <mat-form-field appearance="outline" floatLabel="never" subscriptSizing="dynamic">
                     <mat-label>End Time</mat-label>
                     <input
                         matInput
@@ -49,39 +49,39 @@
                         readonly
                     />
                     <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
-                    <mat-error *ngIf="form.get('endTime')?.touched && form.get('endTime')?.invalid">
+                    <!-- <mat-error *ngIf="form.get('endTime')?.touched && form.get('endTime')?.invalid">
                         <ng-container *ngIf="form.get('endTime')?.errors?.['endBeforeStart']; else endTimeRequired">
                             End date must be after start date.
                         </ng-container>
                         <ng-template #endTimeRequired>End time is required.</ng-template>
-                    </mat-error>
+                    </mat-error> -->
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" floatLabel="never">
+                <mat-form-field appearance="outline" floatLabel="never" subscriptSizing="dynamic">
                     <mat-label>Building</mat-label>
                     <mat-select formControlName="buildingId" (selectionChange)="onBuildingChange($event.value)">
                         <mat-option *ngFor="let building of buildingOptions" [value]="building.id">
                             {{ building.buildingName || building.name || building.code }}
                         </mat-option>
                     </mat-select>
-                    <mat-error *ngIf="form.get('buildingId')?.touched && form.get('buildingId')?.invalid">
+                    <!-- <mat-error *ngIf="form.get('buildingId')?.touched && form.get('buildingId')?.invalid">
                         Building is required.
-                    </mat-error>
+                    </mat-error> -->
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" floatLabel="never">
+                <mat-form-field appearance="outline" floatLabel="never" subscriptSizing="dynamic">
                     <mat-label>Unit</mat-label>
                     <mat-select formControlName="unitId" (selectionChange)="onUnitChange($event.value)" [disabled]="!unitOptions.length">
                         <mat-option *ngFor="let unit of unitOptions" [value]="unit.id">
                             {{ unit.unitName || unit.name || unit.code }}
                         </mat-option>
                     </mat-select>
-                    <mat-error *ngIf="form.get('unitId')?.touched && form.get('unitId')?.invalid">
+                    <!-- <mat-error *ngIf="form.get('unitId')?.touched && form.get('unitId')?.invalid">
                         Unit is required.
-                    </mat-error>
+                    </mat-error> -->
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" floatLabel="never">
+                <mat-form-field appearance="outline" floatLabel="never" subscriptSizing="dynamic">
                     <mat-label>User</mat-label>
                     <mat-select
                         formControlName="userIds"
@@ -90,8 +90,8 @@
                         (selectionChange)="onUserSelectionChange($event.value)"
                     >
                         <mat-select-trigger>
-                            {{ areAllUsersSelected() ? 'All Users' : (form.get('userIds')?.value?.length || 0) + ' selected' }}
-                        </mat-select-trigger>
+  {{ getUserTriggerText() }}
+</mat-select-trigger>
                         <mat-option [value]="allUsersValue">
                             All Users
                         </mat-option>
@@ -99,12 +99,12 @@
                             {{ user.fullName || ((user.firstName || '') + ' ' + (user.lastName || '')).trim() || user.userName || user.name }}
                         </mat-option>
                     </mat-select>
-                    <mat-error *ngIf="(form.get('userIds')?.touched || form.get('guestIds')?.touched) && form.errors?.['userOrGuestRequired']">
+                    <!-- <mat-error *ngIf="(form.get('userIds')?.touched || form.get('guestIds')?.touched) && form.errors?.['userOrGuestRequired']">
                         Select at least one user or guest.
-                    </mat-error>
+                    </mat-error> -->
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" floatLabel="never">
+                <mat-form-field appearance="outline" floatLabel="never" subscriptSizing="dynamic">
                     <mat-label>Guest</mat-label>
                     <mat-select
                         formControlName="guestIds"
@@ -112,15 +112,15 @@
                         multiple
                     >
                         <mat-select-trigger>
-                            {{ (form.get('guestIds')?.value?.length || 0) + ' selected' }}
-                        </mat-select-trigger>
+  {{ getGuestTriggerText() }}
+</mat-select-trigger>
                         <mat-option *ngFor="let guest of guestOptions" [value]="guest.id">
                             {{ ((guest.firstName || '') + ' ' + (guest.lastName || '')).trim() || guest.name || guest.code }}
                         </mat-option>
                     </mat-select>
-                    <mat-error *ngIf="(form.get('userIds')?.touched || form.get('guestIds')?.touched) && form.errors?.['userOrGuestRequired']">
+                    <!-- <mat-error *ngIf="(form.get('userIds')?.touched || form.get('guestIds')?.touched) && form.errors?.['userOrGuestRequired']">
                         Select at least one user or guest.
-                    </mat-error>
+                    </mat-error> -->
                 </mat-form-field>
 
                 <div class="actions">
