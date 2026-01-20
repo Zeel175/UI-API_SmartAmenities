@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Domain.ViewModels
@@ -28,6 +29,7 @@ namespace Domain.ViewModels
         public string ProfilePhoto { get; set; }
         public string Code { get; set; }
 
+        [JsonIgnore]
         public IFormFile ProfilePhotoFile { get; set; }
 
         public string FaceId { get; set; }
