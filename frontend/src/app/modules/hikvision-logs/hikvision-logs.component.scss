@@ -20,24 +20,48 @@
 
 .filters-row {
     .mat-form-field {
-        flex: 1 1 200px;
-        min-width: 180px;
+        flex: 1 1 170px;
+        min-width: 160px;
     }
 }
 
 .actions {
     display: flex;
     align-items: center;
-    padding-bottom: 4px;
+    align-self: center;
+    padding-bottom: 0;
+
+    button {
+        height: 40px;
+        min-width: 96px;
+    }
 }
 
 .hikvision-filter-bar {
     margin: 0 24px;
-    padding: 12px 14px;
+    padding: 10px 12px;
     border-radius: 6px;
     border: 1px solid rgba(15, 23, 42, 0.12);
     background-color: var(--fuse-bg-card);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+:host ::ng-deep .hikvision-filter-bar {
+    .mat-form-field-wrapper {
+        padding-bottom: 0;
+    }
+
+    .mat-form-field-appearance-outline .mat-form-field-flex {
+        padding: 0 0.5em;
+    }
+
+    .mat-form-field-appearance-outline .mat-form-field-infix {
+        padding: 0.4em 0 0.35em;
+    }
+
+    .mat-form-field-subscript-wrapper {
+        margin-top: 0.2em;
+    }
 }
 
 .preview-grid {
