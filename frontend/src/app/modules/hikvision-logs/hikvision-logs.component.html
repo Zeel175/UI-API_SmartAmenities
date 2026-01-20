@@ -6,8 +6,8 @@
     <div class="hikvision-filter-bar">
         <form class="hikvision-form" [formGroup]="form">
             <div class="form-row filters-row">
-                <mat-form-field appearance="outline">
-                    <mat-label>Start Date</mat-label>
+                <mat-form-field appearance="outline" floatLabel="never">
+                    <mat-label>Start Date*</mat-label>
                     <input matInput [matDatepicker]="startDatePicker" formControlName="startDate" />
                     <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #startDatePicker></mat-datepicker>
@@ -16,8 +16,8 @@
                     </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Start Time</mat-label>
+                <mat-form-field appearance="outline" floatLabel="never">
+                    <mat-label>Start Time*</mat-label>
                     <input
                         matInput
                         [ngxTimepicker]="startTimePicker"
@@ -30,8 +30,8 @@
                     </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
-                    <mat-label>End Date</mat-label>
+                <mat-form-field appearance="outline" floatLabel="never">
+                    <mat-label>End Date*</mat-label>
                     <input matInput [matDatepicker]="endDatePicker" formControlName="endDate" />
                     <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #endDatePicker></mat-datepicker>
@@ -40,8 +40,8 @@
                     </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
-                    <mat-label>End Time</mat-label>
+                <mat-form-field appearance="outline" floatLabel="never">
+                    <mat-label>End Time*</mat-label>
                     <input
                         matInput
                         [ngxTimepicker]="endTimePicker"
@@ -57,8 +57,8 @@
                     </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Building</mat-label>
+                <mat-form-field appearance="outline" floatLabel="never">
+                    <mat-label>Building*</mat-label>
                     <mat-select formControlName="buildingId" (selectionChange)="onBuildingChange($event.value)">
                         <mat-option *ngFor="let building of buildingOptions" [value]="building.id">
                             {{ building.buildingName || building.name || building.code }}
@@ -69,8 +69,8 @@
                     </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Unit</mat-label>
+                <mat-form-field appearance="outline" floatLabel="never">
+                    <mat-label>Unit*</mat-label>
                     <mat-select formControlName="unitId" (selectionChange)="onUnitChange($event.value)" [disabled]="!unitOptions.length">
                         <mat-option *ngFor="let unit of unitOptions" [value]="unit.id">
                             {{ unit.unitName || unit.name || unit.code }}
@@ -81,7 +81,7 @@
                     </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="outline" floatLabel="never">
                     <mat-label>User</mat-label>
                     <mat-select
                         formControlName="userIds"
@@ -104,7 +104,7 @@
                     </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="outline" floatLabel="never">
                     <mat-label>Guest</mat-label>
                     <mat-select
                         formControlName="guestIds"
