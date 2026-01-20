@@ -15,5 +15,14 @@ namespace Domain.ViewModels
         public string? LastName { get; set; }
         public string? QrCodeValue { get; set; }
         public string? QrCodeImagePath { get; set; }
+        public List<FamilyMemberQrResponse>? FamilyMembers { get; set; }
+    }
+
+    public class FamilyMemberQrResponse
+    {
+        public long Id { get; set; }
+        public string? Code { get; set; }
+        public string? QrCodeValue { get; set; }
+        public string? QrCodeImagePath { get; set; }
     }
 }
