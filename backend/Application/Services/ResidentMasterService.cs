@@ -3391,8 +3391,7 @@ namespace Application.Services
                 var hikvisionWarnings = new List<string>();
                 foreach (var member in addedMembers)
                 {
-                    var shouldSync = member.IsResident && member.IsActive;
-                    if (!shouldSync)
+                    if (!member.IsActive)
                     {
                         continue;
                     }
@@ -3430,11 +3429,24 @@ namespace Application.Services
                     message = $"{message} Hikvision update warning: {string.Join(" | ", hikvisionWarnings)}";
                 }
 
+                var addedMemberResponses = addedMembers.Select(member => new FamilyMemberQrResponse
+                {
+                    Id = member.Id,
+                    Code = member.Code,
+                    QrCodeValue = member.QrCodeValue,
+                    QrCodeImagePath = member.QrCodeImagePath
+                }).ToList();
+
+                var firstAdded = addedMemberResponses.FirstOrDefault();
+
                 return new InsertResponseModel
                 {
                     Id = entity.Id,
                     Code = entity.Code,
-                    Message = message
+                    Message = message,
+                    QrCodeValue = firstAdded?.QrCodeValue,
+                    QrCodeImagePath = firstAdded?.QrCodeImagePath,
+                    FamilyMembers = addedMemberResponses
                 };
             }
             catch (Exception ex)
@@ -3660,7 +3672,7 @@ namespace Application.Services
                         continue;
                     }
 
-                    if (!existingMember.IsResident || !existingMember.IsActive)
+                    if (!existingMember.IsActive)
                     {
                         continue;
                     }
@@ -3680,10 +3692,11 @@ namespace Application.Services
                         ? existingMember.Code
                         : $"{entity.Code}FM{existingMember.Id}");
 
-                    var warning = await TryUpdatePersonInHikvisionAsync(
+                    var warning = await TryUpsertPersonAndCardInHikvisionAsync(
                         unitId,
                         employeeNo,
-                        $"{existingMember.FirstName} {existingMember.LastName}".Trim());
+                        $"{existingMember.FirstName} {existingMember.LastName}".Trim(),
+                        existingMember.CardId);
 
                     if (!string.IsNullOrWhiteSpace(warning))
                     {
@@ -3697,11 +3710,27 @@ namespace Application.Services
                     message = $"{message} Hikvision update warning: {string.Join(" | ", hikvisionWarnings)}";
                 }
 
+                var updatedMemberResponses = updatedMembers
+                    .Select(member => entity.FamilyMembers?.FirstOrDefault(f => f.Id == member.Id))
+                    .Where(member => member != null)
+                    .Select(member => new FamilyMemberQrResponse
+                    {
+                        Id = member!.Id,
+                        Code = member.Code,
+                        QrCodeValue = member.QrCodeValue,
+                        QrCodeImagePath = member.QrCodeImagePath
+                    }).ToList();
+
+                var firstUpdated = updatedMemberResponses.FirstOrDefault();
+
                 return new InsertResponseModel
                 {
                     Id = entity.Id,
                     Code = entity.Code,
-                    Message = message
+                    Message = message,
+                    QrCodeValue = firstUpdated?.QrCodeValue,
+                    QrCodeImagePath = firstUpdated?.QrCodeImagePath,
+                    FamilyMembers = updatedMemberResponses
                 };
             }
             catch (Exception ex)
