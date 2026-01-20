@@ -15,7 +15,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 12px;
+    //gap: 12px;
 }
 
 .filters-row {
@@ -108,4 +108,7 @@
         color: rgba(0, 0, 0, 0.54);
         margin-bottom: 4px;
     }
+}
+:host ::ng-deep .mat-mdc-text-field-wrapper {
+    width: 80%;
 }
