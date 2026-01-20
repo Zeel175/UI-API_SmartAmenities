@@ -166,13 +166,11 @@ export class ResidentMasterAddEditComponent implements OnInit {
         this.familyMembers.clear();
         (resident.familyMembers || []).forEach(member => this.familyMembers.push(this.createFamilyMemberGroup(member)));
         // 🔹 Set profile photo preview (edit mode)
-        if (resident.profilePhoto && resident.profilePhoto.trim() !== '') {
-            if (resident.profilePhoto) {
-  this.profilePhotoPreview = this.getBackendUrl(resident.profilePhoto);
-} else {
-  this.profilePhotoPreview = null;
-}
-
+        const faceImagePreview = this.getFaceImagePreview(resident.faceImageBase64, resident.faceImageContentType);
+        if (faceImagePreview) {
+            this.profilePhotoPreview = faceImagePreview;
+        } else if (resident.profilePhoto && resident.profilePhoto.trim() !== '') {
+            this.profilePhotoPreview = this.getBackendUrl(resident.profilePhoto);
         } else {
             this.profilePhotoPreview = null;
         }
@@ -189,6 +187,13 @@ getBackendUrl(path: string | null | undefined): string {
   }
 
   return `https://localhost:7032${path}`;
+}
+
+getFaceImagePreview(base64: string | null | undefined, contentType?: string | null): string | null {
+  if (!base64) return null;
+
+  const resolvedContentType = contentType && contentType.trim() !== '' ? contentType : 'image/jpeg';
+  return `data:${resolvedContentType};base64,${base64}`;
 }
 
 

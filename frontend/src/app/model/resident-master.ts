@@ -8,6 +8,8 @@ export class ResidentMaster extends BaseAuditable {
     email?: string;
     mobile?: string;
     faceId?: string;
+    faceImageBase64?: string;
+    faceImageContentType?: string;
     fingerId?: string;
     cardId?: string;
     profilePhoto?: string;
@@ -28,6 +30,8 @@ export class ResidentFamilyMember extends BaseAuditable {
     email?: string;
     mobile?: string;
     faceId?: string;
+    faceImageBase64?: string;
+    faceImageContentType?: string;
     fingerId?: string;
     cardId?: string;
     qrId?: string;
