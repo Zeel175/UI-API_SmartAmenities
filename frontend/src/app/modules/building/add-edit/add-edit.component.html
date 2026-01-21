@@ -35,7 +35,6 @@
                     {{ device.devName || device.name || device.deviceId || device.id }}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="frmBuilding.get('deviceId').invalid && frmBuilding.get('deviceId').touched">Device is required</mat-error>
               </mat-form-field>
               <mat-form-field *ngIf="frmBuilding.get('deviceId')?.value" appearance="outline" class="full-width">
                 <mat-label>Device Username</mat-label>

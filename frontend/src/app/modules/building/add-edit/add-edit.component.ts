@@ -122,7 +122,7 @@ export class BuildingAddEditComponent {
             code: [{ value: '', disabled: true }],
             buildingName: ['', [Validators.required]],
             propertyId: [null, Validators.required],
-            deviceId: [null, Validators.required],
+            deviceId: [null],
             deviceUserName: [''],
             devicePassword: [''],
             isActive: [true]
