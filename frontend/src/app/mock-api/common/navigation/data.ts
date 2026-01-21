@@ -120,6 +120,13 @@ const masterChildren: FuseNavigationItem[] = [
         link: '/guest-master'
     },
     {
+        id: 'amenity-master',
+        title: 'Amenity',
+        type: 'basic',
+        icon: 'heroicons_outline:squares-plus',
+        link: '/amenity-master'
+    },
+    {
         id: 'audit-log',
         title: 'Audit Log',
         type: 'basic',

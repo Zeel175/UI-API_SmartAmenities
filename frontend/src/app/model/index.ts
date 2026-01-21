@@ -38,6 +38,7 @@ export * from './PurchaseInquiry';
 export * from './purchase-order-planning';
 export * from './vendor-master';
 export * from './inward';
+export * from './amenity-master';
 export * from './floor';
 export * from './guest-master';
 export * from './unit';

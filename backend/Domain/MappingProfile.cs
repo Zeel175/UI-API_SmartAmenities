@@ -160,6 +160,14 @@ namespace Domain
             CreateMap<GuestMaster, GuestMasterAddEdit>();
             CreateMap<GuestMasterAddEdit, GuestMaster>();
             #endregion
+
+            #region AmenityMaster
+            CreateMap<AmenityMaster, AmenityMasterAddEdit>();
+            CreateMap<AmenityMasterAddEdit, AmenityMaster>();
+            CreateMap<AmenityMaster, AmenityMasterList>()
+                .ForMember(dest => dest.BuildingName, opt => opt.MapFrom(src => src.Building.BuildingName))
+                .ForMember(dest => dest.FloorName, opt => opt.MapFrom(src => src.Floor.FloorName));
+            #endregion
         }
 
         public class PaginatedListConverter<TSource, TDestination> : ITypeConverter<PaginatedList<TSource>, PaginatedList<TDestination>>

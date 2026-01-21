@@ -137,6 +137,13 @@ export const APIConstant = {
     GuestMasterDocumentDelete: `${basePath}GuestMaster/Documents/Delete`,
     GuestMasterByUnit: `${basePath}GuestMaster/List/by-unit`,
 
+    //Amenity Master
+    AmenityMasterListPaged: `${basePath}AmenityMaster/GetAllAmenity/paged`,
+    AmenityMasterGetById: `${basePath}AmenityMaster/GetByIdAsync`,
+    AmenityMasterAdd: `${basePath}AmenityMaster/AddAmenity`,
+    AmenityMasterEdit: `${basePath}AmenityMaster/EditAmenity`,
+    AmenityMasterDelete: `${basePath}AmenityMaster/DeleteAmenity`,
+
     //Floor
     FloorMasterList: `${basePath}Floor/GetAllFloor`,
     FloorMasterGetById: `${basePath}Floor/GetByIdAsync`,

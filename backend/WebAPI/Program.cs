@@ -121,6 +121,8 @@ builder.Services.AddScoped<IBuildingRepository, BuildingRepository>();
 builder.Services.AddScoped<IBuildingService, BuildingService>();
 builder.Services.AddScoped<IFloorRepository, FloorRepository>();
 builder.Services.AddScoped<IFloorService, FloorService>();
+builder.Services.AddScoped<IAmenityMasterRepository, AmenityMasterRepository>();
+builder.Services.AddScoped<IAmenityMasterService, AmenityMasterService>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<IUnitService, UnitService>();
 builder.Services.AddScoped<IZoneRepository, ZoneRepository>();
