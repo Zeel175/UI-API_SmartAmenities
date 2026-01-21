@@ -20,6 +20,7 @@ namespace Infrastructure.Context
         public DbSet<Unit> Units { get; set; }
         public DbSet<ResidentMaster> ResidentMasters { get; set; }
         public DbSet<GuestMaster> GuestMasters { get; set; }
+        public DbSet<AmenityMaster> AmenityMasters { get; set; }
         public DbSet<ResidentFamilyMember> ResidentFamilyMembers { get; set; }
         public DbSet<ResidentFamilyMemberUnit> ResidentFamilyMemberUnits { get; set; }
         public DbSet<ResidentUserMap> ResidentUserMaps { get; set; }
@@ -197,6 +198,36 @@ namespace Infrastructure.Context
                 .WithMany(b => b.Floors)   // Building has ICollection<Floor> Floors
                 .HasForeignKey(f => f.BuildingId)
                 .OnDelete(DeleteBehavior.NoAction); // avoid cascading deletes down the chain
+            // ---------- Amenity Master ----------
+            modelBuilder.Entity<AmenityMaster>()
+                .HasKey(a => a.Id);
+
+            modelBuilder.Entity<AmenityMaster>()
+                .ToTable("adm_AmenityMaster");
+
+            modelBuilder.Entity<AmenityMaster>()
+                .Property(a => a.Name)
+                .IsRequired();
+
+            modelBuilder.Entity<AmenityMaster>()
+                .Property(a => a.Type)
+                .IsRequired();
+
+            modelBuilder.Entity<AmenityMaster>()
+                .Property(a => a.Status)
+                .IsRequired();
+
+            modelBuilder.Entity<AmenityMaster>()
+                .HasOne(a => a.Building)
+                .WithMany()
+                .HasForeignKey(a => a.BuildingId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<AmenityMaster>()
+                .HasOne(a => a.Floor)
+                .WithMany()
+                .HasForeignKey(a => a.FloorId)
+                .OnDelete(DeleteBehavior.NoAction);
                                                     // ---------- Unit ----------
             modelBuilder.Entity<Unit>()
                 .HasKey(u => u.Id);

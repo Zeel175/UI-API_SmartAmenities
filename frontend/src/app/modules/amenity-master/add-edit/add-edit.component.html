@@ -1,0 +1,106 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <div
+    class="relative flex flex-0 flex-col border-b px-6 py-8
+               sm:flex-row sm:items-center sm:justify-between md:px-8"
+  >
+    <div class="text-4xl font-extrabold tracking-tight">
+      {{ isEditMode ? 'Edit Amenity' : 'Add Amenity' }}
+    </div>
+
+    <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
+      <button
+        mat-flat-button
+        color="primary"
+        class="app-button back-Green"
+        (click)="cancel()"
+      >
+        View List
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-auto overflow-visible">
+    <div class="flex flex-auto flex-col overflow-visible sm:mb-18 sm:overflow-y-auto">
+      <mat-card class="property-add-edit-form mt-4 mx-6 md:mx-8">
+        <mat-card-content>
+          <form [formGroup]="frmAmenity" (ngSubmit)="save()" novalidate class="app-form">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Name</mat-label>
+                <input matInput formControlName="name" />
+                <mat-error *ngIf="frmAmenity.get('name')?.invalid && frmAmenity.get('name')?.touched">
+                  Name is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Type</mat-label>
+                <mat-select formControlName="type">
+                  <mat-option *ngFor="let t of types" [value]="t">{{ t }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmAmenity.get('type')?.invalid && frmAmenity.get('type')?.touched">
+                  Type is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option *ngFor="let s of statuses" [value]="s">{{ s }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmAmenity.get('status')?.invalid && frmAmenity.get('status')?.touched">
+                  Status is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Building</mat-label>
+                <mat-select formControlName="buildingId">
+                  <mat-option *ngFor="let b of buildings" [value]="b.id">
+                    {{ b.buildingName }} - {{ b.code }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmAmenity.get('buildingId')?.invalid && frmAmenity.get('buildingId')?.touched">
+                  Building is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Floor</mat-label>
+                <mat-select formControlName="floorId">
+                  <mat-option *ngFor="let f of floors" [value]="f.id">
+                    {{ f.floorName }} - {{ f.code }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmAmenity.get('floorId')?.invalid && frmAmenity.get('floorId')?.touched">
+                  Floor is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Location / Landmark / Address</mat-label>
+                <input matInput formControlName="location" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full md:col-span-2 lg:col-span-3">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description" rows="3"></textarea>
+              </mat-form-field>
+            </div>
+
+            <div class="flex justify-center mt-6">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                class="app-button back-Green"
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -71,6 +71,7 @@ export class RoleAddEditComponent {
         { permission: 'Zone', view: false, add: false, edit: false, delete: false },
         { permission: 'Resident', view: false, add: false, edit: false, delete: false },
         { permission: 'Guest', view: false, add: false, edit: false, delete: false },
+        { permission: 'Amenity', view: false, add: false, edit: false, delete: false },
         // Add more permissions as needed...
     ];
 
@@ -353,7 +354,8 @@ export class RoleAddEditComponent {
             'GroupCode' : 'PER_GROUP_CODE',
             'Zone' : 'PER_ZONE',
             'Resident' : 'PER_RESIDENT',
-            'Guest' : 'PER_GUEST'
+            'Guest' : 'PER_GUEST',
+            'Amenity' : 'PER_AMENITY'
         };
 
         return permissionMap[permissionName] || 'UNKNOWN_CODE'; // Default to UNKNOWN_CODE if not found

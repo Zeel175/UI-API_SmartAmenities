@@ -159,6 +159,8 @@ export class NavigationService {
                 return this.permissionService.hasPermissionPrefix('Resident (PER_RESIDENT)');
             case 'guest-master':
                 return this.permissionService.hasPermissionPrefix('Guest (PER_GUEST)');
+            case 'amenity-master':
+                return this.permissionService.hasPermissionPrefix('Amenity (PER_AMENITY)');
             case 'customer':
                 return this.permissionService.hasPermissionPrefix('inv_customer_');
             case 'product':

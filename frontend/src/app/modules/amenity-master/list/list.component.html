@@ -1,0 +1,42 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <div
+    class="relative flex flex-0 flex-col border-b px-6 py-8
+           sm:flex-row sm:items-center sm:justify-between md:px-8"
+  >
+    <div class="text-4xl font-extrabold tracking-tight">Amenity Master</div>
+
+    <div class="flex items-center space-x-2">
+      <button
+        mat-flat-button
+        color="primary"
+        *ngIf="IsAddPermission"
+        [routerLink]="['/amenity-master/add']"
+      >
+        Add New
+        <mat-icon class="ml-1">add</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <app-column-filter
+    *ngIf="amenityColumns?.length"
+    [columns]="amenityColumns"
+    [data]="filteredData"
+    (filterChange)="onColumnFilter($event)">
+  </app-column-filter>
+
+  <app-fuse-list
+    *ngIf="amenityColumns?.length"
+    [data]="filteredData"
+    [columns]="amenityColumns"
+    [loading]="loading"
+    [actions]="{ edit: IsEditPermission, delete: IsDeletePermission }"
+    [pageIndex]="pageIndex - 1"
+    [pageSize]="pageSize"
+    [totalItems]="totalItems"
+    (editAction)="editAmenity($event)"
+    (deleteAction)="deleteAmenity($event)"
+    (pageChange)="onPageChange($event)"
+  >
+  </app-fuse-list>
+</div>

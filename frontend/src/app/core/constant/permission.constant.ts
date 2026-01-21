@@ -66,6 +66,7 @@ export const ApplicationPage = {
     zone: 'adm_zone',
     residentMaster: 'adm_resident_master',
     guestMaster: 'adm_guest_master',
+    amenityMaster: 'adm_amenity_master',
 };
 
 export const PermissionType = {
