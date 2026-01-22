@@ -110,6 +110,12 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
     }
 
     save(): void {
+        if (this.frmSlotTemplate.invalid) {
+            this.frmSlotTemplate.markAllAsTouched();
+            this.notificationService.error('Please fill all required fields.');
+            return;
+        }
+
         const formValue = this.frmSlotTemplate.getRawValue();
         const timeSlots = formValue.timeSlots || [];
         const basePayload = {
@@ -131,10 +137,16 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
 
         if (this.isEditMode) {
             const slot = timeSlots[0];
+            const startTime = this.formatTimeForPayload(slot.startTime);
+            const endTime = this.formatTimeForPayload(slot.endTime);
+            if (!startTime || !endTime) {
+                this.notificationService.error('Please provide valid start and end times.');
+                return;
+            }
             const payload = {
                 ...basePayload,
-                startTime: this.formatTimeForPayload(slot.startTime),
-                endTime: this.formatTimeForPayload(slot.endTime),
+                startTime,
+                endTime,
                 capacityPerSlot: slot.capacityPerSlot,
                 id: this.templateId
             };
@@ -145,15 +157,25 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
             return;
         }
 
-        const requests = timeSlots.map((slot: any) => this.slotTemplateService.addSlotTemplate({
-            ...basePayload,
-            startTime: this.formatTimeForPayload(slot.startTime),
-            endTime: this.formatTimeForPayload(slot.endTime),
-            capacityPerSlot: slot.capacityPerSlot,
-            id: 0
-        }));
+        const requests = timeSlots
+            .map((slot: any) => {
+                const startTime = this.formatTimeForPayload(slot.startTime);
+                const endTime = this.formatTimeForPayload(slot.endTime);
+                if (!startTime || !endTime) {
+                    return null;
+                }
+                return this.slotTemplateService.addSlotTemplate({
+                    ...basePayload,
+                    startTime,
+                    endTime,
+                    capacityPerSlot: slot.capacityPerSlot,
+                    id: 0
+                });
+            })
+            .filter(Boolean);
 
         if (!requests.length) {
+            this.notificationService.error('Please provide valid start and end times.');
             return;
         }
 
@@ -188,7 +210,7 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         }
         const hours = parsed.hours.toString().padStart(2, '0');
         const minutes = parsed.minutes.toString().padStart(2, '0');
-        return `${hours}:${minutes}`;
+        return `${hours}:${minutes}:00`;
     }
 
     private formatTimeToMeridiem(hours: number, minutes: number): string {
