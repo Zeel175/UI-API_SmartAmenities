@@ -3,6 +3,7 @@ using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 
 namespace Application.Services
@@ -26,6 +27,16 @@ namespace Application.Services
             _amenityDocumentService = amenityDocumentService;
         }
 
+        private async Task<string> GenerateCode()
+        {
+            var count = await _amenityRepository
+                .Get()
+                .Select(a => a.Code)
+                .Distinct()
+                .CountAsync();
+            return ("AMN" + (count + 1).ToString("0000000")).ToUpper();
+        }
+
         public async Task<InsertResponseModel> CreateAmenityAsync(AmenityMasterAddEdit amenity)
         {
             try
@@ -40,12 +51,16 @@ namespace Application.Services
                 {
                     mappedModel.Status = "Active";
                 }
+                if (string.IsNullOrWhiteSpace(mappedModel.Code) || mappedModel.Code.Equals("string", StringComparison.OrdinalIgnoreCase))
+                {
+                    mappedModel.Code = await GenerateCode();
+                }
 
                 await _amenityRepository.AddAsync(mappedModel, loggedinUserId.ToString(), "Insert");
                 return new InsertResponseModel
                 {
                     Id = mappedModel.Id,
-                    Code = mappedModel.Id.ToString(),
+                    Code = mappedModel.Code ?? mappedModel.Id.ToString(),
                     Message = "Insert successfully."
                 };
             }
@@ -132,13 +147,17 @@ namespace Application.Services
                 {
                     mappedModel.Status = "Active";
                 }
+                if (string.IsNullOrWhiteSpace(mappedModel.Code) || mappedModel.Code.Equals("string", StringComparison.OrdinalIgnoreCase))
+                {
+                    mappedModel.Code = entity.Code;
+                }
 
                 await _amenityRepository.UpdateAsync(mappedModel, loggedInUserId.ToString(), "Update");
 
                 return new InsertResponseModel
                 {
                     Id = entity.Id,
-                    Code = mappedModel.Id.ToString(),
+                    Code = mappedModel.Code ?? mappedModel.Id.ToString(),
                     Message = "Update successfully."
                 };
             }

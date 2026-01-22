@@ -13,5 +13,6 @@ namespace Application.Interfaces
             string webRootPath);
 
         Task<List<AmenityDocument>> GetDocumentsByAmenityAsync(long amenityId);
+        Task DeleteDocumentAsync(long documentId, long userId);
     }
 }

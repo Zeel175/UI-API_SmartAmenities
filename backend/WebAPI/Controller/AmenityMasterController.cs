@@ -83,5 +83,13 @@ namespace WebAPI.Controller
             await _amenityService.DeleteAmenityAsync(id);
             return NoContent();
         }
+
+        [HttpDelete("Documents/Delete")]
+        public async Task<IActionResult> DeleteAmenityDocument(long documentId)
+        {
+            var userId = 1;
+            await _amenityDocumentService.DeleteDocumentAsync(documentId, userId);
+            return NoContent();
+        }
     }
 }

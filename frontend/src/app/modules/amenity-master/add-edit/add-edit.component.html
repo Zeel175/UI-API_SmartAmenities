@@ -26,6 +26,11 @@
           <form [formGroup]="frmAmenity" (ngSubmit)="save()" novalidate class="app-form">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min">
               <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Code</mat-label>
+                <input matInput formControlName="code" readonly />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Name</mat-label>
                 <input matInput formControlName="name" />
                 <mat-error *ngIf="frmAmenity.get('name')?.invalid && frmAmenity.get('name')?.touched">
@@ -297,7 +302,7 @@
                 <div *ngIf="existingDocuments.length" class="mt-4">
                   <h4 class="font-medium">Uploaded Documents</h4>
                   <div
-                    *ngFor="let doc of existingDocuments"
+                    *ngFor="let doc of existingDocuments; let i = index"
                     class="mt-2 flex items-center justify-between rounded border p-2"
                   >
                     <a
@@ -310,6 +315,14 @@
                       {{ doc.fileName || doc.filePath }}
                     </a>
                     <span *ngIf="!doc.filePath">{{ doc.fileName }}</span>
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      type="button"
+                      (click)="removeExistingDocument(doc, i)"
+                    >
+                      <mat-icon>close</mat-icon>
+                    </button>
                   </div>
                 </div>
               </div>

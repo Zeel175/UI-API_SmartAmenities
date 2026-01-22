@@ -39,6 +39,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
     isEditMode = false;
     daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     frmAmenity = this.fb.group({
+        code: [{ value: '', disabled: true }],
         name: ['', Validators.required],
         type: ['', Validators.required],
         description: [''],
@@ -123,6 +124,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
     private getAmenityDetails(): void {
         this.amenityService.getAmenityById(this.amenityId).subscribe((res: any) => {
             this.frmAmenity.patchValue({
+                code: res.code,
                 name: res.name,
                 type: res.type,
                 description: res.description,
@@ -177,6 +179,24 @@ export class AmenityMasterAddEditComponent implements OnInit {
         this.selectedDocuments.splice(index, 1);
     }
 
+    removeExistingDocument(document: AmenityDocument, index: number): void {
+        if (!document?.id) {
+            return;
+        }
+
+        if (!confirm('Remove this document?')) {
+            return;
+        }
+
+        this.amenityService.deleteAmenityDocument(document.id).subscribe({
+            next: () => {
+                this.existingDocuments.splice(index, 1);
+                this.notificationService.success('Document removed.');
+            },
+            error: () => this.notificationService.error('Failed to remove document.')
+        });
+    }
+
     openSelectedDocument(file: File): void {
         const fileUrl = URL.createObjectURL(file);
         window.open(fileUrl, '_blank');
@@ -209,6 +229,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
             securityDeposit: this.toNumber(formValue.securityDeposit),
             taxCodeId: this.toNumber(formValue.taxCodeId),
             taxPercentage: this.toNumber(formValue.taxPercentage),
+            code: this.isEditMode ? formValue.code : 'string',
             createdDate: new Date().toISOString(),
             createdBy: 0,
             modifiedDate: new Date().toISOString(),
@@ -277,14 +298,14 @@ export class AmenityMasterAddEditComponent implements OnInit {
             return null;
         }
 
-        const match = value.match(/^\s*(\d{1,2})(?::(\d{1,2}))?\s*(AM|PM)?\s*$/i);
+        const match = value.match(/^\s*(\d{1,2})(?::(\d{1,2}))?(?::(\d{1,2}))?(?:\.(\d+))?\s*(AM|PM)?\s*$/i);
         if (!match) {
             return null;
         }
 
         let hours = Number(match[1]);
         const minutes = Number(match[2] ?? '0');
-        const meridiem = (match[3] ?? '').toUpperCase();
+        const meridiem = (match[5] ?? '').toUpperCase();
 
         if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
             return null;

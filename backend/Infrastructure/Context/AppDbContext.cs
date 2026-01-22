@@ -211,6 +211,10 @@ namespace Infrastructure.Context
                 .IsRequired();
 
             modelBuilder.Entity<AmenityMaster>()
+                .Property(a => a.Code)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<AmenityMaster>()
                 .Property(a => a.Type)
                 .IsRequired();
 

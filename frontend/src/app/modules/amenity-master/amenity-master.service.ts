@@ -32,6 +32,10 @@ export class AmenityMasterService extends CRUDService<AmenityMaster> {
         return this.http.delete<void>(`${APIConstant.AmenityMasterDelete}?id=${id}`);
     }
 
+    deleteAmenityDocument(documentId: number): Observable<void> {
+        return this.http.delete<void>(`${APIConstant.AmenityMasterDocumentDelete}?documentId=${documentId}`);
+    }
+
     getBuildings() {
         return this.http.get(`${APIConstant.BuildingBasicList}`);
     }
