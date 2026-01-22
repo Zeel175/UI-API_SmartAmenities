@@ -34,6 +34,7 @@ import { AmenityMasterService } from '../amenity-master.service';
 export class AmenityMasterAddEditComponent implements OnInit {
     amenityId: number;
     isEditMode = false;
+    daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     frmAmenity = this.fb.group({
         name: ['', Validators.required],
         type: ['', Validators.required],
@@ -55,7 +56,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
         requiresApproval: [false],
         allowGuests: [false],
         maxGuestsAllowed: [''],
-        availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        availableDays: this.fb.control(this.daysOfWeek),
         openTime: [''],
         closeTime: [''],
         holidayBlocked: [false],
@@ -81,7 +82,6 @@ export class AmenityMasterAddEditComponent implements OnInit {
         { label: 'No', value: false }
     ];
     chargeTypes = ['Free', 'Per Slot', 'Per Hour', 'Per Day', 'Flat Fee'];
-    daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     page = ApplicationPage.amenityMaster;
     permissions = PermissionType;
     IsViewPermission = false;
