@@ -134,6 +134,13 @@ const masterChildren: FuseNavigationItem[] = [
         link: '/amenity-slot-template'
     },
     {
+        id: 'booking-header',
+        title: 'Booking Header',
+        type: 'basic',
+        icon: 'heroicons_outline:clipboard-document-check',
+        link: '/booking-header'
+    },
+    {
         id: 'audit-log',
         title: 'Audit Log',
         type: 'basic',

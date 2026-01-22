@@ -1,0 +1,98 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <div
+    class="relative flex flex-0 flex-col border-b px-6 py-8
+           sm:flex-row sm:items-center sm:justify-between md:px-8"
+  >
+    <div class="text-4xl font-extrabold tracking-tight">
+      {{ isEditMode ? 'Edit Booking Header' : 'Add Booking Header' }}
+    </div>
+
+    <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
+      <button
+        mat-flat-button
+        color="primary"
+        class="app-button back-Green"
+        (click)="cancel()"
+      >
+        View List
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-auto overflow-visible">
+    <div class="flex flex-auto flex-col overflow-visible sm:mb-18 sm:overflow-y-auto">
+      <mat-card class="property-add-edit-form mt-4 mx-6 md:mx-8">
+        <mat-card-content>
+          <form [formGroup]="frmBooking" (ngSubmit)="save()" novalidate class="app-form">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Amenity</mat-label>
+                <mat-select formControlName="amenityId">
+                  <mat-option *ngFor="let amenity of amenities" [value]="amenity.id">
+                    {{ amenity.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmBooking.get('amenityId')?.invalid && frmBooking.get('amenityId')?.touched">
+                  Amenity is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Society</mat-label>
+                <mat-select formControlName="societyId">
+                  <mat-option *ngFor="let society of societies" [value]="society.id">
+                    {{ society.propertyName || society.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmBooking.get('societyId')?.invalid && frmBooking.get('societyId')?.touched">
+                  Society is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Booking Date</mat-label>
+                <input matInput type="date" formControlName="bookingDate" />
+                <mat-error *ngIf="frmBooking.get('bookingDate')?.invalid && frmBooking.get('bookingDate')?.touched">
+                  Booking date is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Booking No</mat-label>
+                <input matInput formControlName="bookingNo" placeholder="Auto-generated if blank" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option *ngFor="let status of statusOptions" [value]="status">
+                    {{ status }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmBooking.get('status')?.invalid && frmBooking.get('status')?.touched">
+                  Status is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full md:col-span-2 lg:col-span-3">
+                <mat-label>Purpose / Remarks</mat-label>
+                <textarea matInput rows="3" formControlName="remarks"></textarea>
+              </mat-form-field>
+            </div>
+
+            <div class="flex justify-center mt-6">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                class="app-button back-Green"
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

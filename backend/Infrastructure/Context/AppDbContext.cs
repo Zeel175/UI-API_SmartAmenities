@@ -22,6 +22,7 @@ namespace Infrastructure.Context
         public DbSet<GuestMaster> GuestMasters { get; set; }
         public DbSet<AmenityMaster> AmenityMasters { get; set; }
         public DbSet<AmenitySlotTemplate> AmenitySlotTemplates { get; set; }
+        public DbSet<BookingHeader> BookingHeaders { get; set; }
         public DbSet<ResidentFamilyMember> ResidentFamilyMembers { get; set; }
         public DbSet<ResidentFamilyMemberUnit> ResidentFamilyMemberUnits { get; set; }
         public DbSet<ResidentUserMap> ResidentUserMaps { get; set; }
@@ -275,6 +276,37 @@ namespace Infrastructure.Context
                 .HasOne(a => a.AmenityMaster)
                 .WithMany()
                 .HasForeignKey(a => a.AmenityId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // ---------- Booking Header ----------
+            modelBuilder.Entity<BookingHeader>()
+                .HasKey(b => b.Id);
+
+            modelBuilder.Entity<BookingHeader>()
+                .ToTable("adm_BookingHeader");
+
+            modelBuilder.Entity<BookingHeader>()
+                .Property(b => b.BookingNo)
+                .IsRequired();
+
+            modelBuilder.Entity<BookingHeader>()
+                .Property(b => b.BookingDate)
+                .IsRequired();
+
+            modelBuilder.Entity<BookingHeader>()
+                .Property(b => b.Status)
+                .IsRequired();
+
+            modelBuilder.Entity<BookingHeader>()
+                .HasOne(b => b.AmenityMaster)
+                .WithMany()
+                .HasForeignKey(b => b.AmenityId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingHeader>()
+                .HasOne(b => b.Society)
+                .WithMany()
+                .HasForeignKey(b => b.SocietyId)
                 .OnDelete(DeleteBehavior.NoAction);
                                                     // ---------- Unit ----------
             modelBuilder.Entity<Unit>()

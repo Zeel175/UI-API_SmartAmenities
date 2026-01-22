@@ -40,6 +40,7 @@ export * from './vendor-master';
 export * from './inward';
 export * from './amenity-master';
 export * from './amenity-slot-template';
+export * from './booking-header';
 export * from './floor';
 export * from './guest-master';
 export * from './unit';

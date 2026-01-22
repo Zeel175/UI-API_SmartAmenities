@@ -175,6 +175,14 @@ namespace Domain
             CreateMap<AmenitySlotTemplate, AmenitySlotTemplateList>()
                 .ForMember(dest => dest.AmenityName, opt => opt.MapFrom(src => src.AmenityMaster.Name));
             #endregion
+
+            #region BookingHeader
+            CreateMap<BookingHeader, BookingHeaderAddEdit>();
+            CreateMap<BookingHeaderAddEdit, BookingHeader>();
+            CreateMap<BookingHeader, BookingHeaderList>()
+                .ForMember(dest => dest.AmenityName, opt => opt.MapFrom(src => src.AmenityMaster.Name))
+                .ForMember(dest => dest.SocietyName, opt => opt.MapFrom(src => src.Society.PropertyName));
+            #endregion
         }
 
         public class PaginatedListConverter<TSource, TDestination> : ITypeConverter<PaginatedList<TSource>, PaginatedList<TDestination>>
