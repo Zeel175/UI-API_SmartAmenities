@@ -14,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AmenitySlotTemplateService } from '../amenity-slot-template.service';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
+import { forkJoin } from 'rxjs';
 
 @Component({
     selector: 'amenity-slot-template-add-edit',
@@ -144,7 +145,7 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
             return;
         }
 
-        const templates = timeSlots.map((slot: any) => ({
+        const requests = timeSlots.map((slot: any) => this.slotTemplateService.addSlotTemplate({
             ...basePayload,
             startTime: this.formatTimeForPayload(slot.startTime),
             endTime: this.formatTimeForPayload(slot.endTime),
@@ -152,11 +153,11 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
             id: 0
         }));
 
-        if (!templates.length) {
+        if (!requests.length) {
             return;
         }
 
-        this.slotTemplateService.addSlotTemplates(templates).subscribe(() => {
+        forkJoin(requests).subscribe(() => {
             this.notificationService.success('Saved successfully.');
             this.router.navigate(['/amenity-slot-template']);
         }, () => this.notificationService.error('Save failed.'));

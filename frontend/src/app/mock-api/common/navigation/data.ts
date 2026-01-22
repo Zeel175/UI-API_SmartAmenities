@@ -128,7 +128,7 @@ const masterChildren: FuseNavigationItem[] = [
     },
     {
         id: 'amenity-slot-template',
-        title: 'Amenity Slot Template',
+        title: 'Amenity Slot',
         type: 'basic',
         icon: 'heroicons_outline:calendar-days',
         link: '/amenity-slot-template'

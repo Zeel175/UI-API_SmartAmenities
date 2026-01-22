@@ -4,7 +4,7 @@
            sm:flex-row sm:items-center sm:justify-between md:px-8"
   >
     <div class="text-4xl font-extrabold tracking-tight">
-      {{ isEditMode ? 'Edit Amenity Slot Template' : 'Add Amenity Slot Template' }}
+      {{ isEditMode ? 'Edit Amenity Slot' : 'Add Amenity Slot' }}
     </div>
 
     <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
@@ -62,7 +62,55 @@
                 <input matInput type="number" formControlName="bufferTimeMinutes" />
               </mat-form-field>
 
-              <mat-checkbox formControlName="isActive" class="mt-2">Active</mat-checkbox>
+              <!-- '<mat-checkbox formControlName="isActive" class="mt-2">Active</mat-checkbox>' -->
+            </div>
+
+            <div class="mt-6" formArrayName="timeSlots">
+              <div
+                *ngFor="let slotGroup of timeSlots.controls; let i = index"
+                [formGroupName]="i"
+                class="grid grid-cols-1 gap-4 md:grid-cols-3 auto-rows-min mb-4"
+              >
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Start Time</mat-label>
+                  <input matInput [ngxTimepicker]="startTimePicker" formControlName="startTime" readonly />
+                  <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
+                  <mat-error *ngIf="slotGroup.get('startTime')?.invalid && slotGroup.get('startTime')?.touched">
+                    Start time is required.
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>End Time</mat-label>
+                  <input matInput [ngxTimepicker]="endTimePicker" formControlName="endTime" readonly />
+                  <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
+                  <mat-error *ngIf="slotGroup.get('endTime')?.invalid && slotGroup.get('endTime')?.touched">
+                    End time is required.
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Capacity Per Slot</mat-label>
+                  <input matInput type="number" formControlName="capacityPerSlot" />
+                </mat-form-field>
+
+                <div class="flex items-center gap-2">
+                  <button mat-stroked-button type="button" color="primary" (click)="addTimeSlot()">
+                    <mat-icon>add</mat-icon>
+                    Add slot
+                  </button>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    color="warn"
+                    (click)="removeTimeSlot(i)"
+                    [disabled]="timeSlots.length === 1"
+                  >
+                    <mat-icon>remove</mat-icon>
+                    Remove
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div class="mt-6" formArrayName="timeSlots">
