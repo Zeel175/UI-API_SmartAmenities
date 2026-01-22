@@ -173,7 +173,9 @@ export class AmenityMasterAddEditComponent implements OnInit {
             slotDurationMinutes: this.toNumber(formValue.slotDurationMinutes),
             bufferTimeMinutes: this.toNumber(formValue.bufferTimeMinutes),
             maxGuestsAllowed: this.toNumber(formValue.maxGuestsAllowed),
-            availableDays: (formValue.availableDays || []).join(','),
+            availableDays: Array.isArray(formValue.availableDays)
+                ? formValue.availableDays.join(',')
+                : (formValue.availableDays ?? ''),
             openTime: formValue.openTime || null,
             closeTime: formValue.closeTime || null,
             baseRate: this.toNumber(formValue.baseRate),
