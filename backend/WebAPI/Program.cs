@@ -125,6 +125,8 @@ builder.Services.AddScoped<IAmenityMasterRepository, AmenityMasterRepository>();
 builder.Services.AddScoped<IAmenityMasterService, AmenityMasterService>();
 builder.Services.AddScoped<IAmenitySlotTemplateRepository, AmenitySlotTemplateRepository>();
 builder.Services.AddScoped<IAmenitySlotTemplateService, AmenitySlotTemplateService>();
+builder.Services.AddScoped<IBookingHeaderRepository, BookingHeaderRepository>();
+builder.Services.AddScoped<IBookingHeaderService, BookingHeaderService>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<IUnitService, UnitService>();
 builder.Services.AddScoped<IZoneRepository, ZoneRepository>();

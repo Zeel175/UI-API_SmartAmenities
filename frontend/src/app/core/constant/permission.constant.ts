@@ -68,6 +68,7 @@ export const ApplicationPage = {
     guestMaster: 'adm_guest_master',
     amenityMaster: 'adm_amenity_master',
     amenitySlotTemplate: 'adm_amenity_slot_template',
+    bookingHeader: 'adm_booking_header',
 };
 
 export const PermissionType = {

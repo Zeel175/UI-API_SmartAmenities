@@ -153,6 +153,13 @@ export const APIConstant = {
     AmenitySlotTemplateEdit: `${basePath}AmenitySlotTemplate/EditSlotTemplate`,
     AmenitySlotTemplateDelete: `${basePath}AmenitySlotTemplate/DeleteSlotTemplate`,
 
+    //Booking Header
+    BookingHeaderListPaged: `${basePath}BookingHeader/GetAllBooking/paged`,
+    BookingHeaderGetById: `${basePath}BookingHeader/GetByIdAsync`,
+    BookingHeaderAdd: `${basePath}BookingHeader/AddBooking`,
+    BookingHeaderEdit: `${basePath}BookingHeader/EditBooking`,
+    BookingHeaderDelete: `${basePath}BookingHeader/DeleteBooking`,
+
     //Floor
     FloorMasterList: `${basePath}Floor/GetAllFloor`,
     FloorMasterGetById: `${basePath}Floor/GetByIdAsync`,

@@ -1,0 +1,42 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <div
+    class="relative flex flex-0 flex-col border-b px-6 py-8
+           sm:flex-row sm:items-center sm:justify-between md:px-8"
+  >
+    <div class="text-4xl font-extrabold tracking-tight">Booking Header</div>
+
+    <div class="flex items-center space-x-2">
+      <button
+        mat-flat-button
+        color="primary"
+        *ngIf="IsAddPermission"
+        [routerLink]="['/booking-header/add']"
+      >
+        Add New
+        <mat-icon class="ml-1">add</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <app-column-filter
+    *ngIf="bookingColumns?.length"
+    [columns]="bookingColumns"
+    [data]="filteredData"
+    (filterChange)="onColumnFilter($event)">
+  </app-column-filter>
+
+  <app-fuse-list
+    *ngIf="bookingColumns?.length"
+    [data]="filteredData"
+    [columns]="bookingColumns"
+    [loading]="loading"
+    [actions]="{ edit: IsEditPermission, delete: IsDeletePermission }"
+    [pageIndex]="pageIndex - 1"
+    [pageSize]="pageSize"
+    [totalItems]="totalItems"
+    (editAction)="editBooking($event)"
+    (deleteAction)="deleteBooking($event)"
+    (pageChange)="onPageChange($event)"
+  >
+  </app-fuse-list>
+</div>
