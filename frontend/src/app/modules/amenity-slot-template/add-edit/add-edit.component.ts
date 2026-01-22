@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -52,12 +52,10 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
     frmSlotTemplate = this.fb.group({
         amenityId: ['', Validators.required],
         dayOfWeek: ['', Validators.required],
-        startTime: ['', Validators.required],
-        endTime: ['', Validators.required],
         slotDurationMinutes: [null, [Validators.required, Validators.min(1)]],
         bufferTimeMinutes: [null],
-        capacityPerSlot: [null],
-        isActive: [true]
+        isActive: [true],
+        timeSlots: this.fb.array([this.createTimeSlotGroup()])
     });
 
     page = ApplicationPage.amenitySlotTemplate;
@@ -96,35 +94,69 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
             this.frmSlotTemplate.patchValue({
                 amenityId: res.amenityId,
                 dayOfWeek: res.dayOfWeek,
-                startTime: this.formatTimeForPicker(res.startTime),
-                endTime: this.formatTimeForPicker(res.endTime),
                 slotDurationMinutes: res.slotDurationMinutes,
                 bufferTimeMinutes: res.bufferTimeMinutes,
-                capacityPerSlot: res.capacityPerSlot,
                 isActive: res.isActive
             });
+            const timeSlots = this.timeSlots;
+            timeSlots.clear();
+            timeSlots.push(this.createTimeSlotGroup({
+                startTime: this.formatTimeForPicker(res.startTime),
+                endTime: this.formatTimeForPicker(res.endTime),
+                capacityPerSlot: res.capacityPerSlot
+            }));
         });
     }
 
     save(): void {
         const formValue = this.frmSlotTemplate.getRawValue();
-        const payload = {
-            ...formValue,
+        const timeSlots = formValue.timeSlots || [];
+        const basePayload = {
             amenityId: +formValue.amenityId,
-            startTime: this.formatTimeForPayload(formValue.startTime),
-            endTime: this.formatTimeForPayload(formValue.endTime),
+            dayOfWeek: formValue.dayOfWeek,
+            slotDurationMinutes: formValue.slotDurationMinutes,
+            bufferTimeMinutes: formValue.bufferTimeMinutes,
+            isActive: formValue.isActive,
             createdDate: new Date().toISOString(),
             createdBy: 0,
             modifiedDate: new Date().toISOString(),
-            modifiedBy: 0,
-            id: this.isEditMode ? this.templateId : 0
+            modifiedBy: 0
         };
 
-        const request$ = this.isEditMode
-            ? this.slotTemplateService.updateSlotTemplate(payload)
-            : this.slotTemplateService.addSlotTemplate(payload);
+        if (!timeSlots.length) {
+            this.notificationService.error('Please add at least one time slot.');
+            return;
+        }
 
-        request$.subscribe(() => {
+        if (this.isEditMode) {
+            const slot = timeSlots[0];
+            const payload = {
+                ...basePayload,
+                startTime: this.formatTimeForPayload(slot.startTime),
+                endTime: this.formatTimeForPayload(slot.endTime),
+                capacityPerSlot: slot.capacityPerSlot,
+                id: this.templateId
+            };
+            this.slotTemplateService.updateSlotTemplate(payload).subscribe(() => {
+                this.notificationService.success('Saved successfully.');
+                this.router.navigate(['/amenity-slot-template']);
+            }, () => this.notificationService.error('Save failed.'));
+            return;
+        }
+
+        const templates = timeSlots.map((slot: any) => ({
+            ...basePayload,
+            startTime: this.formatTimeForPayload(slot.startTime),
+            endTime: this.formatTimeForPayload(slot.endTime),
+            capacityPerSlot: slot.capacityPerSlot,
+            id: 0
+        }));
+
+        if (!templates.length) {
+            return;
+        }
+
+        this.slotTemplateService.addSlotTemplates(templates).subscribe(() => {
             this.notificationService.success('Saved successfully.');
             this.router.navigate(['/amenity-slot-template']);
         }, () => this.notificationService.error('Save failed.'));
@@ -200,5 +232,27 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         }
 
         return { hours, minutes };
+    }
+
+    get timeSlots(): FormArray {
+        return this.frmSlotTemplate.get('timeSlots') as FormArray;
+    }
+
+    addTimeSlot(): void {
+        this.timeSlots.push(this.createTimeSlotGroup());
+    }
+
+    removeTimeSlot(index: number): void {
+        if (this.timeSlots.length > 1) {
+            this.timeSlots.removeAt(index);
+        }
+    }
+
+    private createTimeSlotGroup(values?: { startTime?: string; endTime?: string; capacityPerSlot?: number }): FormGroup {
+        return this.fb.group({
+            startTime: [values?.startTime ?? '', Validators.required],
+            endTime: [values?.endTime ?? '', Validators.required],
+            capacityPerSlot: [values?.capacityPerSlot ?? null]
+        });
     }
 }

@@ -150,6 +150,7 @@ export const APIConstant = {
     AmenitySlotTemplateListPaged: `${basePath}AmenitySlotTemplate/GetAllSlotTemplate/paged`,
     AmenitySlotTemplateGetById: `${basePath}AmenitySlotTemplate/GetByIdAsync`,
     AmenitySlotTemplateAdd: `${basePath}AmenitySlotTemplate/AddSlotTemplate`,
+    AmenitySlotTemplateAddBulk: `${basePath}AmenitySlotTemplate/AddSlotTemplate/bulk`,
     AmenitySlotTemplateEdit: `${basePath}AmenitySlotTemplate/EditSlotTemplate`,
     AmenitySlotTemplateDelete: `${basePath}AmenitySlotTemplate/DeleteSlotTemplate`,
 

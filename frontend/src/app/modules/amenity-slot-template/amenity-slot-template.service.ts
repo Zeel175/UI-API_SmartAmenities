@@ -24,6 +24,10 @@ export class AmenitySlotTemplateService extends CRUDService<AmenitySlotTemplate>
         return this.http.post(`${APIConstant.AmenitySlotTemplateAdd}`, template);
     }
 
+    addSlotTemplates(templates: AmenitySlotTemplate[]) {
+        return this.http.post(`${APIConstant.AmenitySlotTemplateAddBulk}`, templates);
+    }
+
     updateSlotTemplate(template: AmenitySlotTemplate) {
         return this.http.post(`${APIConstant.AmenitySlotTemplateEdit}`, template);
     }
