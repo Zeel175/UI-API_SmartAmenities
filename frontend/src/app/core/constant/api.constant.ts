@@ -144,6 +144,14 @@ export const APIConstant = {
     AmenityMasterEdit: `${basePath}AmenityMaster/EditAmenity`,
     AmenityMasterDelete: `${basePath}AmenityMaster/DeleteAmenity`,
     AmenityMasterDocumentDelete: `${basePath}AmenityMaster/Documents/Delete`,
+    AmenityMasterBasicList: `${basePath}AmenityMaster/GetAllAmenityBasic`,
+
+    //Amenity Slot Template
+    AmenitySlotTemplateListPaged: `${basePath}AmenitySlotTemplate/GetAllSlotTemplate/paged`,
+    AmenitySlotTemplateGetById: `${basePath}AmenitySlotTemplate/GetByIdAsync`,
+    AmenitySlotTemplateAdd: `${basePath}AmenitySlotTemplate/AddSlotTemplate`,
+    AmenitySlotTemplateEdit: `${basePath}AmenitySlotTemplate/EditSlotTemplate`,
+    AmenitySlotTemplateDelete: `${basePath}AmenitySlotTemplate/DeleteSlotTemplate`,
 
     //Floor
     FloorMasterList: `${basePath}Floor/GetAllFloor`,

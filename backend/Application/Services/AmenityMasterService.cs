@@ -123,6 +123,21 @@ namespace Application.Services
             return new PaginatedList<AmenityMasterList>(mapped.ToList(), totalCount, pageIndex, pageSize);
         }
 
+        public async Task<List<object>> GetAmenityBasicAsync()
+        {
+            var query = _amenityRepository.Get(a => a.Status == "Active");
+
+            var result = await query
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Name
+                })
+                .ToListAsync<object>();
+
+            return result;
+        }
+
         public async Task<InsertResponseModel> UpdateAmenityAsync(AmenityMasterAddEdit amenity)
         {
             try

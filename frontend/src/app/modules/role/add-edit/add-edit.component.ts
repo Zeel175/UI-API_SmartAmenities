@@ -72,6 +72,7 @@ export class RoleAddEditComponent {
         { permission: 'Resident', view: false, add: false, edit: false, delete: false },
         { permission: 'Guest', view: false, add: false, edit: false, delete: false },
         { permission: 'Amenity', view: false, add: false, edit: false, delete: false },
+        { permission: 'Amenity Slot Template', view: false, add: false, edit: false, delete: false },
         // Add more permissions as needed...
     ];
 
@@ -355,7 +356,8 @@ export class RoleAddEditComponent {
             'Zone' : 'PER_ZONE',
             'Resident' : 'PER_RESIDENT',
             'Guest' : 'PER_GUEST',
-            'Amenity' : 'PER_AMENITY'
+            'Amenity' : 'PER_AMENITY',
+            'Amenity Slot Template' : 'PER_AMENITY_SLOT_TEMPLATE'
         };
 
         return permissionMap[permissionName] || 'UNKNOWN_CODE'; // Default to UNKNOWN_CODE if not found

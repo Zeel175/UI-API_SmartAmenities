@@ -76,6 +76,7 @@ export const appRoutes: Route[] = [
             { path: 'resident-master', loadChildren: () => import('app/modules/resident-master/resident-master.routes') },
             { path: 'guest-master', loadChildren: () => import('app/modules/guest-master/guest-master.routes') },
             { path: 'amenity-master', loadChildren: () => import('app/modules/amenity-master/amenity-master.routes') },
+            { path: 'amenity-slot-template', loadChildren: () => import('app/modules/amenity-slot-template/amenity-slot-template.routes') },
             { path: 'audit-log', loadChildren: () => import('app/modules/audit-log/audit-log.routes') },
             { path: 'hikvision-logs', loadChildren: () => import('app/modules/hikvision-logs/hikvision-logs.routes') },
             { path: 'group-code', loadChildren: () => import('app/modules/group-code/group-code.routes') },

@@ -127,6 +127,13 @@ const masterChildren: FuseNavigationItem[] = [
         link: '/amenity-master'
     },
     {
+        id: 'amenity-slot-template',
+        title: 'Amenity Slot Template',
+        type: 'basic',
+        icon: 'heroicons_outline:calendar-days',
+        link: '/amenity-slot-template'
+    },
+    {
         id: 'audit-log',
         title: 'Audit Log',
         type: 'basic',
