@@ -87,7 +87,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
     page = ApplicationPage.amenityMaster;
     permissions = PermissionType;
     IsViewPermission = false;
-    documentFiles: File[] = [];
+    selectedDocuments: File[] = [];
     existingDocuments: AmenityDocument[] = [];
 
     constructor(
@@ -164,8 +164,25 @@ export class AmenityMasterAddEditComponent implements OnInit {
 
     onDocumentsSelected(event: Event): void {
         const input = event.target as HTMLInputElement;
-        const files = input.files ? Array.from(input.files) : [];
-        this.documentFiles = files;
+        if (input.files && input.files.length > 0) {
+            Array.from(input.files).forEach((file) => {
+                this.selectedDocuments.push(file);
+            });
+        }
+
+        input.value = '';
+    }
+
+    removeSelectedDocument(index: number): void {
+        this.selectedDocuments.splice(index, 1);
+    }
+
+    openSelectedDocument(file: File): void {
+        const fileUrl = URL.createObjectURL(file);
+        window.open(fileUrl, '_blank');
+        setTimeout(() => {
+            URL.revokeObjectURL(fileUrl);
+        }, 1000);
     }
 
     save(): void {
@@ -200,7 +217,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
         };
 
         const formData = this.buildFormData(payload);
-        this.documentFiles.forEach((file) => formData.append('Documents', file));
+        this.selectedDocuments.forEach((file) => formData.append('Documents', file));
 
         const request$ = this.isEditMode
             ? this.amenityService.updateAmenity(formData)
