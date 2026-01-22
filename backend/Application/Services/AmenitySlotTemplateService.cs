@@ -4,6 +4,7 @@ using Domain.Interfaces;
 using Domain.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Application.Services
@@ -29,12 +30,7 @@ namespace Application.Services
             try
             {
                 long loggedInUserId = _claimAccessorService.GetUserId();
-                var mappedModel = _dataMapper.Map<AmenitySlotTemplateAddEdit, AmenitySlotTemplate>(template);
-                mappedModel.CreatedBy = loggedInUserId;
-                mappedModel.CreatedDate = DateTime.Now;
-                mappedModel.ModifiedBy = loggedInUserId;
-                mappedModel.ModifiedDate = DateTime.Now;
-                mappedModel.IsActive = true;
+                var mappedModel = BuildSlotTemplateEntity(template, loggedInUserId);
 
                 await _slotTemplateRepository.AddAsync(mappedModel, loggedInUserId.ToString(), "Insert");
                 return new InsertResponseModel
@@ -53,6 +49,48 @@ namespace Application.Services
                     Message = ex.Message
                 };
             }
+        }
+
+        public async Task<IReadOnlyList<InsertResponseModel>> CreateSlotTemplatesAsync(IReadOnlyList<AmenitySlotTemplateAddEdit> templates)
+        {
+            var responses = new List<InsertResponseModel>();
+            if (templates == null || templates.Count == 0)
+            {
+                responses.Add(new InsertResponseModel
+                {
+                    Id = 0,
+                    Code = "400",
+                    Message = "Slot templates payload is required."
+                });
+                return responses;
+            }
+
+            long loggedInUserId = _claimAccessorService.GetUserId();
+            foreach (var template in templates)
+            {
+                try
+                {
+                    var mappedModel = BuildSlotTemplateEntity(template, loggedInUserId);
+                    await _slotTemplateRepository.AddAsync(mappedModel, loggedInUserId.ToString(), "Insert");
+                    responses.Add(new InsertResponseModel
+                    {
+                        Id = mappedModel.Id,
+                        Code = mappedModel.Id.ToString(),
+                        Message = "Insert successfully."
+                    });
+                }
+                catch (Exception ex)
+                {
+                    responses.Add(new InsertResponseModel
+                    {
+                        Id = 0,
+                        Code = ex.HResult.ToString(),
+                        Message = ex.Message
+                    });
+                }
+            }
+
+            return responses;
         }
 
         public async Task DeleteSlotTemplateAsync(long id)
@@ -81,7 +119,7 @@ namespace Application.Services
 
         public async Task<PaginatedList<AmenitySlotTemplateList>> GetSlotTemplatesAsync(int pageIndex, int pageSize)
         {
-            var query = _slotTemplateRepository.Get(includeProperties: "AmenityMaster");
+            var query = _slotTemplateRepository.Get(includeProperties: "AmenityMaster").Where(slot => slot.IsActive);
 
             var totalCount = await query.CountAsync();
             var rows = await query
@@ -135,6 +173,17 @@ namespace Application.Services
                     Message = ex.Message
                 };
             }
+        }
+
+        private AmenitySlotTemplate BuildSlotTemplateEntity(AmenitySlotTemplateAddEdit template, long loggedInUserId)
+        {
+            var mappedModel = _dataMapper.Map<AmenitySlotTemplateAddEdit, AmenitySlotTemplate>(template);
+            mappedModel.CreatedBy = loggedInUserId;
+            mappedModel.CreatedDate = DateTime.Now;
+            mappedModel.ModifiedBy = loggedInUserId;
+            mappedModel.ModifiedDate = DateTime.Now;
+            mappedModel.IsActive = true;
+            return mappedModel;
         }
     }
 }

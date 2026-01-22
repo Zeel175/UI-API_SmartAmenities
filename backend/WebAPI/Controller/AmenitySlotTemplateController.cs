@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Domain.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace WebAPI.Controller
 {
@@ -22,6 +23,14 @@ namespace WebAPI.Controller
         public async Task<IActionResult> CreateSlotTemplateAsync(AmenitySlotTemplateAddEdit template)
         {
             var response = await _slotTemplateService.CreateSlotTemplateAsync(template);
+            return Ok(response);
+        }
+
+        [Route("AddSlotTemplate/bulk")]
+        [HttpPost]
+        public async Task<IActionResult> CreateSlotTemplatesAsync(List<AmenitySlotTemplateAddEdit> templates)
+        {
+            var response = await _slotTemplateService.CreateSlotTemplatesAsync(templates);
             return Ok(response);
         }
 
