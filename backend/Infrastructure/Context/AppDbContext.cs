@@ -27,6 +27,7 @@ namespace Infrastructure.Context
         public DbSet<ResidentMasterUnit> ResidentMasterUnits { get; set; }
         public DbSet<HikDevice> HikDevices { get; set; }
         public DbSet<ResidentDocument> ResidentDocuments { get; set; }
+        public DbSet<AmenityDocument> AmenityDocuments { get; set; }
         public DbSet<ResidentProfilePhoto> ResidentProfilePhotos { get; set; }
         public DbSet<OtpRequest> OtpRequests { get; set; }
         public AppDbContext(DbContextOptions<AppDbContext> options)
@@ -228,6 +229,19 @@ namespace Infrastructure.Context
                 .WithMany()
                 .HasForeignKey(a => a.FloorId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<AmenityDocument>()
+                .ToTable("adm_AmenityDocument");
+
+            modelBuilder.Entity<AmenityDocument>()
+                .HasKey(d => d.Id);
+
+            modelBuilder.Entity<AmenityDocument>()
+                .HasOne(d => d.AmenityMaster)
+                .WithMany(a => a.Documents)
+                .HasForeignKey(d => d.AmenityMasterId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
                                                     // ---------- Unit ----------
             modelBuilder.Entity<Unit>()
                 .HasKey(u => u.Id);

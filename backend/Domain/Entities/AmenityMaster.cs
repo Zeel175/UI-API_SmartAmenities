@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -91,8 +92,7 @@ namespace Domain.Entities
 
         public string? TermsAndConditions { get; set; }
 
-        [MaxLength(500)]
-        public string? ImageUrl { get; set; }
+        public ICollection<AmenityDocument> Documents { get; set; } = new List<AmenityDocument>();
 
         public Building Building { get; set; } = default!;
         public Floor Floor { get; set; } = default!;

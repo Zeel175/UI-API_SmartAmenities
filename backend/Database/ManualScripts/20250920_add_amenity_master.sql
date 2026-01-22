@@ -36,7 +36,6 @@ BEGIN
         [TaxCodeId] [bigint] NULL,
         [TaxPercentage] [decimal](5, 2) NULL,
         [TermsAndConditions] [nvarchar](max) NULL,
-        [ImageUrl] [nvarchar](500) NULL,
         [CreatedDate] [datetime2](7) NOT NULL,
         [CreatedBy] [bigint] NULL,
         [ModifiedDate] [datetime2](7) NULL,
@@ -51,6 +50,27 @@ BEGIN
     ALTER TABLE [dbo].[adm_AmenityMaster] WITH CHECK
     ADD CONSTRAINT [FK_adm_AmenityMaster_adm_Floor] FOREIGN KEY([FloorId])
     REFERENCES [dbo].[adm_Floor] ([Id]);
+END
+
+IF OBJECT_ID('dbo.adm_AmenityDocument', 'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[adm_AmenityDocument](
+        [Id] [bigint] IDENTITY(1,1) NOT NULL,
+        [AmenityMasterId] [bigint] NULL,
+        [FileName] [nvarchar](255) NOT NULL,
+        [FilePath] [nvarchar](500) NOT NULL,
+        [ContentType] [nvarchar](100) NULL,
+        [IsActive] [bit] NOT NULL CONSTRAINT [DF_adm_AmenityDocument_IsActive] DEFAULT(1),
+        [CreatedDate] [datetime2](7) NOT NULL,
+        [CreatedBy] [bigint] NULL,
+        [ModifiedDate] [datetime2](7) NULL,
+        [ModifiedBy] [bigint] NULL,
+        CONSTRAINT [PK_adm_AmenityDocument] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
+
+    ALTER TABLE [dbo].[adm_AmenityDocument] WITH CHECK
+    ADD CONSTRAINT [FK_adm_AmenityDocument_adm_AmenityMaster] FOREIGN KEY([AmenityMasterId])
+    REFERENCES [dbo].[adm_AmenityMaster] ([Id]);
 END
 
 IF NOT EXISTS (SELECT 1 FROM dbo.adm_Permission WHERE Code = 'PER_AMENITY')

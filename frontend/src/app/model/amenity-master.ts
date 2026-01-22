@@ -1,3 +1,10 @@
+export class AmenityDocument {
+    id: number;
+    fileName: string;
+    filePath: string;
+    contentType: string;
+}
+
 export class AmenityMaster {
     id: number;
     name: string;
@@ -36,5 +43,5 @@ export class AmenityMaster {
     taxCodeId?: number;
     taxPercentage?: number;
     termsAndConditions?: string;
-    imageUrl?: string;
+    documentDetails?: AmenityDocument[];
 }

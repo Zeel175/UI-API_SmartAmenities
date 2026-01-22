@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Domain.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
 
 namespace WebAPI.Controller
 {
@@ -11,17 +12,31 @@ namespace WebAPI.Controller
     public class AmenityMasterController : ControllerBase
     {
         private readonly IAmenityMasterService _amenityService;
+        private readonly IAmenityDocumentService _amenityDocumentService;
+        private readonly IWebHostEnvironment _env;
 
-        public AmenityMasterController(IAmenityMasterService amenityService)
+        public AmenityMasterController(
+            IAmenityMasterService amenityService,
+            IAmenityDocumentService amenityDocumentService,
+            IWebHostEnvironment env)
         {
             _amenityService = amenityService;
+            _amenityDocumentService = amenityDocumentService;
+            _env = env;
         }
 
         [Route("AddAmenity")]
         [HttpPost]
-        public async Task<IActionResult> CreateAmenityAsync(AmenityMasterAddEdit amenity)
+        public async Task<IActionResult> CreateAmenityAsync([FromForm] AmenityMasterAddEdit amenity)
         {
             var response = await _amenityService.CreateAmenityAsync(amenity);
+            if (response.Id > 0 && amenity.Documents?.Count > 0)
+            {
+                await _amenityDocumentService.SaveDocumentsAsync(
+                    response.Id,
+                    amenity.Documents,
+                    _env.WebRootPath);
+            }
             return Ok(response);
         }
 
@@ -49,9 +64,16 @@ namespace WebAPI.Controller
 
         [Route("EditAmenity")]
         [HttpPost]
-        public async Task<IActionResult> EditAmenity(AmenityMasterAddEdit amenity)
+        public async Task<IActionResult> EditAmenity([FromForm] AmenityMasterAddEdit amenity)
         {
             var response = await _amenityService.UpdateAmenityAsync(amenity);
+            if (amenity.Id > 0 && amenity.Documents?.Count > 0)
+            {
+                await _amenityDocumentService.SaveDocumentsAsync(
+                    amenity.Id,
+                    amenity.Documents,
+                    _env.WebRootPath);
+            }
             return Ok(response);
         }
 

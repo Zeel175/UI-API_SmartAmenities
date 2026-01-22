@@ -132,6 +132,8 @@ builder.Services.AddScoped<IResidentFamilyMemberRepository, ResidentFamilyMember
 builder.Services.AddScoped<IResidentMasterService, ResidentMasterService>();
 builder.Services.AddScoped<IResidentDocumentRepository, ResidentDocumentRepository>();
 builder.Services.AddScoped<IResidentDocumentService, ResidentDocumentService>();
+builder.Services.AddScoped<IAmenityDocumentRepository, AmenityDocumentRepository>();
+builder.Services.AddScoped<IAmenityDocumentService, AmenityDocumentService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IGuestMasterRepository, GuestMasterRepository>();
 builder.Services.AddScoped<IGuestMasterService, GuestMasterService>();

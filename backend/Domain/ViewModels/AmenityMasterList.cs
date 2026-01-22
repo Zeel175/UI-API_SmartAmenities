@@ -42,6 +42,5 @@ namespace Domain.ViewModels
         public long? TaxCodeId { get; set; }
         public decimal? TaxPercentage { get; set; }
         public string? TermsAndConditions { get; set; }
-        public string? ImageUrl { get; set; }
     }
 }
