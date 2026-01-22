@@ -152,6 +152,7 @@ export const APIConstant = {
     AmenitySlotTemplateAdd: `${basePath}AmenitySlotTemplate/AddSlotTemplate`,
     AmenitySlotTemplateAddBulk: `${basePath}AmenitySlotTemplate/AddSlotTemplate/bulk`,
     AmenitySlotTemplateEdit: `${basePath}AmenitySlotTemplate/EditSlotTemplate`,
+    AmenitySlotTemplateEditBulk: `${basePath}AmenitySlotTemplate/EditSlotTemplate/bulk`,
     AmenitySlotTemplateDelete: `${basePath}AmenitySlotTemplate/DeleteSlotTemplate`,
 
     //Booking Header

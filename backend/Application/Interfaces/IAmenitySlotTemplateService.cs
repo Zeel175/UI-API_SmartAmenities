@@ -7,6 +7,7 @@ namespace Application.Interfaces
     {
         Task<InsertResponseModel> CreateSlotTemplateAsync(AmenitySlotTemplateAddEdit template);
         Task<IReadOnlyList<InsertResponseModel>> CreateSlotTemplatesAsync(IReadOnlyList<AmenitySlotTemplateAddEdit> templates);
+        Task<IReadOnlyList<InsertResponseModel>> UpsertSlotTemplatesAsync(IReadOnlyList<AmenitySlotTemplateAddEdit> templates);
         Task<InsertResponseModel> UpdateSlotTemplateAsync(AmenitySlotTemplateAddEdit template);
         Task DeleteSlotTemplateAsync(long id);
         Task<AmenitySlotTemplateAddEdit?> GetSlotTemplateByIdAsync(long id);

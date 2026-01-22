@@ -34,6 +34,14 @@ namespace WebAPI.Controller
             return Ok(response);
         }
 
+        [Route("EditSlotTemplate/bulk")]
+        [HttpPost]
+        public async Task<IActionResult> UpsertSlotTemplatesAsync(List<AmenitySlotTemplateAddEdit> templates)
+        {
+            var response = await _slotTemplateService.UpsertSlotTemplatesAsync(templates);
+            return Ok(response);
+        }
+
         [HttpGet("GetAllSlotTemplate/paged")]
         public async Task<IActionResult> GetAllSlotTemplate(int pageIndex, int pageSize)
         {
