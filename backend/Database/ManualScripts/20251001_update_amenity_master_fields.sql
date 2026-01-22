@@ -79,5 +79,26 @@ IF COL_LENGTH('dbo.adm_AmenityMaster', 'TaxPercentage') IS NULL
 IF COL_LENGTH('dbo.adm_AmenityMaster', 'TermsAndConditions') IS NULL
     ALTER TABLE dbo.adm_AmenityMaster ADD TermsAndConditions NVARCHAR(MAX) NULL;
 
-IF COL_LENGTH('dbo.adm_AmenityMaster', 'ImageUrl') IS NULL
-    ALTER TABLE dbo.adm_AmenityMaster ADD ImageUrl NVARCHAR(500) NULL;
+IF COL_LENGTH('dbo.adm_AmenityMaster', 'DocumentPaths') IS NOT NULL
+    ALTER TABLE dbo.adm_AmenityMaster DROP COLUMN DocumentPaths;
+
+IF OBJECT_ID('dbo.adm_AmenityDocument', 'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[adm_AmenityDocument](
+        [Id] [bigint] IDENTITY(1,1) NOT NULL,
+        [AmenityMasterId] [bigint] NULL,
+        [FileName] [nvarchar](255) NOT NULL,
+        [FilePath] [nvarchar](500) NOT NULL,
+        [ContentType] [nvarchar](100) NULL,
+        [IsActive] [bit] NOT NULL CONSTRAINT [DF_adm_AmenityDocument_IsActive] DEFAULT(1),
+        [CreatedDate] [datetime2](7) NOT NULL,
+        [CreatedBy] [bigint] NULL,
+        [ModifiedDate] [datetime2](7) NULL,
+        [ModifiedBy] [bigint] NULL,
+        CONSTRAINT [PK_adm_AmenityDocument] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
+
+    ALTER TABLE [dbo].[adm_AmenityDocument] WITH CHECK
+    ADD CONSTRAINT [FK_adm_AmenityDocument_adm_AmenityMaster] FOREIGN KEY([AmenityMasterId])
+    REFERENCES [dbo].[adm_AmenityMaster] ([Id]);
+END

@@ -3,6 +3,7 @@ using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Application.Services
 {
@@ -11,15 +12,18 @@ namespace Application.Services
         private readonly IAmenityMasterRepository _amenityRepository;
         private readonly IAutoMapperGenericDataMapper _dataMapper;
         private readonly IClaimAccessorService _claimAccessorService;
+        private readonly IAmenityDocumentService _amenityDocumentService;
 
         public AmenityMasterService(
             IAmenityMasterRepository amenityRepository,
             IAutoMapperGenericDataMapper dataMapper,
-            IClaimAccessorService claimAccessorService)
+            IClaimAccessorService claimAccessorService,
+            IAmenityDocumentService amenityDocumentService)
         {
             _amenityRepository = amenityRepository;
             _dataMapper = dataMapper;
             _claimAccessorService = claimAccessorService;
+            _amenityDocumentService = amenityDocumentService;
         }
 
         public async Task<InsertResponseModel> CreateAmenityAsync(AmenityMasterAddEdit amenity)
@@ -77,7 +81,16 @@ namespace Application.Services
             {
                 return null;
             }
-            return _dataMapper.Map<AmenityMaster, AmenityMasterAddEdit>(entity);
+            var model = _dataMapper.Map<AmenityMaster, AmenityMasterAddEdit>(entity);
+            var documents = await _amenityDocumentService.GetDocumentsByAmenityAsync(id);
+            model.DocumentDetails = documents.Select(d => new AmenityDocumentDto
+            {
+                Id = d.Id,
+                FileName = d.FileName,
+                FilePath = d.FilePath,
+                ContentType = d.ContentType
+            }).ToList();
+            return model;
         }
 
         public async Task<PaginatedList<AmenityMasterList>> GetAmenitiesAsync(int pageIndex, int pageSize)

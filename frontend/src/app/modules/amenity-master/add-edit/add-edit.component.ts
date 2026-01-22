@@ -12,6 +12,7 @@ import { ApplicationPage, PermissionType } from 'app/core';
 import { PermissionService } from 'app/core/service/permission.service';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { ToastrService } from 'ngx-toastr';
+import { AmenityDocument } from 'app/model';
 import { AmenityMasterService } from '../amenity-master.service';
 
 @Component({
@@ -71,8 +72,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
         taxApplicable: [false],
         taxCodeId: [''],
         taxPercentage: [''],
-        termsAndConditions: [''],
-        imageUrl: ['']
+        termsAndConditions: ['']
     });
 
     buildings: any[] = [];
@@ -87,6 +87,8 @@ export class AmenityMasterAddEditComponent implements OnInit {
     page = ApplicationPage.amenityMaster;
     permissions = PermissionType;
     IsViewPermission = false;
+    documentFiles: File[] = [];
+    existingDocuments: AmenityDocument[] = [];
 
     constructor(
         private fb: FormBuilder,
@@ -154,10 +156,16 @@ export class AmenityMasterAddEditComponent implements OnInit {
                 taxApplicable: !!res.taxApplicable,
                 taxCodeId: res.taxCodeId,
                 taxPercentage: res.taxPercentage,
-                termsAndConditions: res.termsAndConditions,
-                imageUrl: res.imageUrl
+                termsAndConditions: res.termsAndConditions
             });
+            this.existingDocuments = res.documentDetails ?? [];
         });
+    }
+
+    onDocumentsSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const files = input.files ? Array.from(input.files) : [];
+        this.documentFiles = files;
     }
 
     save(): void {
@@ -191,9 +199,12 @@ export class AmenityMasterAddEditComponent implements OnInit {
             id: this.isEditMode ? this.amenityId : 0
         };
 
+        const formData = this.buildFormData(payload);
+        this.documentFiles.forEach((file) => formData.append('Documents', file));
+
         const request$ = this.isEditMode
-            ? this.amenityService.updateAmenity(payload)
-            : this.amenityService.addAmenity(payload);
+            ? this.amenityService.updateAmenity(formData)
+            : this.amenityService.addAmenity(formData);
 
         request$.subscribe(() => {
             this.notificationService.success('Saved successfully.');
@@ -279,5 +290,24 @@ export class AmenityMasterAddEditComponent implements OnInit {
         }
 
         return { hours, minutes };
+    }
+
+    private buildFormData(payload: Record<string, unknown>): FormData {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+            if (value === null || value === undefined) {
+                return;
+            }
+            if (Array.isArray(value)) {
+                value.forEach((item) => {
+                    if (item !== null && item !== undefined) {
+                        formData.append(key, String(item));
+                    }
+                });
+                return;
+            }
+            formData.append(key, String(value));
+        });
+        return formData;
     }
 }

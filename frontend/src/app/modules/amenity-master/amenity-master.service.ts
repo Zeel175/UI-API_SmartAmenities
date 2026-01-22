@@ -20,11 +20,11 @@ export class AmenityMasterService extends CRUDService<AmenityMaster> {
         return this.http.get(`${APIConstant.AmenityMasterGetById}?id=${id}`);
     }
 
-    addAmenity(amenity: any) {
+    addAmenity(amenity: FormData) {
         return this.http.post(`${APIConstant.AmenityMasterAdd}`, amenity);
     }
 
-    updateAmenity(amenity: any) {
+    updateAmenity(amenity: FormData) {
         return this.http.post(`${APIConstant.AmenityMasterEdit}`, amenity);
     }
 

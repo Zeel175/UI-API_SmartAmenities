@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 
 namespace Domain.ViewModels
 {
@@ -40,6 +42,7 @@ namespace Domain.ViewModels
         public long? TaxCodeId { get; set; }
         public decimal? TaxPercentage { get; set; }
         public string? TermsAndConditions { get; set; }
-        public string? ImageUrl { get; set; }
+        public List<AmenityDocumentDto> DocumentDetails { get; set; } = new();
+        public List<IFormFile>? Documents { get; set; }
     }
 }
