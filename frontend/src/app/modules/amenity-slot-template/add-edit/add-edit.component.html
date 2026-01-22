@@ -1,0 +1,104 @@
+<div class="bg-card flex min-w-0 flex-auto flex-col dark:bg-transparent">
+  <div
+    class="relative flex flex-0 flex-col border-b px-6 py-8
+           sm:flex-row sm:items-center sm:justify-between md:px-8"
+  >
+    <div class="text-4xl font-extrabold tracking-tight">
+      {{ isEditMode ? 'Edit Amenity Slot Template' : 'Add Amenity Slot Template' }}
+    </div>
+
+    <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
+      <button
+        mat-flat-button
+        color="primary"
+        class="app-button back-Green"
+        (click)="cancel()"
+      >
+        View List
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-auto overflow-visible">
+    <div class="flex flex-auto flex-col overflow-visible sm:mb-18 sm:overflow-y-auto">
+      <mat-card class="property-add-edit-form mt-4 mx-6 md:mx-8">
+        <mat-card-content>
+          <form [formGroup]="frmSlotTemplate" (ngSubmit)="save()" novalidate class="app-form">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Amenity</mat-label>
+                <mat-select formControlName="amenityId">
+                  <mat-option *ngFor="let amenity of amenities" [value]="amenity.id">
+                    {{ amenity.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmSlotTemplate.get('amenityId')?.invalid && frmSlotTemplate.get('amenityId')?.touched">
+                  Amenity is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Day of Week</mat-label>
+                <mat-select formControlName="dayOfWeek">
+                  <mat-option *ngFor="let day of daysOfWeek" [value]="day">
+                    {{ day }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="frmSlotTemplate.get('dayOfWeek')?.invalid && frmSlotTemplate.get('dayOfWeek')?.touched">
+                  Day of week is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Start Time</mat-label>
+                <input matInput type="time" formControlName="startTime" />
+                <mat-error *ngIf="frmSlotTemplate.get('startTime')?.invalid && frmSlotTemplate.get('startTime')?.touched">
+                  Start time is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>End Time</mat-label>
+                <input matInput type="time" formControlName="endTime" />
+                <mat-error *ngIf="frmSlotTemplate.get('endTime')?.invalid && frmSlotTemplate.get('endTime')?.touched">
+                  End time is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Slot Duration (Minutes)</mat-label>
+                <input matInput type="number" formControlName="slotDurationMinutes" />
+                <mat-error *ngIf="frmSlotTemplate.get('slotDurationMinutes')?.invalid && frmSlotTemplate.get('slotDurationMinutes')?.touched">
+                  Slot duration is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Buffer Time (Minutes)</mat-label>
+                <input matInput type="number" formControlName="bufferTimeMinutes" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Capacity Per Slot</mat-label>
+                <input matInput type="number" formControlName="capacityPerSlot" />
+              </mat-form-field>
+
+              <mat-checkbox formControlName="isActive" class="mt-2">Active</mat-checkbox>
+            </div>
+
+            <div class="flex justify-center mt-6">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                class="app-button back-Green"
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

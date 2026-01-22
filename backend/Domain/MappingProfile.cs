@@ -169,6 +169,12 @@ namespace Domain
                 .ForMember(dest => dest.BuildingName, opt => opt.MapFrom(src => src.Building.BuildingName))
                 .ForMember(dest => dest.FloorName, opt => opt.MapFrom(src => src.Floor.FloorName));
             #endregion
+
+            #region AmenitySlotTemplate
+            CreateMap<AmenitySlotTemplate, AmenitySlotTemplateAddEdit>().ReverseMap();
+            CreateMap<AmenitySlotTemplate, AmenitySlotTemplateList>()
+                .ForMember(dest => dest.AmenityName, opt => opt.MapFrom(src => src.AmenityMaster.Name));
+            #endregion
         }
 
         public class PaginatedListConverter<TSource, TDestination> : ITypeConverter<PaginatedList<TSource>, PaginatedList<TDestination>>

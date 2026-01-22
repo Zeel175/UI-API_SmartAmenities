@@ -9,5 +9,6 @@ namespace Application.Interfaces
         Task DeleteAmenityAsync(long id);
         Task<AmenityMasterAddEdit?> GetAmenityByIdAsync(long id);
         Task<PaginatedList<AmenityMasterList>> GetAmenitiesAsync(int pageIndex, int pageSize);
+        Task<List<object>> GetAmenityBasicAsync();
     }
 }

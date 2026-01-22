@@ -21,6 +21,7 @@ namespace Infrastructure.Context
         public DbSet<ResidentMaster> ResidentMasters { get; set; }
         public DbSet<GuestMaster> GuestMasters { get; set; }
         public DbSet<AmenityMaster> AmenityMasters { get; set; }
+        public DbSet<AmenitySlotTemplate> AmenitySlotTemplates { get; set; }
         public DbSet<ResidentFamilyMember> ResidentFamilyMembers { get; set; }
         public DbSet<ResidentFamilyMemberUnit> ResidentFamilyMemberUnits { get; set; }
         public DbSet<ResidentUserMap> ResidentUserMaps { get; set; }
@@ -246,6 +247,35 @@ namespace Infrastructure.Context
                 .HasForeignKey(d => d.AmenityMasterId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .IsRequired(false);
+
+            modelBuilder.Entity<AmenitySlotTemplate>()
+                .HasKey(a => a.Id);
+
+            modelBuilder.Entity<AmenitySlotTemplate>()
+                .ToTable("adm_AmenitySlotTemplate");
+
+            modelBuilder.Entity<AmenitySlotTemplate>()
+                .Property(a => a.DayOfWeek)
+                .IsRequired()
+                .HasMaxLength(10);
+
+            modelBuilder.Entity<AmenitySlotTemplate>()
+                .Property(a => a.StartTime)
+                .IsRequired();
+
+            modelBuilder.Entity<AmenitySlotTemplate>()
+                .Property(a => a.EndTime)
+                .IsRequired();
+
+            modelBuilder.Entity<AmenitySlotTemplate>()
+                .Property(a => a.SlotDurationMinutes)
+                .IsRequired();
+
+            modelBuilder.Entity<AmenitySlotTemplate>()
+                .HasOne(a => a.AmenityMaster)
+                .WithMany()
+                .HasForeignKey(a => a.AmenityId)
+                .OnDelete(DeleteBehavior.NoAction);
                                                     // ---------- Unit ----------
             modelBuilder.Entity<Unit>()
                 .HasKey(u => u.Id);
