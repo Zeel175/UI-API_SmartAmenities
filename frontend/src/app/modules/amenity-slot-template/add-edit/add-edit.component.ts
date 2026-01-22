@@ -14,7 +14,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AmenitySlotTemplateService } from '../amenity-slot-template.service';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
-import { forkJoin } from 'rxjs';
 
 @Component({
     selector: 'amenity-slot-template-add-edit',
@@ -135,51 +134,50 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
             return;
         }
 
-        if (this.isEditMode) {
-            const slot = timeSlots[0];
-            const startTime = this.formatTimeForPayload(slot.startTime);
-            const endTime = this.formatTimeForPayload(slot.endTime);
-            if (!startTime || !endTime) {
-                this.notificationService.error('Please provide valid start and end times.');
-                return;
-            }
-            const payload = {
-                ...basePayload,
-                startTime,
-                endTime,
-                capacityPerSlot: slot.capacityPerSlot,
-                id: this.templateId
-            };
-            this.slotTemplateService.updateSlotTemplate(payload).subscribe(() => {
-                this.notificationService.success('Saved successfully.');
-                this.router.navigate(['/amenity-slot-template']);
-            }, () => this.notificationService.error('Save failed.'));
-            return;
-        }
-
-        const requests = timeSlots
+        const formattedSlots = timeSlots
             .map((slot: any) => {
                 const startTime = this.formatTimeForPayload(slot.startTime);
                 const endTime = this.formatTimeForPayload(slot.endTime);
                 if (!startTime || !endTime) {
                     return null;
                 }
-                return this.slotTemplateService.addSlotTemplate({
-                    ...basePayload,
+                return {
                     startTime,
                     endTime,
-                    capacityPerSlot: slot.capacityPerSlot,
-                    id: 0
-                });
+                    capacityPerSlot: slot.capacityPerSlot
+                };
             })
             .filter(Boolean);
 
-        if (!requests.length) {
+        if (!formattedSlots.length) {
             this.notificationService.error('Please provide valid start and end times.');
             return;
         }
 
-        forkJoin(requests).subscribe(() => {
+        if (this.isEditMode) {
+            const payloads = formattedSlots.map((slot: any, index: number) => ({
+                ...basePayload,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                capacityPerSlot: slot.capacityPerSlot,
+                id: index === 0 ? this.templateId : 0
+            }));
+            this.slotTemplateService.upsertSlotTemplates(payloads).subscribe(() => {
+                this.notificationService.success('Saved successfully.');
+                this.router.navigate(['/amenity-slot-template']);
+            }, () => this.notificationService.error('Save failed.'));
+            return;
+        }
+
+        const payloads = formattedSlots.map((slot: any) => ({
+            ...basePayload,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            capacityPerSlot: slot.capacityPerSlot,
+            id: 0
+        }));
+
+        this.slotTemplateService.addSlotTemplates(payloads).subscribe(() => {
             this.notificationService.success('Saved successfully.');
             this.router.navigate(['/amenity-slot-template']);
         }, () => this.notificationService.error('Save failed.'));

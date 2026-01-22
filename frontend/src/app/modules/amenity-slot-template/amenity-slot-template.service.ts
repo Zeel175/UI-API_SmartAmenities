@@ -32,6 +32,10 @@ export class AmenitySlotTemplateService extends CRUDService<AmenitySlotTemplate>
         return this.http.post(`${APIConstant.AmenitySlotTemplateEdit}`, template);
     }
 
+    upsertSlotTemplates(templates: AmenitySlotTemplate[]) {
+        return this.http.post(`${APIConstant.AmenitySlotTemplateEditBulk}`, templates);
+    }
+
     deleteSlotTemplate(id: number): Observable<void> {
         return this.http.delete<void>(`${APIConstant.AmenitySlotTemplateDelete}?id=${id}`);
     }

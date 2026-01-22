@@ -93,6 +93,34 @@ namespace Application.Services
             return responses;
         }
 
+        public async Task<IReadOnlyList<InsertResponseModel>> UpsertSlotTemplatesAsync(IReadOnlyList<AmenitySlotTemplateAddEdit> templates)
+        {
+            var responses = new List<InsertResponseModel>();
+            if (templates == null || templates.Count == 0)
+            {
+                responses.Add(new InsertResponseModel
+                {
+                    Id = 0,
+                    Code = "400",
+                    Message = "Slot templates payload is required."
+                });
+                return responses;
+            }
+
+            foreach (var template in templates)
+            {
+                if (template.Id > 0)
+                {
+                    responses.Add(await UpdateSlotTemplateAsync(template));
+                    continue;
+                }
+
+                responses.Add(await CreateSlotTemplateAsync(template));
+            }
+
+            return responses;
+        }
+
         public async Task DeleteSlotTemplateAsync(long id)
         {
             var entity = await _slotTemplateRepository.GetByIdAsync(id);
