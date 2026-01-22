@@ -84,7 +84,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
         { label: 'Yes', value: true },
         { label: 'No', value: false }
     ];
-    chargeTypes = ['Free', 'Per Slot', 'Per Hour', 'Per Day', 'Flat Fee'];
+    chargeTypes = ['Per Slot', 'Per Hour', 'Per Day', 'Flat Fee'];
     page = ApplicationPage.amenityMaster;
     permissions = PermissionType;
     IsViewPermission = false;
