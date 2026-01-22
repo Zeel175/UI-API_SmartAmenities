@@ -62,7 +62,18 @@ export class AmenityMasterListComponent implements OnInit {
         { name: 'Building', prop: 'buildingName', visible: true },
         { name: 'Floor', prop: 'floorName', visible: true },
         { name: 'Status', prop: 'status', visible: true },
-        { name: 'Location', prop: 'location', visible: true }
+        { name: 'Location', prop: 'location', visible: true },
+        { name: 'Max Capacity', prop: 'maxCapacity', visible: false },
+        { name: 'Slot Required', prop: 'bookingSlotRequired', visible: false },
+        { name: 'Slot Duration (Min)', prop: 'slotDurationMinutes', visible: false },
+        { name: 'Requires Approval', prop: 'requiresApproval', visible: false },
+        { name: 'Allow Guests', prop: 'allowGuests', visible: false },
+        { name: 'Chargeable', prop: 'isChargeable', visible: false },
+        { name: 'Charge Type', prop: 'chargeType', visible: false },
+        { name: 'Base Rate', prop: 'baseRate', visible: false },
+        { name: 'Available Days', prop: 'availableDays', visible: false },
+        { name: 'Open Time', prop: 'openTime', visible: false },
+        { name: 'Close Time', prop: 'closeTime', visible: false }
     ];
 
     constructor(
