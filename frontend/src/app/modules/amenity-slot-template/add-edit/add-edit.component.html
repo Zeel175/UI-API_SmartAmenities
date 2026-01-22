@@ -4,7 +4,7 @@
            sm:flex-row sm:items-center sm:justify-between md:px-8"
   >
     <div class="text-4xl font-extrabold tracking-tight">
-      {{ isEditMode ? 'Edit Amenity Slot Template' : 'Add Amenity Slot Template' }}
+      {{ isEditMode ? 'Edit Amenity Slot' : 'Add Amenity Slot' }}
     </div>
 
     <div class="mt-6 flex shrink-0 items-center sm:ml-4 sm:mt-0">
@@ -85,7 +85,7 @@
                 <input matInput type="number" formControlName="capacityPerSlot" />
               </mat-form-field>
 
-              <mat-checkbox formControlName="isActive" class="mt-2">Active</mat-checkbox>
+              <!-- <mat-checkbox formControlName="isActive" class="mt-2">Active</mat-checkbox> -->
             </div>
 
             <div class="flex justify-center mt-6">
