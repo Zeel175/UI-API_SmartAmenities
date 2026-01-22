@@ -51,7 +51,8 @@
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Start Time</mat-label>
-                <input matInput type="time" formControlName="startTime" />
+                <input matInput [ngxTimepicker]="startTimePicker" formControlName="startTime" readonly />
+                <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
                 <mat-error *ngIf="frmSlotTemplate.get('startTime')?.invalid && frmSlotTemplate.get('startTime')?.touched">
                   Start time is required.
                 </mat-error>
@@ -59,7 +60,8 @@
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>End Time</mat-label>
-                <input matInput type="time" formControlName="endTime" />
+                <input matInput [ngxTimepicker]="endTimePicker" formControlName="endTime" readonly />
+                <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
                 <mat-error *ngIf="frmSlotTemplate.get('endTime')?.invalid && frmSlotTemplate.get('endTime')?.touched">
                   End time is required.
                 </mat-error>
