@@ -12,6 +12,9 @@ namespace Domain.Entities
         [MaxLength(200)]
         public string Name { get; set; } = default!;
 
+        [MaxLength(50)]
+        public string? Code { get; set; }
+
         [Required]
         [MaxLength(50)]
         public string Type { get; set; } = default!;

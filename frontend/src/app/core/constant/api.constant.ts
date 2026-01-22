@@ -143,6 +143,7 @@ export const APIConstant = {
     AmenityMasterAdd: `${basePath}AmenityMaster/AddAmenity`,
     AmenityMasterEdit: `${basePath}AmenityMaster/EditAmenity`,
     AmenityMasterDelete: `${basePath}AmenityMaster/DeleteAmenity`,
+    AmenityMasterDocumentDelete: `${basePath}AmenityMaster/Documents/Delete`,
 
     //Floor
     FloorMasterList: `${basePath}Floor/GetAllFloor`,

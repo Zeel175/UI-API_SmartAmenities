@@ -57,6 +57,7 @@ export class AmenityMasterListComponent implements OnInit {
     IsDeletePermission = false;
 
     amenityColumns = [
+        { name: 'Code', prop: 'code', visible: true },
         { name: 'Name', prop: 'name', visible: true },
         { name: 'Type', prop: 'type', visible: true },
         { name: 'Building', prop: 'buildingName', visible: true },

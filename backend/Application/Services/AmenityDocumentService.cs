@@ -91,5 +91,20 @@ namespace Application.Services
                 .OrderBy(d => d.FileName)
                 .ToListAsync();
         }
+
+        public async Task DeleteDocumentAsync(long documentId, long userId)
+        {
+            var doc = await _repository.GetByIdAsync(documentId);
+            if (doc == null)
+            {
+                return;
+            }
+
+            doc.IsActive = false;
+            doc.ModifiedBy = userId;
+            doc.ModifiedDate = DateTime.Now;
+
+            await _repository.UpdateAsync(doc, userId.ToString(), "Delete");
+        }
     }
 }

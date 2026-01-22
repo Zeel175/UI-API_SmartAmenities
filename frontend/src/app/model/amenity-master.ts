@@ -8,6 +8,7 @@ export class AmenityDocument {
 export class AmenityMaster {
     id: number;
     name: string;
+    code?: string;
     type: string;
     description?: string;
     buildingId: number;
