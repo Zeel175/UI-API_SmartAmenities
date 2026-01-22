@@ -13,6 +13,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AmenitySlotTemplateService } from '../amenity-slot-template.service';
+import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
 @Component({
     selector: 'amenity-slot-template-add-edit',
@@ -30,6 +31,7 @@ import { AmenitySlotTemplateService } from '../amenity-slot-template.service';
         MatIconModule,
         MatButtonModule,
         MatCheckboxModule,
+        NgxMaterialTimepickerModule,
         CommonModule
     ]
 })
@@ -94,8 +96,8 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
             this.frmSlotTemplate.patchValue({
                 amenityId: res.amenityId,
                 dayOfWeek: res.dayOfWeek,
-                startTime: this.formatTimeForInput(res.startTime),
-                endTime: this.formatTimeForInput(res.endTime),
+                startTime: this.formatTimeForPicker(res.startTime),
+                endTime: this.formatTimeForPicker(res.endTime),
                 slotDurationMinutes: res.slotDurationMinutes,
                 bufferTimeMinutes: res.bufferTimeMinutes,
                 capacityPerSlot: res.capacityPerSlot,
@@ -109,8 +111,8 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         const payload = {
             ...formValue,
             amenityId: +formValue.amenityId,
-            startTime: this.normalizeTimeValue(formValue.startTime),
-            endTime: this.normalizeTimeValue(formValue.endTime),
+            startTime: this.formatTimeForPayload(formValue.startTime),
+            endTime: this.formatTimeForPayload(formValue.endTime),
             createdDate: new Date().toISOString(),
             createdBy: 0,
             modifiedDate: new Date().toISOString(),
@@ -132,17 +134,71 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         this.router.navigate(['/amenity-slot-template']);
     }
 
-    private formatTimeForInput(timeValue: string | null | undefined): string {
-        if (!timeValue) {
+    private formatTimeForPicker(value: string | null | undefined): string {
+        if (!value) {
             return '';
         }
-        return timeValue.length >= 5 ? timeValue.slice(0, 5) : timeValue;
+        const parsed = this.parseTimeString(value);
+        if (!parsed) {
+            return '';
+        }
+        return this.formatTimeToMeridiem(parsed.hours, parsed.minutes);
     }
 
-    private normalizeTimeValue(timeValue: string | null | undefined): string {
-        if (!timeValue) {
+    private formatTimeForPayload(value: string | null | undefined): string {
+        if (!value) {
             return '';
         }
-        return timeValue.length === 5 ? `${timeValue}:00` : timeValue;
+        const parsed = this.parseTimeString(value);
+        if (!parsed) {
+            return '';
+        }
+        const hours = parsed.hours.toString().padStart(2, '0');
+        const minutes = parsed.minutes.toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
+
+    private formatTimeToMeridiem(hours: number, minutes: number): string {
+        const meridiem = hours >= 12 ? 'PM' : 'AM';
+        const normalized = hours % 12 === 0 ? 12 : hours % 12;
+        return `${normalized}:${minutes.toString().padStart(2, '0')} ${meridiem}`;
+    }
+
+    private parseTimeString(time: string): { hours: number; minutes: number } | null {
+        const value = (time || '').trim();
+        if (!value) {
+            return null;
+        }
+
+        const match = value.match(/^\s*(\d{1,2})(?::(\d{1,2}))?(?::(\d{1,2}))?(?:\.(\d+))?\s*(AM|PM)?\s*$/i);
+        if (!match) {
+            return null;
+        }
+
+        let hours = Number(match[1]);
+        const minutes = Number(match[2] ?? '0');
+        const meridiem = (match[5] ?? '').toUpperCase();
+
+        if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+            return null;
+        }
+        if (minutes < 0 || minutes > 59) {
+            return null;
+        }
+
+        if (meridiem === 'AM' || meridiem === 'PM') {
+            if (hours < 1 || hours > 12) {
+                return null;
+            }
+            if (hours === 12) {
+                hours = meridiem === 'AM' ? 0 : 12;
+            } else if (meridiem === 'PM') {
+                hours += 12;
+            }
+        } else if (hours < 0 || hours > 23) {
+            return null;
+        }
+
+        return { hours, minutes };
     }
 }
