@@ -175,12 +175,14 @@
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Open Time</mat-label>
-                <input matInput type="time" formControlName="openTime" />
+                <input matInput [ngxTimepicker]="openTimePicker" formControlName="openTime" readonly />
+                <ngx-material-timepicker #openTimePicker></ngx-material-timepicker>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Close Time</mat-label>
-                <input matInput type="time" formControlName="closeTime" />
+                <input matInput [ngxTimepicker]="closeTimePicker" formControlName="closeTime" readonly />
+                <ngx-material-timepicker #closeTimePicker></ngx-material-timepicker>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
