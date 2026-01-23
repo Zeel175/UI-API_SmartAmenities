@@ -39,6 +39,7 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
     templateId: number;
     isEditMode = false;
     amenities: any[] = [];
+    amenityUnits: any[] = [];
     daysOfWeek = [
         'Monday',
         'Tuesday',
@@ -51,6 +52,7 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
 
     frmSlotTemplate = this.fb.group({
         amenityId: ['', Validators.required],
+        amenityUnitId: [null],
         dayOfWeek: ['', Validators.required],
         slotDurationMinutes: [null, [Validators.required, Validators.min(1)]],
         bufferTimeMinutes: [null],
@@ -74,6 +76,14 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
     ngOnInit(): void {
         this.IsViewPermission = this.permissionService.hasPermission('Amenity Slot Template (PER_AMENITY_SLOT_TEMPLATE) - View');
         this.loadAmenities();
+        this.frmSlotTemplate.get('amenityId')?.valueChanges.subscribe((value) => {
+            const amenityId = Number(value) || 0;
+            if (!amenityId) {
+                this.resetAmenityUnits();
+                return;
+            }
+            this.loadAmenityUnits(amenityId);
+        });
         this.route.params.subscribe(params => {
             if (params['id']) {
                 this.isEditMode = true;
@@ -93,11 +103,13 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         this.slotTemplateService.getSlotTemplateById(this.templateId).subscribe((res: any) => {
             this.frmSlotTemplate.patchValue({
                 amenityId: res.amenityId,
+                amenityUnitId: res.amenityUnitId ?? null,
                 dayOfWeek: res.dayOfWeek,
                 slotDurationMinutes: res.slotDurationMinutes,
                 bufferTimeMinutes: res.bufferTimeMinutes,
                 isActive: res.isActive
-            });
+            }, { emitEvent: false });
+            this.loadAmenityUnits(res.amenityId, res.amenityUnitId ?? null);
             const timeSlots = this.timeSlots;
             timeSlots.clear();
             const slots = (res.slotTimes && res.slotTimes.length)
@@ -134,6 +146,7 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         const timeSlots = formValue.timeSlots || [];
         const basePayload = {
             amenityId: +formValue.amenityId,
+            amenityUnitId: formValue.amenityUnitId ? +formValue.amenityUnitId : null,
             dayOfWeek: formValue.dayOfWeek,
             slotDurationMinutes: formValue.slotDurationMinutes,
             bufferTimeMinutes: formValue.bufferTimeMinutes,
@@ -260,6 +273,25 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         }
 
         return { hours, minutes };
+    }
+
+    private loadAmenityUnits(amenityId: number, selectedUnitId?: number | null): void {
+        this.slotTemplateService.getAmenityUnitsByAmenityId(amenityId).subscribe((res: any) => {
+            const units = res?.items || res || [];
+            this.amenityUnits = units;
+            if (!units.length) {
+                this.resetAmenityUnits();
+                return;
+            }
+            const unitId = selectedUnitId ?? null;
+            const hasMatch = unitId && units.some((unit: any) => unit.id === unitId);
+            this.frmSlotTemplate.get('amenityUnitId')?.setValue(hasMatch ? unitId : null);
+        }, () => this.resetAmenityUnits());
+    }
+
+    private resetAmenityUnits(): void {
+        this.amenityUnits = [];
+        this.frmSlotTemplate.get('amenityUnitId')?.setValue(null);
     }
 
     get timeSlots(): FormArray {

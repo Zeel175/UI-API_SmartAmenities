@@ -37,6 +37,15 @@
                 </mat-error>
               </mat-form-field>
 
+              <mat-form-field *ngIf="amenityUnits.length" appearance="outline" class="w-full">
+                <mat-label>Amenity Unit</mat-label>
+                <mat-select formControlName="amenityUnitId">
+                  <mat-option *ngFor="let unit of amenityUnits" [value]="unit.id">
+                    {{ unit.unitName }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Day of Week</mat-label>
                 <mat-select formControlName="dayOfWeek">

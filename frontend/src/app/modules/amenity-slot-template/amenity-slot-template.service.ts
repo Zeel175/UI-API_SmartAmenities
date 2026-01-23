@@ -43,4 +43,8 @@ export class AmenitySlotTemplateService extends CRUDService<AmenitySlotTemplate>
     getAmenities() {
         return this.http.get(`${APIConstant.AmenityMasterBasicList}`);
     }
+
+    getAmenityUnitsByAmenityId(amenityId: number) {
+        return this.http.get(`${APIConstant.AmenityUnitByAmenityId}?amenityId=${amenityId}`);
+    }
 }

@@ -11,6 +11,9 @@ namespace Domain.Entities
         [Required, ForeignKey(nameof(AmenityMaster))]
         public long AmenityId { get; set; }
 
+        [ForeignKey(nameof(AmenityUnit))]
+        public long? AmenityUnitId { get; set; }
+
         [Required]
         [MaxLength(10)]
         public string DayOfWeek { get; set; } = default!;
@@ -29,6 +32,8 @@ namespace Domain.Entities
         public bool IsActive { get; set; } = true;
 
         public AmenityMaster AmenityMaster { get; set; } = default!;
+
+        public AmenityUnit? AmenityUnit { get; set; }
 
         public ICollection<AmenitySlotTemplateTime> SlotTimes { get; set; } = new List<AmenitySlotTemplateTime>();
     }

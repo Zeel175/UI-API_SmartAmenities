@@ -44,6 +44,18 @@ namespace WebAPI.Controller
             return Ok(data);
         }
 
+        [HttpGet("GetByAmenityId")]
+        public async Task<IActionResult> GetByAmenityId(long amenityId)
+        {
+            if (amenityId <= 0)
+            {
+                return BadRequest("AmenityId must be greater than zero.");
+            }
+
+            var data = await _unitService.GetAmenityUnitsByAmenityIdAsync(amenityId);
+            return Ok(data);
+        }
+
         [HttpGet("GetByIdAsync")]
         public async Task<IActionResult> Get(long id)
         {

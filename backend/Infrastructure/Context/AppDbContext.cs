@@ -325,6 +325,13 @@ namespace Infrastructure.Context
                 .HasForeignKey(a => a.AmenityId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<AmenitySlotTemplate>()
+                .HasOne(a => a.AmenityUnit)
+                .WithMany()
+                .HasForeignKey(a => a.AmenityUnitId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired(false);
+
             modelBuilder.Entity<AmenitySlotTemplateTime>()
                 .HasKey(t => t.Id);
 

@@ -148,6 +148,7 @@ export const APIConstant = {
 
     //Amenity Unit Master
     AmenityUnitListPaged: `${basePath}AmenityUnitMaster/GetAllAmenityUnit/paged`,
+    AmenityUnitByAmenityId: `${basePath}AmenityUnitMaster/GetByAmenityId`,
     AmenityUnitGetById: `${basePath}AmenityUnitMaster/GetByIdAsync`,
     AmenityUnitAdd: `${basePath}AmenityUnitMaster/AddAmenityUnit`,
     AmenityUnitEdit: `${basePath}AmenityUnitMaster/EditAmenityUnit`,
