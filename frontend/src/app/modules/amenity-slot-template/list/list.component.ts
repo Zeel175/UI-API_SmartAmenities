@@ -59,11 +59,10 @@ export class AmenitySlotTemplateListComponent implements OnInit {
     slotTemplateColumns = [
         { name: 'Amenity', prop: 'amenityName', visible: true },
         { name: 'Day', prop: 'dayOfWeek', visible: true },
-        { name: 'Start Time', prop: 'startTime', visible: true },
-        { name: 'End Time', prop: 'endTime', visible: true },
+        { name: 'Slot Times', prop: 'slotTimesSummary', visible: true },
         { name: 'Slot Duration (Min)', prop: 'slotDurationMinutes', visible: true },
         { name: 'Buffer (Min)', prop: 'bufferTimeMinutes', visible: true },
-        { name: 'Capacity', prop: 'capacityPerSlot', visible: true },
+        { name: 'Capacity', prop: 'capacitySummary', visible: true },
         { name: 'Active', prop: 'isActive', visible: true }
     ];
 
@@ -87,7 +86,12 @@ export class AmenitySlotTemplateListComponent implements OnInit {
         this.slotTemplateService.getSlotTemplates(this.pageIndex, this.pageSize).subscribe(
             (result: any) => {
                 this.loading = false;
-                this.slotTemplateData = result.items || result;
+                const rows = result.items || result;
+                this.slotTemplateData = (rows || []).map((row: any) => ({
+                    ...row,
+                    slotTimesSummary: this.formatSlotTimes(row?.slotTimes),
+                    capacitySummary: this.formatCapacity(row?.slotTimes)
+                }));
                 this.totalItems = result.totalCount || this.slotTemplateData.length;
                 this.filteredData = this.slotTemplateData;
             },
@@ -133,5 +137,24 @@ export class AmenitySlotTemplateListComponent implements OnInit {
             const cell = (row && row[prop] != null) ? row[prop] : '';
             return cell.toString().toLowerCase().includes(val);
         });
+    }
+
+    private formatSlotTimes(slotTimes: any[] | null | undefined): string {
+        if (!slotTimes || !slotTimes.length) {
+            return '';
+        }
+        return slotTimes
+            .map((slot) => `${slot.startTime} - ${slot.endTime}`)
+            .join(', ');
+    }
+
+    private formatCapacity(slotTimes: any[] | null | undefined): string {
+        if (!slotTimes || !slotTimes.length) {
+            return '';
+        }
+        return slotTimes
+            .map((slot) => slot.capacityPerSlot ?? '')
+            .filter((value) => value !== '')
+            .join(', ');
     }
 }
