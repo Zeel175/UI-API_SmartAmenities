@@ -52,7 +52,7 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
     frmAmenityUnit = this.fb.group({
         amenityId: ['', Validators.required],
         unitName: ['', Validators.required],
-        unitCode: [''],
+        unitCode: [{ value: '', disabled: true }],
         status: ['Active', Validators.required],
         shortDescription: [''],
         longDescription: [''],
@@ -162,7 +162,7 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
             id: this.isEditMode ? this.unitId : 0,
             amenityId: +formValue.amenityId,
             unitName: formValue.unitName,
-            unitCode: formValue.unitCode,
+            unitCode: this.isEditMode ? formValue.unitCode : 'string',
             status: formValue.status,
             shortDescription: formValue.shortDescription,
             longDescription: formValue.longDescription,
