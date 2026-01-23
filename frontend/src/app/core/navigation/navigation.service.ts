@@ -161,6 +161,8 @@ export class NavigationService {
                 return this.permissionService.hasPermissionPrefix('Guest (PER_GUEST)');
             case 'amenity-master':
                 return this.permissionService.hasPermissionPrefix('Amenity (PER_AMENITY)');
+            case 'amenity-unit-master':
+                return this.permissionService.hasPermissionPrefix('Amenity Unit (PER_AMENITY_UNIT)');
             case 'amenity-slot-template':
                 return this.permissionService.hasPermissionPrefix('Amenity Slot Template (PER_AMENITY_SLOT_TEMPLATE)');
             case 'booking-header':

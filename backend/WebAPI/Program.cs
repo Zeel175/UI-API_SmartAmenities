@@ -123,6 +123,8 @@ builder.Services.AddScoped<IFloorRepository, FloorRepository>();
 builder.Services.AddScoped<IFloorService, FloorService>();
 builder.Services.AddScoped<IAmenityMasterRepository, AmenityMasterRepository>();
 builder.Services.AddScoped<IAmenityMasterService, AmenityMasterService>();
+builder.Services.AddScoped<IAmenityUnitRepository, AmenityUnitRepository>();
+builder.Services.AddScoped<IAmenityUnitService, AmenityUnitService>();
 builder.Services.AddScoped<IAmenitySlotTemplateRepository, AmenitySlotTemplateRepository>();
 builder.Services.AddScoped<IAmenitySlotTemplateService, AmenitySlotTemplateService>();
 builder.Services.AddScoped<IBookingHeaderRepository, BookingHeaderRepository>();

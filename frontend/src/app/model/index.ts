@@ -39,6 +39,7 @@ export * from './purchase-order-planning';
 export * from './vendor-master';
 export * from './inward';
 export * from './amenity-master';
+export * from './amenity-unit';
 export * from './amenity-slot-template';
 export * from './booking-header';
 export * from './floor';

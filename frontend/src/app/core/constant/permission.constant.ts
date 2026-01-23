@@ -67,6 +67,7 @@ export const ApplicationPage = {
     residentMaster: 'adm_resident_master',
     guestMaster: 'adm_guest_master',
     amenityMaster: 'adm_amenity_master',
+    amenityUnitMaster: 'adm_amenity_unit_master',
     amenitySlotTemplate: 'adm_amenity_slot_template',
     bookingHeader: 'adm_booking_header',
 };
