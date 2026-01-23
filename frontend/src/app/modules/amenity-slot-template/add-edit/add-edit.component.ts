@@ -95,7 +95,8 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
 
     private loadAmenities(): void {
         this.slotTemplateService.getAmenities().subscribe((res: any) => {
-            this.amenities = res.items || res;
+            const amenities = res.items || res;
+            this.amenities = (amenities || []).filter((amenity: any) => !!amenity.bookingSlotRequired);
         });
     }
 
