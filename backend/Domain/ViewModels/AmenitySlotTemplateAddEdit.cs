@@ -8,6 +8,7 @@ namespace Domain.ViewModels
     {
         public long Id { get; set; }
         public long AmenityId { get; set; }
+        public long? AmenityUnitId { get; set; }
         public string DayOfWeek { get; set; }
         public int SlotDurationMinutes { get; set; }
         public int? BufferTimeMinutes { get; set; }

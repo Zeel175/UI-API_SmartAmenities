@@ -7,6 +7,7 @@ namespace Domain.ViewModels
     public class AmenitySlotTemplateList : BaseAuditable
     {
         public long AmenityId { get; set; }
+        public long? AmenityUnitId { get; set; }
         public string AmenityName { get; set; }
         public string DayOfWeek { get; set; }
         public int SlotDurationMinutes { get; set; }

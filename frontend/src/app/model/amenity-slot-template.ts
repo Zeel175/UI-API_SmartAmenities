@@ -8,6 +8,7 @@ export interface AmenitySlotTemplateTime {
 export class AmenitySlotTemplate {
     id: number;
     amenityId: number;
+    amenityUnitId?: number | null;
     amenityName?: string;
     dayOfWeek: string;
     slotDurationMinutes: number;

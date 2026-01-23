@@ -190,6 +190,7 @@ namespace Application.Services
                 entity.SlotDurationMinutes = template.SlotDurationMinutes;
                 entity.BufferTimeMinutes = template.BufferTimeMinutes;
                 entity.IsActive = isActive;
+                entity.AmenityUnitId = template.AmenityUnitId;
 
                 var primarySlot = template.SlotTimes?.FirstOrDefault();
                 entity.StartTime = primarySlot?.StartTime;
