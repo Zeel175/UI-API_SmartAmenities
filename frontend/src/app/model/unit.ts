@@ -7,5 +7,8 @@ export class Unit extends BaseAuditable {
     buildingId: number;
     floorId: number;
     occupancyStatusId: number;
+    shortDescription?: string;
+    longDescription?: string;
+    features?: string[];
     isActive: boolean;
 }

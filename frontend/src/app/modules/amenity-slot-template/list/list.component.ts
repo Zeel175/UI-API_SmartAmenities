@@ -59,11 +59,11 @@ export class AmenitySlotTemplateListComponent implements OnInit {
     slotTemplateColumns = [
         { name: 'Amenity', prop: 'amenityName', visible: true },
         { name: 'Day', prop: 'dayOfWeek', visible: true },
-        { name: 'Slot Times', prop: 'slotTimesSummary', visible: true },
+        //{ name: 'Slot Times', prop: 'slotTimesSummary', visible: true },
         { name: 'Slot Duration (Min)', prop: 'slotDurationMinutes', visible: true },
         { name: 'Buffer (Min)', prop: 'bufferTimeMinutes', visible: true },
-        { name: 'Capacity', prop: 'capacitySummary', visible: true },
-        { name: 'Active', prop: 'isActive', visible: true }
+        //{ name: 'Capacity', prop: 'capacitySummary', visible: true },
+        //{ name: 'Active', prop: 'isActive', visible: true }
     ];
 
     constructor(
