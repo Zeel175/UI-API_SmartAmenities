@@ -100,11 +100,26 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
             });
             const timeSlots = this.timeSlots;
             timeSlots.clear();
-            timeSlots.push(this.createTimeSlotGroup({
-                startTime: this.formatTimeForPicker(res.startTime),
-                endTime: this.formatTimeForPicker(res.endTime),
-                capacityPerSlot: res.capacityPerSlot
-            }));
+            const slots = (res.slotTimes && res.slotTimes.length)
+                ? res.slotTimes
+                : (res.startTime || res.endTime || res.capacityPerSlot ? [{
+                    startTime: res.startTime,
+                    endTime: res.endTime,
+                    capacityPerSlot: res.capacityPerSlot
+                }] : []);
+
+            if (!slots.length) {
+                timeSlots.push(this.createTimeSlotGroup());
+                return;
+            }
+
+            slots.forEach((slot: any) => {
+                timeSlots.push(this.createTimeSlotGroup({
+                    startTime: this.formatTimeForPicker(slot.startTime),
+                    endTime: this.formatTimeForPicker(slot.endTime),
+                    capacityPerSlot: slot.capacityPerSlot
+                }));
+            });
         });
     }
 
@@ -154,62 +169,22 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
             return;
         }
 
-        if (this.isEditMode) {
-            if (formattedSlots.length === 1) {
-                const slot = formattedSlots[0];
-                const payload = {
-                    ...basePayload,
-                    startTime: slot.startTime,
-                    endTime: slot.endTime,
-                    capacityPerSlot: slot.capacityPerSlot,
-                    id: this.templateId
-                };
-                this.slotTemplateService.updateSlotTemplate(payload).subscribe(() => {
-                    this.notificationService.success('Saved successfully.');
-                    this.router.navigate(['/amenity-slot-template']);
-                }, () => this.notificationService.error('Save failed.'));
-                return;
-            }
-
-            const payloads = formattedSlots.map((slot: any, index: number) => ({
-                ...basePayload,
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                capacityPerSlot: slot.capacityPerSlot,
-                id: index === 0 ? this.templateId : 0
-            }));
-            this.slotTemplateService.upsertSlotTemplates(payloads).subscribe(() => {
-                this.notificationService.success('Saved successfully.');
-                this.router.navigate(['/amenity-slot-template']);
-            }, () => this.notificationService.error('Save failed.'));
-            return;
-        }
-
-        if (formattedSlots.length === 1) {
-            const slot = formattedSlots[0];
-            const payload = {
-                ...basePayload,
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                capacityPerSlot: slot.capacityPerSlot,
-                id: 0
-            };
-            this.slotTemplateService.addSlotTemplate(payload).subscribe(() => {
-                this.notificationService.success('Saved successfully.');
-                this.router.navigate(['/amenity-slot-template']);
-            }, () => this.notificationService.error('Save failed.'));
-            return;
-        }
-
-        const payloads = formattedSlots.map((slot: any) => ({
+        const payload = {
             ...basePayload,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            capacityPerSlot: slot.capacityPerSlot,
-            id: 0
-        }));
+            id: this.isEditMode ? this.templateId : 0,
+            slotTimes: formattedSlots.map((slot: any) => ({
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                capacityPerSlot: slot.capacityPerSlot,
+                isActive: true
+            }))
+        };
 
-        this.slotTemplateService.addSlotTemplates(payloads).subscribe(() => {
+        const saveRequest = this.isEditMode
+            ? this.slotTemplateService.updateSlotTemplate(payload)
+            : this.slotTemplateService.addSlotTemplate(payload);
+
+        saveRequest.subscribe(() => {
             this.notificationService.success('Saved successfully.');
             this.router.navigate(['/amenity-slot-template']);
         }, () => this.notificationService.error('Save failed.'));
