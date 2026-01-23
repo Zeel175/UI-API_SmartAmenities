@@ -1,5 +1,6 @@
 using Domain.Entities;
 using System;
+using System.Collections.Generic;
 
 namespace Domain.ViewModels
 {
@@ -8,11 +9,9 @@ namespace Domain.ViewModels
         public long AmenityId { get; set; }
         public string AmenityName { get; set; }
         public string DayOfWeek { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
         public int SlotDurationMinutes { get; set; }
         public int? BufferTimeMinutes { get; set; }
-        public int? CapacityPerSlot { get; set; }
         public bool IsActive { get; set; }
+        public List<AmenitySlotTemplateTimeList> SlotTimes { get; set; } = new();
     }
 }

@@ -22,6 +22,7 @@ namespace Infrastructure.Context
         public DbSet<GuestMaster> GuestMasters { get; set; }
         public DbSet<AmenityMaster> AmenityMasters { get; set; }
         public DbSet<AmenitySlotTemplate> AmenitySlotTemplates { get; set; }
+        public DbSet<AmenitySlotTemplateTime> AmenitySlotTemplateTimes { get; set; }
         public DbSet<BookingHeader> BookingHeaders { get; set; }
         public DbSet<ResidentFamilyMember> ResidentFamilyMembers { get; set; }
         public DbSet<ResidentFamilyMemberUnit> ResidentFamilyMemberUnits { get; set; }
@@ -261,14 +262,6 @@ namespace Infrastructure.Context
                 .HasMaxLength(10);
 
             modelBuilder.Entity<AmenitySlotTemplate>()
-                .Property(a => a.StartTime)
-                .IsRequired();
-
-            modelBuilder.Entity<AmenitySlotTemplate>()
-                .Property(a => a.EndTime)
-                .IsRequired();
-
-            modelBuilder.Entity<AmenitySlotTemplate>()
                 .Property(a => a.SlotDurationMinutes)
                 .IsRequired();
 
@@ -277,6 +270,26 @@ namespace Infrastructure.Context
                 .WithMany()
                 .HasForeignKey(a => a.AmenityId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<AmenitySlotTemplateTime>()
+                .HasKey(t => t.Id);
+
+            modelBuilder.Entity<AmenitySlotTemplateTime>()
+                .ToTable("adm_AmenitySlotTemplateTime");
+
+            modelBuilder.Entity<AmenitySlotTemplateTime>()
+                .Property(t => t.StartTime)
+                .IsRequired();
+
+            modelBuilder.Entity<AmenitySlotTemplateTime>()
+                .Property(t => t.EndTime)
+                .IsRequired();
+
+            modelBuilder.Entity<AmenitySlotTemplateTime>()
+                .HasOne(t => t.AmenitySlotTemplate)
+                .WithMany(t => t.SlotTimes)
+                .HasForeignKey(t => t.SlotTemplateId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ---------- Booking Header ----------
             modelBuilder.Entity<BookingHeader>()

@@ -171,9 +171,15 @@ namespace Domain
             #endregion
 
             #region AmenitySlotTemplate
-            CreateMap<AmenitySlotTemplate, AmenitySlotTemplateAddEdit>().ReverseMap();
+            CreateMap<AmenitySlotTemplateTime, AmenitySlotTemplateTimeAddEdit>().ReverseMap();
+            CreateMap<AmenitySlotTemplateTime, AmenitySlotTemplateTimeList>();
+            CreateMap<AmenitySlotTemplate, AmenitySlotTemplateAddEdit>()
+                .ForMember(dest => dest.SlotTimes, opt => opt.MapFrom(src => src.SlotTimes));
+            CreateMap<AmenitySlotTemplateAddEdit, AmenitySlotTemplate>()
+                .ForMember(dest => dest.SlotTimes, opt => opt.Ignore());
             CreateMap<AmenitySlotTemplate, AmenitySlotTemplateList>()
-                .ForMember(dest => dest.AmenityName, opt => opt.MapFrom(src => src.AmenityMaster.Name));
+                .ForMember(dest => dest.AmenityName, opt => opt.MapFrom(src => src.AmenityMaster.Name))
+                .ForMember(dest => dest.SlotTimes, opt => opt.MapFrom(src => src.SlotTimes));
             #endregion
 
             #region BookingHeader
