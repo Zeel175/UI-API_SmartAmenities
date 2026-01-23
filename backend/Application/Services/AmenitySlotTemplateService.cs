@@ -137,7 +137,9 @@ namespace Application.Services
 
         public async Task<AmenitySlotTemplateAddEdit?> GetSlotTemplateByIdAsync(long id)
         {
-            var entity = await _slotTemplateRepository.GetByIdAsync(id);
+            var entity = await _slotTemplateRepository
+                .Get(slot => slot.Id == id, includeProperties: "SlotTimes")
+                .FirstOrDefaultAsync();
             if (entity == null)
             {
                 return null;
@@ -147,7 +149,9 @@ namespace Application.Services
 
         public async Task<PaginatedList<AmenitySlotTemplateList>> GetSlotTemplatesAsync(int pageIndex, int pageSize)
         {
-            var query = _slotTemplateRepository.Get(includeProperties: "AmenityMaster").Where(slot => slot.IsActive);
+            var query = _slotTemplateRepository
+                .Get(includeProperties: "AmenityMaster,SlotTimes")
+                .Where(slot => slot.IsActive);
 
             var totalCount = await query.CountAsync();
             var rows = await query
@@ -164,7 +168,9 @@ namespace Application.Services
         {
             try
             {
-                var entity = await _slotTemplateRepository.GetByIdAsync(template.Id);
+                var entity = await _slotTemplateRepository
+                    .Get(slot => slot.Id == template.Id, includeProperties: "SlotTimes")
+                    .FirstOrDefaultAsync();
                 if (entity == null)
                 {
                     return new InsertResponseModel
@@ -179,11 +185,29 @@ namespace Application.Services
                 entity.ModifiedBy = loggedInUserId;
                 entity.ModifiedDate = DateTime.Now;
                 bool isActive = entity.IsActive;
+                entity.AmenityId = template.AmenityId;
+                entity.DayOfWeek = template.DayOfWeek;
+                entity.SlotDurationMinutes = template.SlotDurationMinutes;
+                entity.BufferTimeMinutes = template.BufferTimeMinutes;
+                entity.IsActive = isActive;
 
-                var mappedModel = _dataMapper.Map(template, entity);
-                mappedModel.IsActive = isActive;
+                entity.SlotTimes.Clear();
+                foreach (var slotTime in template.SlotTimes ?? new List<AmenitySlotTemplateTimeAddEdit>())
+                {
+                    entity.SlotTimes.Add(new AmenitySlotTemplateTime
+                    {
+                        StartTime = slotTime.StartTime,
+                        EndTime = slotTime.EndTime,
+                        CapacityPerSlot = slotTime.CapacityPerSlot,
+                        IsActive = slotTime.IsActive,
+                        CreatedBy = loggedInUserId,
+                        CreatedDate = DateTime.Now,
+                        ModifiedBy = loggedInUserId,
+                        ModifiedDate = DateTime.Now
+                    });
+                }
 
-                await _slotTemplateRepository.UpdateAsync(mappedModel, loggedInUserId.ToString(), "Update");
+                await _slotTemplateRepository.UpdateAsync(entity, loggedInUserId.ToString(), "Update");
 
                 return new InsertResponseModel
                 {
@@ -211,6 +235,21 @@ namespace Application.Services
             mappedModel.ModifiedBy = loggedInUserId;
             mappedModel.ModifiedDate = DateTime.Now;
             mappedModel.IsActive = true;
+            mappedModel.SlotTimes.Clear();
+            foreach (var slotTime in template.SlotTimes ?? new List<AmenitySlotTemplateTimeAddEdit>())
+            {
+                mappedModel.SlotTimes.Add(new AmenitySlotTemplateTime
+                {
+                    StartTime = slotTime.StartTime,
+                    EndTime = slotTime.EndTime,
+                    CapacityPerSlot = slotTime.CapacityPerSlot,
+                    IsActive = slotTime.IsActive,
+                    CreatedBy = loggedInUserId,
+                    CreatedDate = DateTime.Now,
+                    ModifiedBy = loggedInUserId,
+                    ModifiedDate = DateTime.Now
+                });
+            }
             return mappedModel;
         }
     }
