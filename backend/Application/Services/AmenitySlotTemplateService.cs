@@ -191,6 +191,11 @@ namespace Application.Services
                 entity.BufferTimeMinutes = template.BufferTimeMinutes;
                 entity.IsActive = isActive;
 
+                var primarySlot = template.SlotTimes?.FirstOrDefault();
+                entity.StartTime = primarySlot?.StartTime;
+                entity.EndTime = primarySlot?.EndTime;
+                entity.CapacityPerSlot = primarySlot?.CapacityPerSlot;
+
                 entity.SlotTimes.Clear();
                 foreach (var slotTime in template.SlotTimes ?? new List<AmenitySlotTemplateTimeAddEdit>())
                 {
@@ -235,6 +240,10 @@ namespace Application.Services
             mappedModel.ModifiedBy = loggedInUserId;
             mappedModel.ModifiedDate = DateTime.Now;
             mappedModel.IsActive = true;
+            var primarySlot = template.SlotTimes?.FirstOrDefault();
+            mappedModel.StartTime = primarySlot?.StartTime;
+            mappedModel.EndTime = primarySlot?.EndTime;
+            mappedModel.CapacityPerSlot = primarySlot?.CapacityPerSlot;
             mappedModel.SlotTimes.Clear();
             foreach (var slotTime in template.SlotTimes ?? new List<AmenitySlotTemplateTimeAddEdit>())
             {

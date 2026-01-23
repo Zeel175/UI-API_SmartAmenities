@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
@@ -18,6 +19,12 @@ namespace Domain.Entities
         public int SlotDurationMinutes { get; set; }
 
         public int? BufferTimeMinutes { get; set; }
+
+        public TimeSpan? StartTime { get; set; }
+
+        public TimeSpan? EndTime { get; set; }
+
+        public int? CapacityPerSlot { get; set; }
 
         public bool IsActive { get; set; } = true;
 
