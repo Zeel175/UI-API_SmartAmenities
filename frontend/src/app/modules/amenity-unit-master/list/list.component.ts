@@ -88,7 +88,11 @@ export class AmenityUnitMasterListComponent implements OnInit {
         this.amenityUnitService.getAmenityUnits(this.pageIndex, this.pageSize).subscribe(
             (result: any) => {
                 this.loading = false;
-                this.amenityUnitData = result.items || result;
+                const rawItems = result.items || result || [];
+                this.amenityUnitData = rawItems.map((item: AmenityUnit) => ({
+                    ...item,
+                    shortDescription: this.stripHtml(item?.shortDescription)
+                }));
                 this.totalItems = result.totalCount || this.amenityUnitData.length;
                 this.filteredData = this.amenityUnitData;
             },
@@ -134,5 +138,15 @@ export class AmenityUnitMasterListComponent implements OnInit {
             const cell = (row && row[prop] != null) ? row[prop] : '';
             return cell.toString().toLowerCase().includes(val);
         });
+    }
+
+    private stripHtml(value?: string): string {
+        if (!value) {
+            return '';
+        }
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(value, 'text/html');
+        return (doc.body.textContent || '').trim();
     }
 }
