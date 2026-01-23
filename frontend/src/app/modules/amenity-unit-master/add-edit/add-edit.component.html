@@ -60,15 +60,25 @@
                 </mat-error>
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="w-full md:col-span-2 lg:col-span-3">
-                <mat-label>Short Description</mat-label>
-                <input matInput formControlName="shortDescription" />
-              </mat-form-field>
+              <div class="quill-field md:col-span-2 lg:col-span-3">
+                <label class="quill-label">Short Description</label>
+                <quill-editor
+                  formControlName="shortDescription"
+                  [modules]="quillModules"
+                  [styles]="{ height: '160px' }"
+                  theme="snow"
+                ></quill-editor>
+              </div>
 
-              <mat-form-field appearance="outline" class="w-full md:col-span-2 lg:col-span-3">
-                <mat-label>Long Description</mat-label>
-                <textarea matInput formControlName="longDescription" rows="3"></textarea>
-              </mat-form-field>
+              <div class="quill-field md:col-span-2 lg:col-span-3">
+                <label class="quill-label">Long Description</label>
+                <quill-editor
+                  formControlName="longDescription"
+                  [modules]="quillModules"
+                  [styles]="{ height: '260px' }"
+                  theme="snow"
+                ></quill-editor>
+              </div>
             </div>
 
             <div class="mt-6 text-lg font-semibold">Features</div>
