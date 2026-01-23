@@ -3,3 +3,23 @@ mat-chip-listbox {
     flex-wrap: wrap;
     gap: 8px;
 }
+
+.quill-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.quill-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+:host ::ng-deep .quill-field .ql-toolbar {
+    border-radius: 8px 8px 0 0;
+}
+
+:host ::ng-deep .quill-field .ql-container {
+    border-radius: 0 0 8px 8px;
+}

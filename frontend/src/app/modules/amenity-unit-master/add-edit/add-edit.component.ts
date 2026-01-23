@@ -14,6 +14,7 @@ import { ApplicationPage } from 'app/core';
 import { PermissionService } from 'app/core/service/permission.service';
 import { AmenityUnit } from 'app/model';
 import { ToastrService } from 'ngx-toastr';
+import { QuillModule } from 'ngx-quill';
 import { AmenityUnitMasterService } from '../amenity-unit-master.service';
 
 @Component({
@@ -33,6 +34,7 @@ import { AmenityUnitMasterService } from '../amenity-unit-master.service';
         MatButtonModule,
         MatCheckboxModule,
         MatChipsModule,
+        QuillModule,
         CommonModule
     ]
 })
@@ -48,6 +50,18 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
     ];
 
     featureName = '';
+    quillModules = {
+        toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ script: 'sub' }, { script: 'super' }],
+            [{ header: 1 }, { header: 2 }],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ align: [] }],
+            [{ color: [] }, { background: [] }],
+            ['link'],
+            ['clean']
+        ]
+    };
 
     frmAmenityUnit = this.fb.group({
         amenityId: ['', Validators.required],
