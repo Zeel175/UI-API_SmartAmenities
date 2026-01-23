@@ -155,6 +155,22 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         }
 
         if (this.isEditMode) {
+            if (formattedSlots.length === 1) {
+                const slot = formattedSlots[0];
+                const payload = {
+                    ...basePayload,
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    capacityPerSlot: slot.capacityPerSlot,
+                    id: this.templateId
+                };
+                this.slotTemplateService.updateSlotTemplate(payload).subscribe(() => {
+                    this.notificationService.success('Saved successfully.');
+                    this.router.navigate(['/amenity-slot-template']);
+                }, () => this.notificationService.error('Save failed.'));
+                return;
+            }
+
             const payloads = formattedSlots.map((slot: any, index: number) => ({
                 ...basePayload,
                 startTime: slot.startTime,
@@ -163,6 +179,22 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                 id: index === 0 ? this.templateId : 0
             }));
             this.slotTemplateService.upsertSlotTemplates(payloads).subscribe(() => {
+                this.notificationService.success('Saved successfully.');
+                this.router.navigate(['/amenity-slot-template']);
+            }, () => this.notificationService.error('Save failed.'));
+            return;
+        }
+
+        if (formattedSlots.length === 1) {
+            const slot = formattedSlots[0];
+            const payload = {
+                ...basePayload,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                capacityPerSlot: slot.capacityPerSlot,
+                id: 0
+            };
+            this.slotTemplateService.addSlotTemplate(payload).subscribe(() => {
                 this.notificationService.success('Saved successfully.');
                 this.router.navigate(['/amenity-slot-template']);
             }, () => this.notificationService.error('Save failed.'));
