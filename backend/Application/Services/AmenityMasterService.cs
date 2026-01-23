@@ -131,7 +131,8 @@ namespace Application.Services
                 .Select(x => new
                 {
                     x.Id,
-                    x.Name
+                    x.Name,
+                    x.BookingSlotRequired
                 })
                 .ToListAsync<object>();
 
