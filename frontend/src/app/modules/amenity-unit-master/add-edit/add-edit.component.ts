@@ -162,7 +162,7 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
             id: this.isEditMode ? this.unitId : 0,
             amenityId: +formValue.amenityId,
             unitName: formValue.unitName,
-            unitCode: this.isEditMode ? formValue.unitCode : 'string',
+            unitCode: this.isEditMode ? formValue.unitCode : null,
             status: formValue.status,
             shortDescription: formValue.shortDescription,
             longDescription: formValue.longDescription,

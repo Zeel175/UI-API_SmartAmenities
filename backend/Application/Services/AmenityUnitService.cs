@@ -24,6 +24,16 @@ namespace Application.Services
             _claimAccessorService = claimAccessorService;
         }
 
+        private async Task<string> GenerateCode(long amenityId)
+        {
+            var count = await _unitRepository
+                .Get(u => u.AmenityId == amenityId && !string.IsNullOrWhiteSpace(u.UnitCode))
+                .Select(u => u.UnitCode)
+                .Distinct()
+                .CountAsync();
+            return ("AMU" + (count + 1).ToString("0000000")).ToUpper();
+        }
+
         public async Task<InsertResponseModel> CreateAmenityUnitAsync(AmenityUnitAddEdit unit)
         {
             try
@@ -37,6 +47,11 @@ namespace Application.Services
                 if (string.IsNullOrWhiteSpace(mappedModel.Status))
                 {
                     mappedModel.Status = "Active";
+                }
+                if (string.IsNullOrWhiteSpace(mappedModel.UnitCode)
+                    || mappedModel.UnitCode.Equals("string", StringComparison.OrdinalIgnoreCase))
+                {
+                    mappedModel.UnitCode = await GenerateCode(mappedModel.AmenityId);
                 }
 
                 mappedModel.Features = unit.Features.Select(feature => new AmenityUnitFeature
@@ -55,7 +70,7 @@ namespace Application.Services
                 return new InsertResponseModel
                 {
                     Id = mappedModel.Id,
-                    Code = mappedModel.Id.ToString(),
+                    Code = mappedModel.UnitCode ?? mappedModel.Id.ToString(),
                     Message = "Insert successfully."
                 };
             }
@@ -136,10 +151,18 @@ namespace Application.Services
                 long loggedInUserId = _claimAccessorService.GetUserId();
                 entity.ModifiedBy = loggedInUserId;
                 entity.ModifiedDate = DateTime.Now;
+                var existingUnitCode = entity.UnitCode;
                 var mappedModel = _dataMapper.Map(unit, entity);
                 if (string.IsNullOrWhiteSpace(mappedModel.Status))
                 {
                     mappedModel.Status = "Active";
+                }
+                if (string.IsNullOrWhiteSpace(mappedModel.UnitCode)
+                    || mappedModel.UnitCode.Equals("string", StringComparison.OrdinalIgnoreCase))
+                {
+                    mappedModel.UnitCode = !string.IsNullOrWhiteSpace(existingUnitCode)
+                        ? existingUnitCode
+                        : await GenerateCode(mappedModel.AmenityId);
                 }
 
                 entity.Features.Clear();
@@ -162,7 +185,7 @@ namespace Application.Services
                 return new InsertResponseModel
                 {
                     Id = entity.Id,
-                    Code = entity.Id.ToString(),
+                    Code = mappedModel.UnitCode ?? entity.Id.ToString(),
                     Message = "Update successfully."
                 };
             }
