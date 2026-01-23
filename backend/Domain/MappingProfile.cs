@@ -170,6 +170,17 @@ namespace Domain
                 .ForMember(dest => dest.FloorName, opt => opt.MapFrom(src => src.Floor.FloorName));
             #endregion
 
+            #region AmenityUnit
+            CreateMap<AmenityUnitFeature, AmenityUnitFeatureAddEdit>().ReverseMap();
+            CreateMap<AmenityUnit, AmenityUnitAddEdit>()
+                .ForMember(dest => dest.Features, opt => opt.MapFrom(src => src.Features));
+            CreateMap<AmenityUnitAddEdit, AmenityUnit>()
+                .ForMember(dest => dest.Features, opt => opt.Ignore());
+            CreateMap<AmenityUnit, AmenityUnitList>()
+                .ForMember(dest => dest.AmenityName, opt => opt.MapFrom(src => src.AmenityMaster.Name))
+                .ForMember(dest => dest.Features, opt => opt.MapFrom(src => src.Features));
+            #endregion
+
             #region AmenitySlotTemplate
             CreateMap<AmenitySlotTemplateTime, AmenitySlotTemplateTimeAddEdit>().ReverseMap();
             CreateMap<AmenitySlotTemplateTime, AmenitySlotTemplateTimeList>();

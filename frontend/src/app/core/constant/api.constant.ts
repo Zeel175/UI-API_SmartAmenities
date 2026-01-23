@@ -146,6 +146,13 @@ export const APIConstant = {
     AmenityMasterDocumentDelete: `${basePath}AmenityMaster/Documents/Delete`,
     AmenityMasterBasicList: `${basePath}AmenityMaster/GetAllAmenityBasic`,
 
+    //Amenity Unit Master
+    AmenityUnitListPaged: `${basePath}AmenityUnitMaster/GetAllAmenityUnit/paged`,
+    AmenityUnitGetById: `${basePath}AmenityUnitMaster/GetByIdAsync`,
+    AmenityUnitAdd: `${basePath}AmenityUnitMaster/AddAmenityUnit`,
+    AmenityUnitEdit: `${basePath}AmenityUnitMaster/EditAmenityUnit`,
+    AmenityUnitDelete: `${basePath}AmenityUnitMaster/DeleteAmenityUnit`,
+
     //Amenity Slot Template
     AmenitySlotTemplateListPaged: `${basePath}AmenitySlotTemplate/GetAllSlotTemplate/paged`,
     AmenitySlotTemplateGetById: `${basePath}AmenitySlotTemplate/GetByIdAsync`,

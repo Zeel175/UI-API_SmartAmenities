@@ -127,6 +127,13 @@ const masterChildren: FuseNavigationItem[] = [
         link: '/amenity-master'
     },
     {
+        id: 'amenity-unit-master',
+        title: 'Amenity Unit',
+        type: 'basic',
+        icon: 'heroicons_outline:squares-2x2',
+        link: '/amenity-unit-master'
+    },
+    {
         id: 'amenity-slot-template',
         title: 'Amenity Slot',
         type: 'basic',

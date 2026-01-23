@@ -72,6 +72,7 @@ export class RoleAddEditComponent {
         { permission: 'Resident', view: false, add: false, edit: false, delete: false },
         { permission: 'Guest', view: false, add: false, edit: false, delete: false },
         { permission: 'Amenity', view: false, add: false, edit: false, delete: false },
+        { permission: 'Amenity Unit', view: false, add: false, edit: false, delete: false },
         { permission: 'Amenity Slot Template', view: false, add: false, edit: false, delete: false },
         { permission: 'Booking Header', view: false, add: false, edit: false, delete: false },
         // Add more permissions as needed...
@@ -358,6 +359,7 @@ export class RoleAddEditComponent {
             'Resident' : 'PER_RESIDENT',
             'Guest' : 'PER_GUEST',
             'Amenity' : 'PER_AMENITY',
+            'Amenity Unit' : 'PER_AMENITY_UNIT',
             'Amenity Slot Template' : 'PER_AMENITY_SLOT_TEMPLATE',
             'Booking Header' : 'PER_BOOKING_HEADER'
         };

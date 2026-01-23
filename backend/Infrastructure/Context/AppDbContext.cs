@@ -21,6 +21,8 @@ namespace Infrastructure.Context
         public DbSet<ResidentMaster> ResidentMasters { get; set; }
         public DbSet<GuestMaster> GuestMasters { get; set; }
         public DbSet<AmenityMaster> AmenityMasters { get; set; }
+        public DbSet<AmenityUnit> AmenityUnits { get; set; }
+        public DbSet<AmenityUnitFeature> AmenityUnitFeatures { get; set; }
         public DbSet<AmenitySlotTemplate> AmenitySlotTemplates { get; set; }
         public DbSet<AmenitySlotTemplateTime> AmenitySlotTemplateTimes { get; set; }
         public DbSet<BookingHeader> BookingHeaders { get; set; }
@@ -236,6 +238,58 @@ namespace Infrastructure.Context
                 .WithMany()
                 .HasForeignKey(a => a.FloorId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // ---------- Amenity Unit ----------
+            modelBuilder.Entity<AmenityUnit>()
+                .HasKey(u => u.Id);
+
+            modelBuilder.Entity<AmenityUnit>()
+                .ToTable("adm_AmenityUnitMaster");
+
+            modelBuilder.Entity<AmenityUnit>()
+                .Property(u => u.UnitName)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<AmenityUnit>()
+                .Property(u => u.UnitCode)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<AmenityUnit>()
+                .Property(u => u.Status)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<AmenityUnit>()
+                .Property(u => u.ShortDescription)
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<AmenityUnit>()
+                .HasOne(u => u.AmenityMaster)
+                .WithMany()
+                .HasForeignKey(u => u.AmenityId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<AmenityUnit>()
+                .HasIndex(u => new { u.AmenityId, u.UnitCode })
+                .IsUnique();
+
+            modelBuilder.Entity<AmenityUnitFeature>()
+                .HasKey(f => f.Id);
+
+            modelBuilder.Entity<AmenityUnitFeature>()
+                .ToTable("adm_AmenityUnitFeature");
+
+            modelBuilder.Entity<AmenityUnitFeature>()
+                .Property(f => f.FeatureName)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<AmenityUnitFeature>()
+                .HasOne(f => f.AmenityUnit)
+                .WithMany(u => u.Features)
+                .HasForeignKey(f => f.AmenityUnitId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<AmenityDocument>()
                 .ToTable("adm_AmenityDocument");
