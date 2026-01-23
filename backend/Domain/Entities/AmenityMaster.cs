@@ -61,7 +61,7 @@ namespace Domain.Entities
 
         public int? MaxGuestsAllowed { get; set; }
 
-        [MaxLength(50)]
+        [MaxLength(200)]
         public string? AvailableDays { get; set; }
 
         public TimeSpan? OpenTime { get; set; }

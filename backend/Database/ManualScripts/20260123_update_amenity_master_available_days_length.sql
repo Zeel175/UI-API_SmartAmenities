@@ -1,0 +1,11 @@
+IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'adm_AmenityMaster'
+      AND COLUMN_NAME = 'AvailableDays'
+      AND CHARACTER_MAXIMUM_LENGTH < 200
+)
+BEGIN
+    ALTER TABLE dbo.adm_AmenityMaster
+    ALTER COLUMN AvailableDays NVARCHAR(200) NULL;
+END;
