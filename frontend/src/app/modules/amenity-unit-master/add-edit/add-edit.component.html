@@ -78,8 +78,14 @@
                   <mat-label>Add feature</mat-label>
                   <input matInput [(ngModel)]="featureName" name="featureName" [ngModelOptions]="{standalone: true}" />
                 </mat-form-field>
-                <button mat-flat-button color="primary" type="button" (click)="addFeature()">
-                  Add Feature
+                <button
+                  mat-icon-button
+                  color="primary"
+                  type="button"
+                  aria-label="Add feature"
+                  (click)="addFeature()"
+                >
+                  <mat-icon>add</mat-icon>
                 </button>
               </div>
 
