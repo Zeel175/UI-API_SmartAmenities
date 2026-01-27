@@ -13,5 +13,8 @@ namespace Domain.ViewModels
         public DateTime BookingDate { get; set; }
         public string? Remarks { get; set; }
         public string Status { get; set; }
+        public string? ResidentNameSnapshot { get; set; }
+        public string? ContactNumberSnapshot { get; set; }
+        public decimal? TotalPayable { get; set; }
     }
 }
