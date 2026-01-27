@@ -11,8 +11,12 @@ import { ApplicationPage, PermissionType } from 'app/core';
 import { PermissionService } from 'app/core/service/permission.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { BookingHeaderService } from '../booking-header.service';
 import { BookingUnit } from 'app/model';
+import { UnitService } from 'app/modules/unit/unit.service';
+import { ResidentMasterService } from 'app/modules/resident-master/resident-master.service';
 
 @Component({
     selector: 'booking-header-add-edit',
@@ -29,6 +33,8 @@ import { BookingUnit } from 'app/model';
         MatSelectModule,
         MatIconModule,
         MatButtonModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
         CommonModule
     ]
 })
@@ -38,6 +44,10 @@ export class BookingHeaderAddEditComponent implements OnInit {
     amenities: any[] = [];
     amenityUnits: any[] = [];
     societies: any[] = [];
+    units: any[] = [];
+    residentUsers: any[] = [];
+    hasAmenityUnits = false;
+    isLoadingBooking = false;
 
     statusOptions = [
         'Draft',
@@ -85,6 +95,8 @@ export class BookingHeaderAddEditComponent implements OnInit {
     constructor(
         private fb: FormBuilder,
         private bookingService: BookingHeaderService,
+        private unitService: UnitService,
+        private residentMasterService: ResidentMasterService,
         private route: ActivatedRoute,
         private router: Router,
         private notificationService: ToastrService,
@@ -95,12 +107,30 @@ export class BookingHeaderAddEditComponent implements OnInit {
         this.IsViewPermission = this.permissionService.hasPermission('Booking Header (PER_BOOKING_HEADER) - View');
         this.loadAmenities();
         this.loadSocieties();
+        this.loadUnits();
         this.ensureBookingUnitRow();
         this.frmBooking.get('amenityId')?.valueChanges.subscribe((amenityId) => {
+            if (!this.isLoadingBooking) {
+                this.applyAmenitySnapshots(amenityId ? +amenityId : null);
+            }
             this.resetBookingUnits();
             if (amenityId) {
                 this.loadAmenityUnits(+amenityId);
+            } else {
+                this.setAmenityUnits([]);
             }
+        });
+        this.frmBooking.get('flatId')?.valueChanges.subscribe((unitId) => {
+            if (this.isLoadingBooking) {
+                return;
+            }
+            this.handleUnitSelection(unitId ? +unitId : null);
+        });
+        this.frmBooking.get('residentUserId')?.valueChanges.subscribe((residentUserId) => {
+            if (this.isLoadingBooking) {
+                return;
+            }
+            this.applyResidentSnapshot(residentUserId ? +residentUserId : null);
         });
         this.route.params.subscribe(params => {
             if (params['id']) {
@@ -123,16 +153,39 @@ export class BookingHeaderAddEditComponent implements OnInit {
         });
     }
 
+    private loadUnits(): void {
+        this.unitService.getAllUnits().subscribe((res: any) => {
+            this.units = res.items || res;
+        });
+    }
+
+    private handleUnitSelection(unitId: number | null): void {
+        this.residentUsers = [];
+        this.frmBooking.patchValue({
+            residentUserId: '',
+            residentNameSnapshot: '',
+            contactNumberSnapshot: ''
+        }, { emitEvent: false });
+
+        if (!unitId) {
+            return;
+        }
+
+        this.residentMasterService.getUsersByUnit(unitId).subscribe((users: any) => {
+            this.residentUsers = users?.items || users || [];
+        });
+    }
+
     private loadAmenityUnits(amenityId: number, bookingUnits: BookingUnit[] = []): void {
         this.bookingService.getAmenityUnitsByAmenityId(amenityId).subscribe((res: any) => {
-            this.amenityUnits = res.items || res;
+            this.setAmenityUnits(res.items || res);
             if (bookingUnits.length) {
                 this.setBookingUnits(bookingUnits);
             } else {
                 this.ensureBookingUnitRow();
             }
         }, () => {
-            this.amenityUnits = [];
+            this.setAmenityUnits([]);
             this.ensureBookingUnitRow();
         });
     }
@@ -143,7 +196,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
 
     addBookingUnitRow(unit?: BookingUnit): void {
         this.bookingUnitsFormArray.push(this.fb.group({
-            amenityUnitId: [unit?.amenityUnitId ?? '', Validators.required],
+            amenityUnitId: [unit?.amenityUnitId ?? '', this.hasAmenityUnits ? Validators.required : []],
             capacityReserved: [unit?.capacityReserved ?? null, [Validators.min(1)]]
         }));
     }
@@ -160,7 +213,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
     }
 
     private ensureBookingUnitRow(): void {
-        if (!this.bookingUnitsFormArray.length) {
+        if (this.hasAmenityUnits && !this.bookingUnitsFormArray.length) {
             this.addBookingUnitRow();
         }
     }
@@ -171,6 +224,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
     }
 
     private getBookingDetails(): void {
+        this.isLoadingBooking = true;
         this.bookingService.getBookingById(this.bookingId).subscribe((res: any) => {
             this.frmBooking.patchValue({
                 amenityId: res.amenityId,
@@ -201,6 +255,9 @@ export class BookingHeaderAddEditComponent implements OnInit {
             });
 
             const units = res.bookingUnits || [];
+            if (res.flatId) {
+                this.loadResidentsByUnit(res.flatId, res.residentUserId);
+            }
             if (res.amenityId) {
                 this.loadAmenityUnits(res.amenityId, units);
             } else if (units.length) {
@@ -208,12 +265,17 @@ export class BookingHeaderAddEditComponent implements OnInit {
             } else {
                 this.ensureBookingUnitRow();
             }
+            this.isLoadingBooking = false;
+        }, () => {
+            this.isLoadingBooking = false;
         });
     }
 
     save(): void {
         const formValue = this.frmBooking.getRawValue();
-        const bookingUnits = (formValue.bookingUnits || []).map((unit: any) => {
+        const bookingUnits = (formValue.bookingUnits || [])
+            .filter((unit: any) => this.toNumber(unit.amenityUnitId))
+            .map((unit: any) => {
             const selectedUnit = this.amenityUnits.find(item => item.id === +unit.amenityUnitId);
             return {
                 id: unit.id,
@@ -226,7 +288,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
             ...formValue,
             amenityId: +formValue.amenityId,
             societyId: +formValue.societyId,
-            bookingDate: formValue.bookingDate,
+            bookingDate: this.toDateValue(formValue.bookingDate),
             residentUserId: this.toNumber(formValue.residentUserId),
             flatId: this.toNumber(formValue.flatId),
             amountBeforeTax: this.toNumber(formValue.amountBeforeTax),
@@ -237,6 +299,8 @@ export class BookingHeaderAddEditComponent implements OnInit {
             totalPayable: this.toNumber(formValue.totalPayable),
             approvedBy: this.toNumber(formValue.approvedBy),
             cancelledBy: this.toNumber(formValue.cancelledBy),
+            approvedOn: this.toDateValue(formValue.approvedOn),
+            cancelledOn: this.toDateValue(formValue.cancelledOn),
             bookingUnits,
             createdDate: new Date().toISOString(),
             createdBy: 0,
@@ -259,18 +323,131 @@ export class BookingHeaderAddEditComponent implements OnInit {
         this.router.navigate(['/booking-header']);
     }
 
-    private toDateInput(value: string | null | undefined): string {
-        if (!value) {
+    private setAmenityUnits(units: any[]): void {
+        this.amenityUnits = units || [];
+        this.hasAmenityUnits = this.amenityUnits.length > 0;
+        if (!this.hasAmenityUnits) {
+            this.resetBookingUnits();
+        }
+        this.updateAmenityUnitValidators();
+    }
+
+    private updateAmenityUnitValidators(): void {
+        this.bookingUnitsFormArray.controls.forEach(control => {
+            const amenityUnitControl = control.get('amenityUnitId');
+            if (!amenityUnitControl) {
+                return;
+            }
+            amenityUnitControl.setValidators(this.hasAmenityUnits ? Validators.required : null);
+            amenityUnitControl.updateValueAndValidity({ emitEvent: false });
+        });
+    }
+
+    private applyAmenitySnapshots(amenityId: number | null): void {
+        if (!amenityId) {
+            this.frmBooking.patchValue({
+                isChargeableSnapshot: null,
+                requiresApprovalSnapshot: null,
+                amountBeforeTax: '',
+                taxAmount: '',
+                depositAmount: '',
+                totalPayable: ''
+            }, { emitEvent: false });
+            return;
+        }
+
+        const amenity = this.amenities.find(item => item.id === amenityId);
+        if (!amenity) {
+            return;
+        }
+
+        const baseRate = this.toNumber(amenity.baseRate);
+        const depositAmount = this.toNumber(amenity.securityDeposit);
+        const taxPercentage = this.toNumber(amenity.taxPercentage) ?? 0;
+        const normalizedBaseRate = baseRate ?? 0;
+        const normalizedDeposit = depositAmount ?? 0;
+        const taxAmount = amenity.taxApplicable && baseRate !== null
+            ? (normalizedBaseRate * taxPercentage) / 100
+            : 0;
+        const totalPayable = normalizedBaseRate + taxAmount + normalizedDeposit;
+
+        this.frmBooking.patchValue({
+            isChargeableSnapshot: amenity.isChargeable ?? null,
+            requiresApprovalSnapshot: amenity.requiresApproval ?? null,
+            amountBeforeTax: baseRate ?? '',
+            taxAmount: baseRate === null ? '' : taxAmount,
+            depositAmount: depositAmount ?? '',
+            totalPayable: baseRate === null && depositAmount === null ? '' : totalPayable
+        }, { emitEvent: false });
+    }
+
+    private loadResidentsByUnit(unitId: number, selectedUserId?: number): void {
+        this.residentMasterService.getUsersByUnit(unitId).subscribe((users: any) => {
+            this.residentUsers = users?.items || users || [];
+            if (selectedUserId) {
+                this.applyResidentSnapshot(selectedUserId, true);
+            }
+        });
+    }
+
+    private applyResidentSnapshot(residentUserId: number | null, preserveExisting = false): void {
+        if (!residentUserId) {
+            return;
+        }
+
+        const selectedUser = this.residentUsers.find((user: any) => user.id === residentUserId);
+        if (!selectedUser) {
+            return;
+        }
+
+        const displayName = this.getResidentDisplayName(selectedUser);
+        const contactNumber = selectedUser.mobile || selectedUser.contactNumber || selectedUser.phoneNumber || '';
+
+        this.frmBooking.patchValue({
+            residentNameSnapshot: preserveExisting
+                ? this.frmBooking.get('residentNameSnapshot')?.value || displayName
+                : displayName,
+            contactNumberSnapshot: preserveExisting
+                ? this.frmBooking.get('contactNumberSnapshot')?.value || contactNumber
+                : contactNumber
+        }, { emitEvent: false });
+    }
+
+    getResidentDisplayName(user: any): string {
+        if (!user) {
             return '';
+        }
+        if (user.fullName) {
+            return user.fullName;
+        }
+        const firstName = user.firstName || '';
+        const lastName = user.lastName || '';
+        const combined = `${firstName} ${lastName}`.trim();
+        return combined || user.userName || user.name || '';
+    }
+
+    private toDateInput(value: string | null | undefined): Date | null {
+        if (!value) {
+            return null;
         }
         const date = new Date(value);
-        if (Number.isNaN(date.getTime())) {
-            return '';
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    private toDateValue(value: Date | string | null | undefined): string | null {
+        if (!value) {
+            return null;
         }
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        if (value instanceof Date) {
+            if (Number.isNaN(value.getTime())) {
+                return null;
+            }
+            const year = value.getFullYear();
+            const month = (value.getMonth() + 1).toString().padStart(2, '0');
+            const day = value.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        return value;
     }
 
     private toNumber(value: string | number | null | undefined): number | null {
