@@ -36,6 +36,10 @@ export class BookingHeaderService extends CRUDService<BookingHeader> {
         return this.http.get(`${APIConstant.AmenityMasterBasicList}`);
     }
 
+    getAmenityUnitsByAmenityId(amenityId: number) {
+        return this.http.get(`${APIConstant.AmenityUnitByAmenityId}?amenityId=${amenityId}`);
+    }
+
     getSocieties() {
         return this.http.get(`${APIConstant.PropertyBasicList}`);
     }

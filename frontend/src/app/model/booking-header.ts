@@ -1,3 +1,11 @@
+export interface BookingUnit {
+    id?: number;
+    bookingId?: number;
+    amenityUnitId?: number;
+    unitNameSnapshot?: string;
+    capacityReserved?: number;
+}
+
 export class BookingHeader {
     id?: number;
     amenityId?: number;
@@ -31,4 +39,5 @@ export class BookingHeader {
     createdBy?: number;
     modifiedDate?: string;
     modifiedBy?: number;
+    bookingUnits?: BookingUnit[];
 }

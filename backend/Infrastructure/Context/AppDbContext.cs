@@ -26,6 +26,7 @@ namespace Infrastructure.Context
         public DbSet<AmenitySlotTemplate> AmenitySlotTemplates { get; set; }
         public DbSet<AmenitySlotTemplateTime> AmenitySlotTemplateTimes { get; set; }
         public DbSet<BookingHeader> BookingHeaders { get; set; }
+        public DbSet<BookingUnit> BookingUnits { get; set; }
         public DbSet<ResidentFamilyMember> ResidentFamilyMembers { get; set; }
         public DbSet<ResidentFamilyMemberUnit> ResidentFamilyMemberUnits { get; set; }
         public DbSet<ResidentUserMap> ResidentUserMaps { get; set; }
@@ -381,6 +382,29 @@ namespace Infrastructure.Context
                 .HasOne(b => b.Society)
                 .WithMany()
                 .HasForeignKey(b => b.SocietyId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // ---------- Booking Unit ----------
+            modelBuilder.Entity<BookingUnit>()
+                .HasKey(bu => bu.Id);
+
+            modelBuilder.Entity<BookingUnit>()
+                .ToTable("adm_BookingUnit");
+
+            modelBuilder.Entity<BookingUnit>()
+                .Property(bu => bu.UnitNameSnapshot)
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<BookingUnit>()
+                .HasOne(bu => bu.BookingHeader)
+                .WithMany(b => b.BookingUnits)
+                .HasForeignKey(bu => bu.BookingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BookingUnit>()
+                .HasOne(bu => bu.AmenityUnit)
+                .WithMany()
+                .HasForeignKey(bu => bu.AmenityUnitId)
                 .OnDelete(DeleteBehavior.NoAction);
                                                     // ---------- Unit ----------
             modelBuilder.Entity<Unit>()

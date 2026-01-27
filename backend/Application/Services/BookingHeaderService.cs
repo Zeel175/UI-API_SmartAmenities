@@ -11,15 +11,18 @@ namespace Application.Services
     public class BookingHeaderService : IBookingHeaderService
     {
         private readonly IBookingHeaderRepository _bookingRepository;
+        private readonly IBookingUnitRepository _bookingUnitRepository;
         private readonly IAutoMapperGenericDataMapper _dataMapper;
         private readonly IClaimAccessorService _claimAccessorService;
 
         public BookingHeaderService(
             IBookingHeaderRepository bookingRepository,
+            IBookingUnitRepository bookingUnitRepository,
             IAutoMapperGenericDataMapper dataMapper,
             IClaimAccessorService claimAccessorService)
         {
             _bookingRepository = bookingRepository;
+            _bookingUnitRepository = bookingUnitRepository;
             _dataMapper = dataMapper;
             _claimAccessorService = claimAccessorService;
         }
@@ -54,6 +57,21 @@ namespace Application.Services
                 }
 
                 await _bookingRepository.AddAsync(mappedModel, loggedInUserId.ToString(), "Insert");
+
+                if (booking.BookingUnits != null && booking.BookingUnits.Any())
+                {
+                    foreach (var unit in booking.BookingUnits)
+                    {
+                        var unitEntity = _dataMapper.Map<BookingUnitAddEdit, BookingUnit>(unit);
+                        unitEntity.BookingId = mappedModel.Id;
+                        unitEntity.CreatedBy = loggedInUserId;
+                        unitEntity.CreatedDate = DateTime.Now;
+                        unitEntity.ModifiedBy = loggedInUserId;
+                        unitEntity.ModifiedDate = DateTime.Now;
+                        await _bookingUnitRepository.AddAsync(unitEntity, loggedInUserId.ToString(), "Insert");
+                    }
+                }
+
                 return new InsertResponseModel
                 {
                     Id = mappedModel.Id,
@@ -88,7 +106,9 @@ namespace Application.Services
 
         public async Task<BookingHeaderAddEdit?> GetBookingByIdAsync(long id)
         {
-            var entity = await _bookingRepository.GetByIdAsync(id);
+            var entity = await _bookingRepository
+                .Get(filter: booking => booking.Id == id, includeProperties: "BookingUnits")
+                .FirstOrDefaultAsync();
             if (entity == null)
             {
                 return null;
@@ -141,6 +161,29 @@ namespace Application.Services
                 }
 
                 await _bookingRepository.UpdateAsync(mappedModel, loggedInUserId.ToString(), "Update");
+
+                var existingUnits = await _bookingUnitRepository
+                    .Get(filter: unit => unit.BookingId == entity.Id)
+                    .ToListAsync();
+
+                foreach (var unit in existingUnits)
+                {
+                    await _bookingUnitRepository.DeleteAsync(unit.Id, loggedInUserId.ToString(), "Delete");
+                }
+
+                if (booking.BookingUnits != null && booking.BookingUnits.Any())
+                {
+                    foreach (var unit in booking.BookingUnits)
+                    {
+                        var unitEntity = _dataMapper.Map<BookingUnitAddEdit, BookingUnit>(unit);
+                        unitEntity.BookingId = entity.Id;
+                        unitEntity.CreatedBy = loggedInUserId;
+                        unitEntity.CreatedDate = DateTime.Now;
+                        unitEntity.ModifiedBy = loggedInUserId;
+                        unitEntity.ModifiedDate = DateTime.Now;
+                        await _bookingUnitRepository.AddAsync(unitEntity, loggedInUserId.ToString(), "Insert");
+                    }
+                }
 
                 return new InsertResponseModel
                 {

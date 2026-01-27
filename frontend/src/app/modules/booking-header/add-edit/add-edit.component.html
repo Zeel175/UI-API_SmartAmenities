@@ -80,6 +80,50 @@
               </mat-form-field>
             </div>
 
+            <div class="mt-8 text-lg font-semibold">Booking Units</div>
+            <div formArrayName="bookingUnits" class="mt-4 space-y-4">
+              <div
+                *ngFor="let unit of bookingUnitsFormArray.controls; let i = index"
+                [formGroupName]="i"
+                class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min"
+              >
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Amenity Unit</mat-label>
+                  <mat-select formControlName="amenityUnitId">
+                    <mat-option *ngFor="let unitOption of amenityUnits" [value]="unitOption.id">
+                      {{ unitOption.unitName || unitOption.name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="unit.get('amenityUnitId')?.invalid && unit.get('amenityUnitId')?.touched">
+                    Amenity unit is required.
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Capacity Reserved</mat-label>
+                  <input matInput type="number" min="1" formControlName="capacityReserved" />
+                </mat-form-field>
+
+                <div class="flex items-center gap-3">
+                  <button
+                    mat-stroked-button
+                    color="warn"
+                    type="button"
+                    (click)="removeBookingUnitRow(i)"
+                    *ngIf="bookingUnitsFormArray.length > 1"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <button mat-stroked-button type="button" (click)="addBookingUnitRow()">
+                  Add Unit
+                </button>
+              </div>
+            </div>
+
             <div class="mt-8 text-lg font-semibold">Resident Info</div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min mt-4">
               <mat-form-field appearance="outline" class="w-full">
