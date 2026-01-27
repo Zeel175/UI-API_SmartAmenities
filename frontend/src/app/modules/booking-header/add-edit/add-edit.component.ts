@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -12,6 +12,7 @@ import { PermissionService } from 'app/core/service/permission.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { BookingHeaderService } from '../booking-header.service';
+import { BookingUnit } from 'app/model';
 
 @Component({
     selector: 'booking-header-add-edit',
@@ -35,6 +36,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
     bookingId: number;
     isEditMode = false;
     amenities: any[] = [];
+    amenityUnits: any[] = [];
     societies: any[] = [];
 
     statusOptions = [
@@ -54,6 +56,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
         bookingDate: ['', Validators.required],
         remarks: [''],
         status: ['Draft', Validators.required],
+        bookingUnits: this.fb.array([]),
         residentUserId: [''],
         flatId: [''],
         residentNameSnapshot: [''],
@@ -92,6 +95,13 @@ export class BookingHeaderAddEditComponent implements OnInit {
         this.IsViewPermission = this.permissionService.hasPermission('Booking Header (PER_BOOKING_HEADER) - View');
         this.loadAmenities();
         this.loadSocieties();
+        this.ensureBookingUnitRow();
+        this.frmBooking.get('amenityId')?.valueChanges.subscribe((amenityId) => {
+            this.resetBookingUnits();
+            if (amenityId) {
+                this.loadAmenityUnits(+amenityId);
+            }
+        });
         this.route.params.subscribe(params => {
             if (params['id']) {
                 this.isEditMode = true;
@@ -111,6 +121,53 @@ export class BookingHeaderAddEditComponent implements OnInit {
         this.bookingService.getSocieties().subscribe((res: any) => {
             this.societies = res.items || res;
         });
+    }
+
+    private loadAmenityUnits(amenityId: number, bookingUnits: BookingUnit[] = []): void {
+        this.bookingService.getAmenityUnitsByAmenityId(amenityId).subscribe((res: any) => {
+            this.amenityUnits = res.items || res;
+            if (bookingUnits.length) {
+                this.setBookingUnits(bookingUnits);
+            } else {
+                this.ensureBookingUnitRow();
+            }
+        }, () => {
+            this.amenityUnits = [];
+            this.ensureBookingUnitRow();
+        });
+    }
+
+    get bookingUnitsFormArray(): FormArray {
+        return this.frmBooking.get('bookingUnits') as FormArray;
+    }
+
+    addBookingUnitRow(unit?: BookingUnit): void {
+        this.bookingUnitsFormArray.push(this.fb.group({
+            amenityUnitId: [unit?.amenityUnitId ?? '', Validators.required],
+            capacityReserved: [unit?.capacityReserved ?? null, [Validators.min(1)]]
+        }));
+    }
+
+    removeBookingUnitRow(index: number): void {
+        this.bookingUnitsFormArray.removeAt(index);
+        if (!this.bookingUnitsFormArray.length) {
+            this.addBookingUnitRow();
+        }
+    }
+
+    private resetBookingUnits(): void {
+        this.bookingUnitsFormArray.clear();
+    }
+
+    private ensureBookingUnitRow(): void {
+        if (!this.bookingUnitsFormArray.length) {
+            this.addBookingUnitRow();
+        }
+    }
+
+    private setBookingUnits(units: BookingUnit[]): void {
+        this.resetBookingUnits();
+        units.forEach(unit => this.addBookingUnitRow(unit));
     }
 
     private getBookingDetails(): void {
@@ -142,11 +199,29 @@ export class BookingHeaderAddEditComponent implements OnInit {
                 cancellationReason: res.cancellationReason,
                 refundStatus: res.refundStatus
             });
+
+            const units = res.bookingUnits || [];
+            if (res.amenityId) {
+                this.loadAmenityUnits(res.amenityId, units);
+            } else if (units.length) {
+                this.setBookingUnits(units);
+            } else {
+                this.ensureBookingUnitRow();
+            }
         });
     }
 
     save(): void {
         const formValue = this.frmBooking.getRawValue();
+        const bookingUnits = (formValue.bookingUnits || []).map((unit: any) => {
+            const selectedUnit = this.amenityUnits.find(item => item.id === +unit.amenityUnitId);
+            return {
+                id: unit.id,
+                amenityUnitId: this.toNumber(unit.amenityUnitId),
+                capacityReserved: this.toNumber(unit.capacityReserved),
+                unitNameSnapshot: selectedUnit?.unitName ?? selectedUnit?.name ?? null
+            };
+        });
         const payload = {
             ...formValue,
             amenityId: +formValue.amenityId,
@@ -162,6 +237,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
             totalPayable: this.toNumber(formValue.totalPayable),
             approvedBy: this.toNumber(formValue.approvedBy),
             cancelledBy: this.toNumber(formValue.cancelledBy),
+            bookingUnits,
             createdDate: new Date().toISOString(),
             createdBy: 0,
             modifiedDate: new Date().toISOString(),

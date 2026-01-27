@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Domain.Entities;
 
 namespace Domain.ViewModels
@@ -31,5 +32,6 @@ namespace Domain.ViewModels
         public DateTime? CancelledOn { get; set; }
         public string? CancellationReason { get; set; }
         public string? RefundStatus { get; set; }
+        public List<BookingUnitAddEdit> BookingUnits { get; set; } = new();
     }
 }

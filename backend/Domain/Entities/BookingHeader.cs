@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -78,5 +79,6 @@ namespace Domain.Entities
 
         public AmenityMaster AmenityMaster { get; set; } = default!;
         public Property Society { get; set; } = default!;
+        public ICollection<BookingUnit> BookingUnits { get; set; } = new List<BookingUnit>();
     }
 }
