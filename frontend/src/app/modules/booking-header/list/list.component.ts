@@ -60,7 +60,10 @@ export class BookingHeaderListComponent implements OnInit {
         { name: 'Booking No', prop: 'bookingNo', visible: true },
         { name: 'Amenity', prop: 'amenityName', visible: true },
         { name: 'Society', prop: 'societyName', visible: true },
+        { name: 'Resident', prop: 'residentNameSnapshot', visible: true },
+        { name: 'Contact', prop: 'contactNumberSnapshot', visible: false },
         { name: 'Booking Date', prop: 'bookingDate', visible: true },
+        { name: 'Total Payable', prop: 'totalPayable', visible: false },
         { name: 'Status', prop: 'status', visible: true },
         { name: 'Remarks', prop: 'remarks', visible: false }
     ];

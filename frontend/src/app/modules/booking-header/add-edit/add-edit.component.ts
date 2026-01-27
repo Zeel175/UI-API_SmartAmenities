@@ -41,7 +41,6 @@ export class BookingHeaderAddEditComponent implements OnInit {
         'Draft',
         'PendingApproval',
         'Approved',
-        'Rejected',
         'Confirmed',
         'Cancelled',
         'Completed',
@@ -54,7 +53,26 @@ export class BookingHeaderAddEditComponent implements OnInit {
         bookingNo: [''],
         bookingDate: ['', Validators.required],
         remarks: [''],
-        status: ['Draft', Validators.required]
+        status: ['Draft', Validators.required],
+        residentUserId: [''],
+        flatId: [''],
+        residentNameSnapshot: [''],
+        contactNumberSnapshot: [''],
+        isChargeableSnapshot: [null],
+        amountBeforeTax: [''],
+        taxAmount: [''],
+        depositAmount: [''],
+        discountAmount: [''],
+        convenienceFee: [''],
+        totalPayable: [''],
+        requiresApprovalSnapshot: [null],
+        approvedBy: [''],
+        approvedOn: [''],
+        rejectionReason: [''],
+        cancelledBy: [''],
+        cancelledOn: [''],
+        cancellationReason: [''],
+        refundStatus: ['']
     });
 
     page = ApplicationPage.bookingHeader;
@@ -103,7 +121,26 @@ export class BookingHeaderAddEditComponent implements OnInit {
                 bookingNo: res.bookingNo,
                 bookingDate: this.toDateInput(res.bookingDate),
                 remarks: res.remarks,
-                status: res.status
+                status: res.status,
+                residentUserId: res.residentUserId,
+                flatId: res.flatId,
+                residentNameSnapshot: res.residentNameSnapshot,
+                contactNumberSnapshot: res.contactNumberSnapshot,
+                isChargeableSnapshot: res.isChargeableSnapshot,
+                amountBeforeTax: res.amountBeforeTax,
+                taxAmount: res.taxAmount,
+                depositAmount: res.depositAmount,
+                discountAmount: res.discountAmount,
+                convenienceFee: res.convenienceFee,
+                totalPayable: res.totalPayable,
+                requiresApprovalSnapshot: res.requiresApprovalSnapshot,
+                approvedBy: res.approvedBy,
+                approvedOn: this.toDateInput(res.approvedOn),
+                rejectionReason: res.rejectionReason,
+                cancelledBy: res.cancelledBy,
+                cancelledOn: this.toDateInput(res.cancelledOn),
+                cancellationReason: res.cancellationReason,
+                refundStatus: res.refundStatus
             });
         });
     }
@@ -115,6 +152,16 @@ export class BookingHeaderAddEditComponent implements OnInit {
             amenityId: +formValue.amenityId,
             societyId: +formValue.societyId,
             bookingDate: formValue.bookingDate,
+            residentUserId: this.toNumber(formValue.residentUserId),
+            flatId: this.toNumber(formValue.flatId),
+            amountBeforeTax: this.toNumber(formValue.amountBeforeTax),
+            taxAmount: this.toNumber(formValue.taxAmount),
+            depositAmount: this.toNumber(formValue.depositAmount),
+            discountAmount: this.toNumber(formValue.discountAmount),
+            convenienceFee: this.toNumber(formValue.convenienceFee),
+            totalPayable: this.toNumber(formValue.totalPayable),
+            approvedBy: this.toNumber(formValue.approvedBy),
+            cancelledBy: this.toNumber(formValue.cancelledBy),
             createdDate: new Date().toISOString(),
             createdBy: 0,
             modifiedDate: new Date().toISOString(),
@@ -148,5 +195,13 @@ export class BookingHeaderAddEditComponent implements OnInit {
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
         return `${year}-${month}-${day}`;
+    }
+
+    private toNumber(value: string | number | null | undefined): number | null {
+        if (value === null || value === undefined || value === '') {
+            return null;
+        }
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? null : parsed;
     }
 }

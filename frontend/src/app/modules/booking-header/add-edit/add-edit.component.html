@@ -80,6 +80,121 @@
               </mat-form-field>
             </div>
 
+            <div class="mt-8 text-lg font-semibold">Resident Info</div>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min mt-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Resident User Id</mat-label>
+                <input matInput type="number" min="0" formControlName="residentUserId" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Flat Id</mat-label>
+                <input matInput type="number" min="0" formControlName="flatId" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Resident Name (Snapshot)</mat-label>
+                <input matInput formControlName="residentNameSnapshot" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Contact Number (Snapshot)</mat-label>
+                <input matInput formControlName="contactNumberSnapshot" />
+              </mat-form-field>
+            </div>
+
+            <div class="mt-8 text-lg font-semibold">Charges Snapshot</div>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min mt-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Is Chargeable</mat-label>
+                <mat-select formControlName="isChargeableSnapshot">
+                  <mat-option [value]="null">Not set</mat-option>
+                  <mat-option [value]="true">Yes</mat-option>
+                  <mat-option [value]="false">No</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Amount Before Tax</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="amountBeforeTax" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Tax Amount</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="taxAmount" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Deposit Amount</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="depositAmount" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Discount Amount</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="discountAmount" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Convenience Fee</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="convenienceFee" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Total Payable</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="totalPayable" />
+              </mat-form-field>
+            </div>
+
+            <div class="mt-8 text-lg font-semibold">Approval</div>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min mt-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Requires Approval</mat-label>
+                <mat-select formControlName="requiresApprovalSnapshot">
+                  <mat-option [value]="null">Not set</mat-option>
+                  <mat-option [value]="true">Yes</mat-option>
+                  <mat-option [value]="false">No</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Approved By</mat-label>
+                <input matInput type="number" min="0" formControlName="approvedBy" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Approved On</mat-label>
+                <input matInput type="date" formControlName="approvedOn" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full md:col-span-2 lg:col-span-3">
+                <mat-label>Rejection Reason</mat-label>
+                <textarea matInput rows="2" formControlName="rejectionReason"></textarea>
+              </mat-form-field>
+            </div>
+
+            <div class="mt-8 text-lg font-semibold">Cancellation</div>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min mt-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Cancelled By</mat-label>
+                <input matInput type="number" min="0" formControlName="cancelledBy" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Cancelled On</mat-label>
+                <input matInput type="date" formControlName="cancelledOn" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Refund Status</mat-label>
+                <input matInput formControlName="refundStatus" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full md:col-span-2 lg:col-span-3">
+                <mat-label>Cancellation Reason</mat-label>
+                <textarea matInput rows="2" formControlName="cancellationReason"></textarea>
+              </mat-form-field>
+            </div>
+
             <div class="flex justify-center mt-6">
               <button
                 mat-flat-button

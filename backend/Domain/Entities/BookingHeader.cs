@@ -27,6 +27,55 @@ namespace Domain.Entities
         [MaxLength(50)]
         public string Status { get; set; } = "Draft";
 
+        public long? ResidentUserId { get; set; }
+
+        public long? FlatId { get; set; }
+
+        [MaxLength(200)]
+        public string? ResidentNameSnapshot { get; set; }
+
+        [MaxLength(30)]
+        public string? ContactNumberSnapshot { get; set; }
+
+        public bool? IsChargeableSnapshot { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? AmountBeforeTax { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? TaxAmount { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? DepositAmount { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? DiscountAmount { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? ConvenienceFee { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? TotalPayable { get; set; }
+
+        public bool? RequiresApprovalSnapshot { get; set; }
+
+        public long? ApprovedBy { get; set; }
+
+        public DateTime? ApprovedOn { get; set; }
+
+        [MaxLength(500)]
+        public string? RejectionReason { get; set; }
+
+        public long? CancelledBy { get; set; }
+
+        public DateTime? CancelledOn { get; set; }
+
+        [MaxLength(500)]
+        public string? CancellationReason { get; set; }
+
+        [MaxLength(50)]
+        public string? RefundStatus { get; set; }
+
         public AmenityMaster AmenityMaster { get; set; } = default!;
         public Property Society { get; set; } = default!;
     }
