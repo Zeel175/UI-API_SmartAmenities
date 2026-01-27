@@ -180,6 +180,7 @@ export const APIConstant = {
     FloorBasicList: `${basePath}Floor/GetAllFloorBasic`,
     // Unit
     UnitMasterList: `${basePath}Unit/GetAllUnit`,
+    UnitMasterListBasic: `${basePath}Unit/GetAllUnitBasic`,
     UnitMasterGetById: `${basePath}Unit/GetByIdAsync`,
     UnitMasterAdd: `${basePath}Unit/AddUnit`,
     UnitMasterEdit: `${basePath}Unit/EditUnit`,
