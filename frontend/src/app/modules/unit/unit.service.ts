@@ -16,6 +16,10 @@ export class UnitService extends CRUDService<Unit> {
         return this.http.get(`${APIConstant.UnitMasterList}/paged?pageIndex=${pageIndex}&pageSize=${pageSize}`);
     }
 
+    getAllUnits() {
+        return this.http.get(`${APIConstant.UnitMasterList}`);
+    }
+
     deleteUnit(id: number): Observable<void> {
         return this.http.delete<void>(`${APIConstant.UnitMasterDelete}?id=${id}`);
     }

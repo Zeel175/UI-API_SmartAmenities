@@ -51,7 +51,9 @@
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Booking Date</mat-label>
-                <input matInput type="date" formControlName="bookingDate" />
+                <input matInput [matDatepicker]="bookingDatePicker" formControlName="bookingDate" />
+                <mat-datepicker-toggle matSuffix [for]="bookingDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #bookingDatePicker></mat-datepicker>
                 <mat-error *ngIf="frmBooking.get('bookingDate')?.invalid && frmBooking.get('bookingDate')?.touched">
                   Booking date is required.
                 </mat-error>
@@ -80,8 +82,9 @@
               </mat-form-field>
             </div>
 
-            <div class="mt-8 text-lg font-semibold">Booking Units</div>
-            <div formArrayName="bookingUnits" class="mt-4 space-y-4">
+            <div *ngIf="hasAmenityUnits">
+              <div class="mt-8 text-lg font-semibold">Booking Units</div>
+              <div formArrayName="bookingUnits" class="mt-4 space-y-4">
               <div
                 *ngFor="let unit of bookingUnitsFormArray.controls; let i = index"
                 [formGroupName]="i"
@@ -123,17 +126,26 @@
                 </button>
               </div>
             </div>
+            </div>
 
             <div class="mt-8 text-lg font-semibold">Resident Info</div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min mt-4">
               <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Resident User Id</mat-label>
-                <input matInput type="number" min="0" formControlName="residentUserId" />
+                <mat-label>Resident</mat-label>
+                <mat-select formControlName="residentUserId">
+                  <mat-option *ngFor="let user of residentUsers" [value]="user.id">
+                    {{ getResidentDisplayName(user) || user.name || user.userName }}
+                  </mat-option>
+                </mat-select>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Flat Id</mat-label>
-                <input matInput type="number" min="0" formControlName="flatId" />
+                <mat-label>Unit</mat-label>
+                <mat-select formControlName="flatId">
+                  <mat-option *ngFor="let unit of units" [value]="unit.id">
+                    {{ unit.unitName || unit.name || unit.code }}
+                  </mat-option>
+                </mat-select>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
@@ -143,7 +155,7 @@
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Contact Number (Snapshot)</mat-label>
-                <input matInput formControlName="contactNumberSnapshot" />
+                <input matInput formControlName="contactNumberSnapshot" readonly />
               </mat-form-field>
             </div>
 
@@ -207,7 +219,9 @@
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Approved On</mat-label>
-                <input matInput type="date" formControlName="approvedOn" />
+                <input matInput [matDatepicker]="approvedOnPicker" formControlName="approvedOn" />
+                <mat-datepicker-toggle matSuffix [for]="approvedOnPicker"></mat-datepicker-toggle>
+                <mat-datepicker #approvedOnPicker></mat-datepicker>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full md:col-span-2 lg:col-span-3">
@@ -225,7 +239,9 @@
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Cancelled On</mat-label>
-                <input matInput type="date" formControlName="cancelledOn" />
+                <input matInput [matDatepicker]="cancelledOnPicker" formControlName="cancelledOn" />
+                <mat-datepicker-toggle matSuffix [for]="cancelledOnPicker"></mat-datepicker-toggle>
+                <mat-datepicker #cancelledOnPicker></mat-datepicker>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
