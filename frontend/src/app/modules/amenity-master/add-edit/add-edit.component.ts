@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ApplicationPage, PermissionType } from 'app/core';
 import { PermissionService } from 'app/core/service/permission.service';
@@ -30,6 +31,7 @@ import { AmenityMasterService } from '../amenity-master.service';
         MatSelectModule,
         MatIconModule,
         MatButtonModule,
+        MatCheckboxModule,
         NgxMaterialTimepickerModule,
         CommonModule
     ]
@@ -57,6 +59,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
         slotDurationMinutes: [''],
         bufferTimeMinutes: [''],
         allowMultipleSlotsPerBooking: [false],
+        allowMultipleUnits: [false],
         requiresApproval: [false],
         allowGuests: [false],
         maxGuestsAllowed: [''],
@@ -142,6 +145,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
                 slotDurationMinutes: res.slotDurationMinutes,
                 bufferTimeMinutes: res.bufferTimeMinutes,
                 allowMultipleSlotsPerBooking: !!res.allowMultipleSlotsPerBooking,
+                allowMultipleUnits: !!res.allowMultipleUnits,
                 requiresApproval: !!res.requiresApproval,
                 allowGuests: !!res.allowGuests,
                 maxGuestsAllowed: res.maxGuestsAllowed,
