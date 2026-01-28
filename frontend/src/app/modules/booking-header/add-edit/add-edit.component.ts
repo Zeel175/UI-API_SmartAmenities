@@ -162,6 +162,9 @@ export class BookingHeaderAddEditComponent implements OnInit {
             const amenityId = this.toNumber(this.frmBooking.get('amenityId')?.value);
             if (amenityId) {
                 this.updateSlotRequirement(amenityId);
+                if (this.isEditMode && this.bookingSlotRequired) {
+                    this.reloadSlotsForAllRows();
+                }
             }
         });
     }
@@ -204,6 +207,9 @@ export class BookingHeaderAddEditComponent implements OnInit {
                 this.ensureBookingUnitRow();
             }
             this.applyChargesFromAmenityUnits();
+            if (this.bookingSlotRequired) {
+                this.reloadSlotsForAllRows();
+            }
         }, () => {
             this.setAmenityUnits([]);
             this.ensureBookingUnitRow();
