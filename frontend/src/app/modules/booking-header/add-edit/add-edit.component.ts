@@ -109,6 +109,12 @@ export class BookingHeaderAddEditComponent implements OnInit {
         this.loadSocieties();
         this.loadUnits();
         this.ensureBookingUnitRow();
+        this.bookingUnitsFormArray.valueChanges.subscribe(() => {
+            if (this.isLoadingBooking) {
+                return;
+            }
+            this.applyChargesFromAmenityUnits();
+        });
         this.frmBooking.get('amenityId')?.valueChanges.subscribe((amenityId) => {
             if (!this.isLoadingBooking) {
                 this.applyAmenitySnapshots(amenityId ? +amenityId : null);
@@ -184,6 +190,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
             } else {
                 this.ensureBookingUnitRow();
             }
+            this.applyChargesFromAmenityUnits();
         }, () => {
             this.setAmenityUnits([]);
             this.ensureBookingUnitRow();
@@ -346,13 +353,9 @@ export class BookingHeaderAddEditComponent implements OnInit {
     private applyAmenitySnapshots(amenityId: number | null): void {
         if (!amenityId) {
             this.frmBooking.patchValue({
-                isChargeableSnapshot: null,
-                requiresApprovalSnapshot: null,
-                amountBeforeTax: '',
-                taxAmount: '',
-                depositAmount: '',
-                totalPayable: ''
+                requiresApprovalSnapshot: null
             }, { emitEvent: false });
+            this.resetChargesSnapshot();
             return;
         }
 
@@ -361,23 +364,82 @@ export class BookingHeaderAddEditComponent implements OnInit {
             return;
         }
 
-        const baseRate = this.toNumber(amenity.baseRate);
-        const depositAmount = this.toNumber(amenity.securityDeposit);
-        const taxPercentage = this.toNumber(amenity.taxPercentage) ?? 0;
-        const normalizedBaseRate = baseRate ?? 0;
-        const normalizedDeposit = depositAmount ?? 0;
-        const taxAmount = amenity.taxApplicable && baseRate !== null
-            ? (normalizedBaseRate * taxPercentage) / 100
-            : 0;
-        const totalPayable = normalizedBaseRate + taxAmount + normalizedDeposit;
+        this.frmBooking.patchValue({
+            requiresApprovalSnapshot: amenity.requiresApproval ?? null
+        }, { emitEvent: false });
+    }
+
+    private applyChargesFromAmenityUnits(): void {
+        const selectedUnitIds = this.bookingUnitsFormArray.controls
+            .map(control => this.toNumber(control.get('amenityUnitId')?.value))
+            .filter((id): id is number => typeof id === 'number');
+
+        if (!selectedUnitIds.length) {
+            this.resetChargesSnapshot();
+            return;
+        }
+
+        const selectedUnits = this.amenityUnits.filter(unit => selectedUnitIds.includes(unit.id));
+        if (!selectedUnits.length) {
+            this.resetChargesSnapshot();
+            return;
+        }
+
+        let baseRateTotal = 0;
+        let depositTotal = 0;
+        let taxTotal = 0;
+        let hasChargeable = false;
+        let hasNonChargeable = false;
+        let hasAnyRate = false;
+        let hasAnyDeposit = false;
+        let hasAnyTax = false;
+
+        selectedUnits.forEach(unit => {
+            const baseRate = this.toNumber(unit.baseRate);
+            const depositAmount = this.toNumber(unit.securityDeposit);
+            const taxPercentage = this.toNumber(unit.taxPercentage) ?? 0;
+
+            if (baseRate !== null) {
+                baseRateTotal += baseRate;
+                hasAnyRate = true;
+            }
+
+            if (depositAmount !== null) {
+                depositTotal += depositAmount;
+                hasAnyDeposit = true;
+            }
+
+            if (unit.taxApplicable && baseRate !== null) {
+                taxTotal += (baseRate * taxPercentage) / 100;
+                hasAnyTax = true;
+            }
+
+            if (unit.isChargeable === true) {
+                hasChargeable = true;
+            } else if (unit.isChargeable === false) {
+                hasNonChargeable = true;
+            }
+        });
+
+        const isChargeableSnapshot = hasChargeable ? true : hasNonChargeable ? false : null;
+        const totalPayable = baseRateTotal + taxTotal + depositTotal;
 
         this.frmBooking.patchValue({
-            isChargeableSnapshot: amenity.isChargeable ?? null,
-            requiresApprovalSnapshot: amenity.requiresApproval ?? null,
-            amountBeforeTax: baseRate ?? '',
-            taxAmount: baseRate === null ? '' : taxAmount,
-            depositAmount: depositAmount ?? '',
-            totalPayable: baseRate === null && depositAmount === null ? '' : totalPayable
+            isChargeableSnapshot,
+            amountBeforeTax: hasAnyRate ? baseRateTotal : '',
+            taxAmount: hasAnyTax ? taxTotal : '',
+            depositAmount: hasAnyDeposit ? depositTotal : '',
+            totalPayable: hasAnyRate || hasAnyDeposit || hasAnyTax ? totalPayable : ''
+        }, { emitEvent: false });
+    }
+
+    private resetChargesSnapshot(): void {
+        this.frmBooking.patchValue({
+            isChargeableSnapshot: null,
+            amountBeforeTax: '',
+            taxAmount: '',
+            depositAmount: '',
+            totalPayable: ''
         }, { emitEvent: false });
     }
 
