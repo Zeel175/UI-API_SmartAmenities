@@ -124,6 +124,59 @@
                     Remove
                   </button>
                 </div>
+
+                <div class="md:col-span-4">
+                  <div class="mt-2 text-lg font-semibold">Charges</div>
+                  <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 auto-rows-min">
+                    <mat-form-field appearance="outline" class="w-full">
+                      <mat-label>Is Chargeable</mat-label>
+                      <mat-select formControlName="isChargeable">
+                        <mat-option *ngFor="let opt of yesNoOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field *ngIf="slotGroup.get('isChargeable')?.value" appearance="outline" class="w-full">
+                      <mat-label>Charge Type</mat-label>
+                      <mat-select formControlName="chargeType">
+                        <mat-option *ngFor="let type of chargeTypes" [value]="type">{{ type }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field *ngIf="slotGroup.get('isChargeable')?.value" appearance="outline" class="w-full">
+                      <mat-label>Base Rate</mat-label>
+                      <input matInput type="number" min="0" step="0.01" formControlName="baseRate" />
+                    </mat-form-field>
+
+                    <mat-form-field *ngIf="slotGroup.get('isChargeable')?.value" appearance="outline" class="w-full">
+                      <mat-label>Security Deposit</mat-label>
+                      <input matInput type="number" min="0" step="0.01" formControlName="securityDeposit" />
+                    </mat-form-field>
+
+                    <mat-form-field *ngIf="slotGroup.get('isChargeable')?.value" appearance="outline" class="w-full">
+                      <mat-label>Refundable Deposit</mat-label>
+                      <mat-select formControlName="refundableDeposit">
+                        <mat-option *ngFor="let opt of yesNoOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field *ngIf="slotGroup.get('isChargeable')?.value" appearance="outline" class="w-full">
+                      <mat-label>Tax Applicable</mat-label>
+                      <mat-select formControlName="taxApplicable">
+                        <mat-option *ngFor="let opt of yesNoOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field *ngIf="slotGroup.get('taxApplicable')?.value" appearance="outline" class="w-full">
+                      <mat-label>Tax Code Id</mat-label>
+                      <input matInput type="number" min="0" formControlName="taxCodeId" />
+                    </mat-form-field>
+
+                    <mat-form-field *ngIf="slotGroup.get('taxApplicable')?.value" appearance="outline" class="w-full">
+                      <mat-label>Tax Percentage</mat-label>
+                      <input matInput type="number" min="0" step="0.01" formControlName="taxPercentage" />
+                    </mat-form-field>
+                  </div>
+                </div>
               </div>
             </div>
 
