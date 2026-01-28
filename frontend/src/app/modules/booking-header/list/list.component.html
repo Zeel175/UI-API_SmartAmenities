@@ -31,12 +31,9 @@
     [columns]="bookingColumns"
     [loading]="loading"
     [actions]="{ edit: IsEditPermission, delete: IsDeletePermission }"
-    [pageIndex]="pageIndex - 1"
-    [pageSize]="pageSize"
-    [totalItems]="totalItems"
     (editAction)="editBooking($event)"
     (deleteAction)="deleteBooking($event)"
-    (pageChange)="onPageChange($event)"
+    [showPaginator]="false"
   >
   </app-fuse-list>
 </div>

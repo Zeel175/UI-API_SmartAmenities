@@ -12,5 +12,6 @@ namespace Application.Interfaces
         Task DeleteSlotTemplateAsync(long id);
         Task<AmenitySlotTemplateAddEdit?> GetSlotTemplateByIdAsync(long id);
         Task<PaginatedList<AmenitySlotTemplateList>> GetSlotTemplatesAsync(int pageIndex, int pageSize);
+        Task<IReadOnlyList<AmenitySlotTemplateList>> GetSlotTemplatesAsync();
     }
 }

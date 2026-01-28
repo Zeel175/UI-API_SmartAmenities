@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Domain.ViewModels;
 
 namespace Application.Interfaces
@@ -9,6 +10,7 @@ namespace Application.Interfaces
         Task DeleteAmenityAsync(long id);
         Task<AmenityMasterAddEdit?> GetAmenityByIdAsync(long id);
         Task<PaginatedList<AmenityMasterList>> GetAmenitiesAsync(int pageIndex, int pageSize);
+        Task<IReadOnlyList<AmenityMasterList>> GetAmenitiesAsync();
         Task<List<object>> GetAmenityBasicAsync();
     }
 }

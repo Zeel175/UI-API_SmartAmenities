@@ -31,12 +31,9 @@
     [columns]="slotTemplateColumns"
     [loading]="loading"
     [actions]="{ edit: IsEditPermission, delete: IsDeletePermission }"
-    [pageIndex]="pageIndex - 1"
-    [pageSize]="pageSize"
-    [totalItems]="totalItems"
     (editAction)="editTemplate($event)"
     (deleteAction)="deleteTemplate($event)"
-    (pageChange)="onPageChange($event)"
+    [showPaginator]="false"
   >
   </app-fuse-list>
 </div>

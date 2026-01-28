@@ -31,12 +31,9 @@
     [columns]="amenityUnitColumns"
     [loading]="loading"
     [actions]="{ edit: IsEditPermission, delete: IsDeletePermission }"
-    [pageIndex]="pageIndex - 1"
-    [pageSize]="pageSize"
-    [totalItems]="totalItems"
     (editAction)="editAmenityUnit($event)"
     (deleteAction)="deleteAmenityUnit($event)"
-    (pageChange)="onPageChange($event)"
+    [showPaginator]="false"
   >
   </app-fuse-list>
 </div>

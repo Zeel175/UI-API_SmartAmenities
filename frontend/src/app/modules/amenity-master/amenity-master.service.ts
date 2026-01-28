@@ -12,8 +12,8 @@ export class AmenityMasterService extends CRUDService<AmenityMaster> {
         super(_baseService, 'amenity-master');
     }
 
-    getAmenities(pageIndex: number, pageSize: number) {
-        return this.http.get(`${APIConstant.AmenityMasterListPaged}?pageIndex=${pageIndex}&pageSize=${pageSize}`);
+    getAmenities() {
+        return this.http.get(`${APIConstant.AmenityMasterList}`);
     }
 
     getAmenityById(id: number) {

@@ -12,8 +12,8 @@ export class AmenitySlotTemplateService extends CRUDService<AmenitySlotTemplate>
         super(_baseService, 'amenity-slot-template');
     }
 
-    getSlotTemplates(pageIndex: number, pageSize: number) {
-        return this.http.get(`${APIConstant.AmenitySlotTemplateListPaged}?pageIndex=${pageIndex}&pageSize=${pageSize}`);
+    getSlotTemplates() {
+        return this.http.get(`${APIConstant.AmenitySlotTemplateList}`);
     }
 
     getSlotTemplateById(id: number) {

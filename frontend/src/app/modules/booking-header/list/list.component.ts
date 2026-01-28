@@ -7,7 +7,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -48,9 +48,6 @@ export class BookingHeaderListComponent implements OnInit {
     page = ApplicationPage.bookingHeader;
     permissions = PermissionType;
     loading = false;
-    pageIndex = 1;
-    pageSize = 10;
-    totalItems = 0;
 
     IsAddPermission = false;
     IsEditPermission = false;
@@ -85,11 +82,10 @@ export class BookingHeaderListComponent implements OnInit {
 
     private getBookingData(): void {
         this.loading = true;
-        this.bookingService.getBookings(this.pageIndex, this.pageSize).subscribe(
+        this.bookingService.getBookings().subscribe(
             (result: any) => {
                 this.loading = false;
                 this.bookingData = result.items || result;
-                this.totalItems = result.totalCount || this.bookingData.length;
                 this.filteredData = this.bookingData;
             },
             () => {
@@ -97,12 +93,6 @@ export class BookingHeaderListComponent implements OnInit {
                 this.notificationService.error('Failed to load booking data.');
             }
         );
-    }
-
-    onPageChange(evt: PageEvent): void {
-        this.pageIndex = evt.pageIndex + 1;
-        this.pageSize = evt.pageSize;
-        this.getBookingData();
     }
 
     editBooking(id: number): void {

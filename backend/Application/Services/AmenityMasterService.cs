@@ -4,6 +4,7 @@ using Domain.Interfaces;
 using Domain.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Application.Services
@@ -121,6 +122,17 @@ namespace Application.Services
 
             var mapped = _dataMapper.Project<AmenityMaster, AmenityMasterList>(rows.AsQueryable());
             return new PaginatedList<AmenityMasterList>(mapped.ToList(), totalCount, pageIndex, pageSize);
+        }
+
+        public async Task<IReadOnlyList<AmenityMasterList>> GetAmenitiesAsync()
+        {
+            var rows = await _amenityRepository
+                .Get(includeProperties: "Building,Floor")
+                .OrderByDescending(a => a.Id)
+                .ToListAsync();
+
+            var mapped = _dataMapper.Project<AmenityMaster, AmenityMasterList>(rows.AsQueryable());
+            return mapped.ToList();
         }
 
         public async Task<List<object>> GetAmenityBasicAsync()
