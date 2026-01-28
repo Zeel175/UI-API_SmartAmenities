@@ -419,7 +419,8 @@ export class BookingHeaderAddEditComponent implements OnInit {
         }
         this.bookingService.getAvailableSlots(amenityId, amenityUnitId, bookingDate, this.isEditMode ? this.bookingId : null)
             .subscribe((slots) => {
-                this.availableSlotsByRow[index] = slots || [];
+                const slotOptions = slots || [];
+                this.availableSlotsByRow[index] = this.ensureSelectedSlotOption(index, slotOptions);
                 this.syncSlotSelection(index);
             }, () => {
                 this.availableSlotsByRow[index] = [];
@@ -441,7 +442,10 @@ export class BookingHeaderAddEditComponent implements OnInit {
             slot.slotStartDateTime === slotStartDateTime && slot.slotEndDateTime === slotEndDateTime);
         if (match) {
             group.patchValue({ slotSelection: match }, { emitEvent: false });
+            return;
         }
+        const fallbackSlot = this.buildSlotFallback(slotStartDateTime, slotEndDateTime);
+        group.patchValue({ slotSelection: fallbackSlot }, { emitEvent: false });
     }
 
     applySlotSelection(index: number): void {
@@ -466,6 +470,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
 
     getSlotOptions(index: number): BookingSlotAvailability[] {
         const available = this.availableSlotsByRow[index] || [];
+        const selectedSlot = this.getSelectedSlot(index);
         const selectedKeys = this.bookingUnitsFormArray.controls
             .map((control, idx) => {
                 if (idx === index) {
@@ -476,19 +481,28 @@ export class BookingHeaderAddEditComponent implements OnInit {
             })
             .filter((key): key is string => !!key);
 
-        return available.filter(slot => !selectedKeys.includes(this.getSlotKey(slot)));
+        return available.filter(slot => {
+            const slotKey = this.getSlotKey(slot);
+            if (selectedSlot && slotKey === this.getSlotKey(selectedSlot)) {
+                return true;
+            }
+            return !selectedKeys.includes(slotKey);
+        });
     }
 
     hasSlotOptions(index: number): boolean {
         if (!this.bookingSlotRequired) {
             return false;
         }
-        return (this.availableSlotsByRow[index] || []).length > 0;
+        return (this.availableSlotsByRow[index] || []).length > 0 || !!this.getSelectedSlot(index);
     }
 
     getSlotLabel(slot: BookingSlotAvailability): string {
         const start = this.formatSlotTime(slot.slotStartDateTime);
         const end = this.formatSlotTime(slot.slotEndDateTime);
+        if (slot.capacityPerSlot === undefined || slot.availableCapacity === undefined) {
+            return `${start} - ${end}`;
+        }
         return `${start} - ${end} (Cap: ${slot.availableCapacity}/${slot.capacityPerSlot})`;
     }
 
@@ -502,6 +516,43 @@ export class BookingHeaderAddEditComponent implements OnInit {
 
     private getSlotKey(slot: BookingSlotAvailability): string {
         return `${slot.slotStartDateTime}|${slot.slotEndDateTime}`;
+    }
+
+    private getSelectedSlot(index: number): BookingSlotAvailability | null {
+        const group = this.bookingUnitsFormArray.at(index);
+        if (!group) {
+            return null;
+        }
+        return group.get('slotSelection')?.value as BookingSlotAvailability | null;
+    }
+
+    private buildSlotFallback(slotStartDateTime: string, slotEndDateTime: string): BookingSlotAvailability {
+        return {
+            slotStartDateTime,
+            slotEndDateTime,
+            capacityPerSlot: 0,
+            availableCapacity: 0,
+            isChargeable: false,
+            refundableDeposit: false,
+            taxApplicable: false
+        };
+    }
+
+    private ensureSelectedSlotOption(index: number, slots: BookingSlotAvailability[]): BookingSlotAvailability[] {
+        const group = this.bookingUnitsFormArray.at(index);
+        if (!group) {
+            return slots;
+        }
+        const slotStartDateTime = group.get('slotStartDateTime')?.value;
+        const slotEndDateTime = group.get('slotEndDateTime')?.value;
+        if (!slotStartDateTime || !slotEndDateTime) {
+            return slots;
+        }
+        const slotKey = `${slotStartDateTime}|${slotEndDateTime}`;
+        if (slots.some(slot => this.getSlotKey(slot) === slotKey)) {
+            return slots;
+        }
+        return [this.buildSlotFallback(slotStartDateTime, slotEndDateTime), ...slots];
     }
 
     private updateAmenityUnitValidators(): void {
