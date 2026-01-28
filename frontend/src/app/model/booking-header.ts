@@ -22,6 +22,7 @@ export interface BookingSlot {
 }
 
 export interface BookingSlotAvailability {
+    id?: number;
     slotStartDateTime: string;
     slotEndDateTime: string;
     capacityPerSlot: number;
