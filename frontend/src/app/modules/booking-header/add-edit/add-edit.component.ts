@@ -452,7 +452,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
         const match = availableSlots.find(slot =>
             slot.slotStartDateTime === slotStartDateTime && slot.slotEndDateTime === slotEndDateTime);
         if (match) {
-            group.patchValue({ slotSelection: match }, { emitEvent: false });
+            group.patchValue({ slotSelection: match, bookingSlotId: match.id ?? null }, { emitEvent: false });
             return;
         }
         const fallbackSlot = this.buildSlotFallback(slotStartDateTime, slotEndDateTime);
@@ -467,12 +467,14 @@ export class BookingHeaderAddEditComponent implements OnInit {
         const slot = group.get('slotSelection')?.value as BookingSlotAvailability | null;
         if (!slot) {
             group.patchValue({
+                bookingSlotId: null,
                 slotStartDateTime: null,
                 slotEndDateTime: null
             }, { emitEvent: false });
             return;
         }
         group.patchValue({
+            bookingSlotId: slot.id ?? null,
             slotStartDateTime: slot.slotStartDateTime,
             slotEndDateTime: slot.slotEndDateTime
         }, { emitEvent: false });
@@ -628,6 +630,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
         this.availableSlotsByRow[index] = [];
         group.patchValue({
             slotSelection: null,
+            bookingSlotId: null,
             slotStartDateTime: null,
             slotEndDateTime: null
         }, { emitEvent: false });
