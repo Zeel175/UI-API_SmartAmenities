@@ -3,6 +3,14 @@ export interface AmenitySlotTemplateTime {
     endTime: string;
     capacityPerSlot?: number;
     slotCharge?: number;
+    isChargeable?: boolean;
+    chargeType?: string;
+    baseRate?: number;
+    securityDeposit?: number;
+    refundableDeposit?: boolean;
+    taxApplicable?: boolean;
+    taxCodeId?: number;
+    taxPercentage?: number;
     isActive?: boolean;
 }
 

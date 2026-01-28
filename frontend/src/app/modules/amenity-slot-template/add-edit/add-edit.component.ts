@@ -40,6 +40,11 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
     isEditMode = false;
     amenities: any[] = [];
     amenityUnits: any[] = [];
+    chargeTypes = ['Free', 'Per Slot', 'Per Hour', 'Per Day', 'Flat Fee'];
+    yesNoOptions = [
+        { label: 'Yes', value: true },
+        { label: 'No', value: false }
+    ];
     daysOfWeek = [
         'Monday',
         'Tuesday',
@@ -131,7 +136,15 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                     startTime: this.formatTimeForPicker(slot.startTime),
                     endTime: this.formatTimeForPicker(slot.endTime),
                     capacityPerSlot: slot.capacityPerSlot,
-                    slotCharge: slot.slotCharge
+                    slotCharge: slot.slotCharge,
+                    isChargeable: slot.isChargeable,
+                    chargeType: slot.chargeType,
+                    baseRate: slot.baseRate,
+                    securityDeposit: slot.securityDeposit,
+                    refundableDeposit: slot.refundableDeposit,
+                    taxApplicable: slot.taxApplicable,
+                    taxCodeId: slot.taxCodeId,
+                    taxPercentage: slot.taxPercentage
                 }));
             });
         });
@@ -175,7 +188,15 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                     startTime,
                     endTime,
                     capacityPerSlot: slot.capacityPerSlot,
-                    slotCharge: slot.slotCharge
+                    slotCharge: slot.slotCharge,
+                    isChargeable: slot.isChargeable,
+                    chargeType: slot.chargeType,
+                    baseRate: slot.baseRate,
+                    securityDeposit: slot.securityDeposit,
+                    refundableDeposit: slot.refundableDeposit,
+                    taxApplicable: slot.taxApplicable,
+                    taxCodeId: slot.taxCodeId,
+                    taxPercentage: slot.taxPercentage
                 };
             })
             .filter(Boolean);
@@ -193,6 +214,14 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                 endTime: slot.endTime,
                 capacityPerSlot: slot.capacityPerSlot,
                 slotCharge: slot.slotCharge,
+                isChargeable: slot.isChargeable,
+                chargeType: slot.chargeType,
+                baseRate: slot.baseRate,
+                securityDeposit: slot.securityDeposit,
+                refundableDeposit: slot.refundableDeposit,
+                taxApplicable: slot.taxApplicable,
+                taxCodeId: slot.taxCodeId,
+                taxPercentage: slot.taxPercentage,
                 isActive: true
             }))
         };
@@ -312,12 +341,33 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         }
     }
 
-    private createTimeSlotGroup(values?: { startTime?: string; endTime?: string; capacityPerSlot?: number; slotCharge?: number }): FormGroup {
+    private createTimeSlotGroup(values?: {
+        startTime?: string;
+        endTime?: string;
+        capacityPerSlot?: number;
+        slotCharge?: number;
+        isChargeable?: boolean;
+        chargeType?: string;
+        baseRate?: number;
+        securityDeposit?: number;
+        refundableDeposit?: boolean;
+        taxApplicable?: boolean;
+        taxCodeId?: number;
+        taxPercentage?: number;
+    }): FormGroup {
         return this.fb.group({
             startTime: [values?.startTime ?? '', Validators.required],
             endTime: [values?.endTime ?? '', Validators.required],
             capacityPerSlot: [values?.capacityPerSlot ?? null],
-            slotCharge: [values?.slotCharge ?? null, [Validators.min(0)]]
+            slotCharge: [values?.slotCharge ?? null, [Validators.min(0)]],
+            isChargeable: [values?.isChargeable ?? false],
+            chargeType: [values?.chargeType ?? ''],
+            baseRate: [values?.baseRate ?? null],
+            securityDeposit: [values?.securityDeposit ?? null],
+            refundableDeposit: [values?.refundableDeposit ?? false],
+            taxApplicable: [values?.taxApplicable ?? false],
+            taxCodeId: [values?.taxCodeId ?? null],
+            taxPercentage: [values?.taxPercentage ?? null]
         });
     }
 }
