@@ -7,7 +7,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -48,9 +48,6 @@ export class AmenityUnitMasterListComponent implements OnInit {
     page = ApplicationPage.amenityUnitMaster;
     permissions = PermissionType;
     loading = false;
-    pageIndex = 1;
-    pageSize = 10;
-    totalItems = 0;
 
     IsAddPermission = false;
     IsEditPermission = false;
@@ -85,7 +82,7 @@ export class AmenityUnitMasterListComponent implements OnInit {
 
     private getAmenityUnitData(): void {
         this.loading = true;
-        this.amenityUnitService.getAmenityUnits(this.pageIndex, this.pageSize).subscribe(
+        this.amenityUnitService.getAmenityUnits().subscribe(
             (result: any) => {
                 this.loading = false;
                 const rawItems = result.items || result || [];
@@ -93,7 +90,6 @@ export class AmenityUnitMasterListComponent implements OnInit {
                     ...item,
                     shortDescription: this.stripHtml(item?.shortDescription)
                 }));
-                this.totalItems = result.totalCount || this.amenityUnitData.length;
                 this.filteredData = this.amenityUnitData;
             },
             () => {
@@ -101,12 +97,6 @@ export class AmenityUnitMasterListComponent implements OnInit {
                 this.notificationService.error('Failed to load amenity units.');
             }
         );
-    }
-
-    onPageChange(evt: PageEvent): void {
-        this.pageIndex = evt.pageIndex + 1;
-        this.pageSize = evt.pageSize;
-        this.getAmenityUnitData();
     }
 
     editAmenityUnit(id: number): void {

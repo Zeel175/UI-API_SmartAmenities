@@ -7,7 +7,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -48,9 +48,6 @@ export class AmenityMasterListComponent implements OnInit {
     page = ApplicationPage.amenityMaster;
     permissions = PermissionType;
     loading = false;
-    pageIndex = 1;
-    pageSize = 10;
-    totalItems = 0;
 
     IsAddPermission = false;
     IsEditPermission = false;
@@ -94,11 +91,10 @@ export class AmenityMasterListComponent implements OnInit {
 
     private getAmenityData(): void {
         this.loading = true;
-        this.amenityService.getAmenities(this.pageIndex, this.pageSize).subscribe(
+        this.amenityService.getAmenities().subscribe(
             (result: any) => {
                 this.loading = false;
                 this.amenityData = result.items || result;
-                this.totalItems = result.totalCount || this.amenityData.length;
                 this.filteredData = this.amenityData;
             },
             () => {
@@ -106,12 +102,6 @@ export class AmenityMasterListComponent implements OnInit {
                 this.notificationService.error('Failed to load amenity data.');
             }
         );
-    }
-
-    onPageChange(evt: PageEvent): void {
-        this.pageIndex = evt.pageIndex + 1;
-        this.pageSize = evt.pageSize;
-        this.getAmenityData();
     }
 
     editAmenity(id: number): void {

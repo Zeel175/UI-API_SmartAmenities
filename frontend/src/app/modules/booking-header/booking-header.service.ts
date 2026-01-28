@@ -12,8 +12,8 @@ export class BookingHeaderService extends CRUDService<BookingHeader> {
         super(_baseService, 'booking-header');
     }
 
-    getBookings(pageIndex: number, pageSize: number) {
-        return this.http.get(`${APIConstant.BookingHeaderListPaged}?pageIndex=${pageIndex}&pageSize=${pageSize}`);
+    getBookings() {
+        return this.http.get(`${APIConstant.BookingHeaderList}`);
     }
 
     getBookingById(id: number) {

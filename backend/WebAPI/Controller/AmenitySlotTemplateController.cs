@@ -53,6 +53,13 @@ namespace WebAPI.Controller
             return Ok(data);
         }
 
+        [HttpGet("GetAllSlotTemplate")]
+        public async Task<IActionResult> GetAllSlotTemplate()
+        {
+            var data = await _slotTemplateService.GetSlotTemplatesAsync();
+            return Ok(data);
+        }
+
         [HttpGet("GetByIdAsync")]
         public async Task<IActionResult> Get(long id)
         {

@@ -153,6 +153,17 @@ namespace Application.Services
             return new PaginatedList<BookingHeaderList>(mapped.ToList(), totalCount, pageIndex, pageSize);
         }
 
+        public async Task<IReadOnlyList<BookingHeaderList>> GetBookingsAsync()
+        {
+            var rows = await _bookingRepository
+                .Get(includeProperties: "AmenityMaster,Society")
+                .OrderByDescending(b => b.Id)
+                .ToListAsync();
+
+            var mapped = _dataMapper.Project<BookingHeader, BookingHeaderList>(rows.AsQueryable());
+            return mapped.ToList();
+        }
+
         public async Task<InsertResponseModel> UpdateBookingAsync(BookingHeaderAddEdit booking)
         {
             try

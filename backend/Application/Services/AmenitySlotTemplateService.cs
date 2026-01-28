@@ -164,6 +164,18 @@ namespace Application.Services
             return new PaginatedList<AmenitySlotTemplateList>(mapped.ToList(), totalCount, pageIndex, pageSize);
         }
 
+        public async Task<IReadOnlyList<AmenitySlotTemplateList>> GetSlotTemplatesAsync()
+        {
+            var rows = await _slotTemplateRepository
+                .Get(includeProperties: "AmenityMaster,SlotTimes")
+                .Where(slot => slot.IsActive)
+                .OrderByDescending(a => a.Id)
+                .ToListAsync();
+
+            var mapped = _dataMapper.Project<AmenitySlotTemplate, AmenitySlotTemplateList>(rows.AsQueryable());
+            return mapped.ToList();
+        }
+
         public async Task<InsertResponseModel> UpdateSlotTemplateAsync(AmenitySlotTemplateAddEdit template)
         {
             try

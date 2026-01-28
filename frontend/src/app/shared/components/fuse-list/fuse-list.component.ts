@@ -45,6 +45,7 @@ export class FuseListComponent implements OnChanges, OnInit {
   @Input() actions: { edit?: boolean; delete?: boolean; email?: boolean } = {};
   @Input() loading = false;
   @Input() emptyMessage = 'No data to display';
+  @Input() showPaginator = true;
   @Input() pageIndex: number = 0; // Current page index from parent
   @Input() pageSize: number = 10; // Page size from parent
   @Input() totalItems: number = 0; // Total items for paginator

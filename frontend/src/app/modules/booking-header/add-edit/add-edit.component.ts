@@ -47,6 +47,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
     units: any[] = [];
     residentUsers: any[] = [];
     hasAmenityUnits = false;
+    bookingSlotRequired = false;
     isLoadingBooking = false;
     availableSlotsByRow: Record<number, BookingSlotAvailability[]> = {};
 
@@ -158,6 +159,10 @@ export class BookingHeaderAddEditComponent implements OnInit {
     private loadAmenities(): void {
         this.bookingService.getAmenities().subscribe((res: any) => {
             this.amenities = res.items || res;
+            const amenityId = this.toNumber(this.frmBooking.get('amenityId')?.value);
+            if (amenityId) {
+                this.updateSlotRequirement(amenityId);
+            }
         });
     }
 
@@ -291,6 +296,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
             } else {
                 this.ensureBookingUnitRow();
             }
+            this.updateSlotRequirement(res.amenityId ?? null);
             this.reloadSlotsForAllRows();
             this.isLoadingBooking = false;
         }, () => {
@@ -396,6 +402,10 @@ export class BookingHeaderAddEditComponent implements OnInit {
     }
 
     private loadSlotsForRow(index: number): void {
+        if (!this.bookingSlotRequired) {
+            this.clearSlotSelection(index);
+            return;
+        }
         const group = this.bookingUnitsFormArray.at(index);
         if (!group) {
             return;
@@ -404,12 +414,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
         const amenityUnitId = this.toNumber(group.get('amenityUnitId')?.value);
         const bookingDate = this.toDateValue(this.frmBooking.get('bookingDate')?.value);
         if (!amenityId || !amenityUnitId || !bookingDate) {
-            this.availableSlotsByRow[index] = [];
-            group.patchValue({
-                slotSelection: null,
-                slotStartDateTime: null,
-                slotEndDateTime: null
-            }, { emitEvent: false });
+            this.clearSlotSelection(index);
             return;
         }
         this.bookingService.getAvailableSlots(amenityId, amenityUnitId, bookingDate, this.isEditMode ? this.bookingId : null)
@@ -475,6 +480,9 @@ export class BookingHeaderAddEditComponent implements OnInit {
     }
 
     hasSlotOptions(index: number): boolean {
+        if (!this.bookingSlotRequired) {
+            return false;
+        }
         return (this.availableSlotsByRow[index] || []).length > 0;
     }
 
@@ -509,6 +517,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
 
     private applyAmenitySnapshots(amenityId: number | null): void {
         if (!amenityId) {
+            this.updateSlotRequirement(null);
             this.frmBooking.patchValue({
                 requiresApprovalSnapshot: null
             }, { emitEvent: false });
@@ -521,8 +530,44 @@ export class BookingHeaderAddEditComponent implements OnInit {
             return;
         }
 
+        this.updateSlotRequirement(amenityId);
         this.frmBooking.patchValue({
             requiresApprovalSnapshot: amenity.requiresApproval ?? null
+        }, { emitEvent: false });
+    }
+
+    private updateSlotRequirement(amenityId: number | null): void {
+        if (!amenityId) {
+            this.bookingSlotRequired = false;
+            this.availableSlotsByRow = {};
+            this.clearAllSlotSelections();
+            return;
+        }
+
+        const amenity = this.amenities.find(item => item.id === amenityId);
+        this.bookingSlotRequired = !!amenity?.bookingSlotRequired;
+        if (!this.bookingSlotRequired) {
+            this.availableSlotsByRow = {};
+            this.clearAllSlotSelections();
+        }
+    }
+
+    private clearAllSlotSelections(): void {
+        this.bookingUnitsFormArray.controls.forEach((_, index) => {
+            this.clearSlotSelection(index);
+        });
+    }
+
+    private clearSlotSelection(index: number): void {
+        const group = this.bookingUnitsFormArray.at(index);
+        if (!group) {
+            return;
+        }
+        this.availableSlotsByRow[index] = [];
+        group.patchValue({
+            slotSelection: null,
+            slotStartDateTime: null,
+            slotEndDateTime: null
         }, { emitEvent: false });
     }
 

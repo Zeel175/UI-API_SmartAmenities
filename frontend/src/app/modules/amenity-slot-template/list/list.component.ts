@@ -7,7 +7,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -48,9 +48,6 @@ export class AmenitySlotTemplateListComponent implements OnInit {
     page = ApplicationPage.amenitySlotTemplate;
     permissions = PermissionType;
     loading = false;
-    pageIndex = 1;
-    pageSize = 10;
-    totalItems = 0;
 
     IsAddPermission = false;
     IsEditPermission = false;
@@ -84,7 +81,7 @@ export class AmenitySlotTemplateListComponent implements OnInit {
 
     private getSlotTemplateData(): void {
         this.loading = true;
-        this.slotTemplateService.getSlotTemplates(this.pageIndex, this.pageSize).subscribe(
+        this.slotTemplateService.getSlotTemplates().subscribe(
             (result: any) => {
                 this.loading = false;
                 const rows = result.items || result;
@@ -94,7 +91,6 @@ export class AmenitySlotTemplateListComponent implements OnInit {
                     capacitySummary: this.formatCapacity(row?.slotTimes),
                     slotChargesSummary: this.formatSlotCharges(row?.slotTimes)
                 }));
-                this.totalItems = result.totalCount || this.slotTemplateData.length;
                 this.filteredData = this.slotTemplateData;
             },
             () => {
@@ -102,12 +98,6 @@ export class AmenitySlotTemplateListComponent implements OnInit {
                 this.notificationService.error('Failed to load slot template data.');
             }
         );
-    }
-
-    onPageChange(evt: PageEvent): void {
-        this.pageIndex = evt.pageIndex + 1;
-        this.pageSize = evt.pageSize;
-        this.getSlotTemplateData();
     }
 
     editTemplate(id: number): void {

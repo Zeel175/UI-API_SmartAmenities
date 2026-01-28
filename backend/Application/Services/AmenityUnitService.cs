@@ -131,6 +131,17 @@ namespace Application.Services
             return new PaginatedList<AmenityUnitList>(mapped.ToList(), totalCount, pageIndex, pageSize);
         }
 
+        public async Task<IReadOnlyList<AmenityUnitList>> GetAmenityUnitsAsync()
+        {
+            var rows = await _unitRepository
+                .Get(includeProperties: "AmenityMaster,Features")
+                .OrderByDescending(a => a.Id)
+                .ToListAsync();
+
+            var mapped = _dataMapper.Project<AmenityUnit, AmenityUnitList>(rows.AsQueryable());
+            return mapped.ToList();
+        }
+
         public async Task<IReadOnlyList<AmenityUnitList>> GetAmenityUnitsByAmenityIdAsync(long amenityId)
         {
             var rows = await _unitRepository

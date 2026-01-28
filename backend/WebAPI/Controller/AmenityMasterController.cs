@@ -51,6 +51,13 @@ namespace WebAPI.Controller
             return Ok(data);
         }
 
+        [HttpGet("GetAllAmenity")]
+        public async Task<IActionResult> GetAllAmenity()
+        {
+            var data = await _amenityService.GetAmenitiesAsync();
+            return Ok(data);
+        }
+
         [HttpGet("GetAllAmenityBasic")]
         public async Task<IActionResult> GetAllAmenityBasic()
         {

@@ -37,6 +37,13 @@ namespace WebAPI.Controller
             return Ok(data);
         }
 
+        [HttpGet("GetAllBooking")]
+        public async Task<IActionResult> GetAllBooking()
+        {
+            var data = await _bookingService.GetBookingsAsync();
+            return Ok(data);
+        }
+
         [HttpGet("GetByIdAsync")]
         public async Task<IActionResult> Get(long id)
         {

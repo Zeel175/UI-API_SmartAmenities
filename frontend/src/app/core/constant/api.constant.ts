@@ -139,6 +139,7 @@ export const APIConstant = {
 
     //Amenity Master
     AmenityMasterListPaged: `${basePath}AmenityMaster/GetAllAmenity/paged`,
+    AmenityMasterList: `${basePath}AmenityMaster/GetAllAmenity`,
     AmenityMasterGetById: `${basePath}AmenityMaster/GetByIdAsync`,
     AmenityMasterAdd: `${basePath}AmenityMaster/AddAmenity`,
     AmenityMasterEdit: `${basePath}AmenityMaster/EditAmenity`,
@@ -148,6 +149,7 @@ export const APIConstant = {
 
     //Amenity Unit Master
     AmenityUnitListPaged: `${basePath}AmenityUnitMaster/GetAllAmenityUnit/paged`,
+    AmenityUnitList: `${basePath}AmenityUnitMaster/GetAllAmenityUnit`,
     AmenityUnitByAmenityId: `${basePath}AmenityUnitMaster/GetByAmenityId`,
     AmenityUnitGetById: `${basePath}AmenityUnitMaster/GetByIdAsync`,
     AmenityUnitAdd: `${basePath}AmenityUnitMaster/AddAmenityUnit`,
@@ -156,6 +158,7 @@ export const APIConstant = {
 
     //Amenity Slot Template
     AmenitySlotTemplateListPaged: `${basePath}AmenitySlotTemplate/GetAllSlotTemplate/paged`,
+    AmenitySlotTemplateList: `${basePath}AmenitySlotTemplate/GetAllSlotTemplate`,
     AmenitySlotTemplateGetById: `${basePath}AmenitySlotTemplate/GetByIdAsync`,
     AmenitySlotTemplateAdd: `${basePath}AmenitySlotTemplate/AddSlotTemplate`,
     AmenitySlotTemplateAddBulk: `${basePath}AmenitySlotTemplate/AddSlotTemplate/bulk`,
@@ -165,6 +168,7 @@ export const APIConstant = {
 
     //Booking Header
     BookingHeaderListPaged: `${basePath}BookingHeader/GetAllBooking/paged`,
+    BookingHeaderList: `${basePath}BookingHeader/GetAllBooking`,
     BookingHeaderGetById: `${basePath}BookingHeader/GetByIdAsync`,
     BookingHeaderAdd: `${basePath}BookingHeader/AddBooking`,
     BookingHeaderEdit: `${basePath}BookingHeader/EditBooking`,
