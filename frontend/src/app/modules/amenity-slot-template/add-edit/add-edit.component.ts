@@ -130,7 +130,8 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                 timeSlots.push(this.createTimeSlotGroup({
                     startTime: this.formatTimeForPicker(slot.startTime),
                     endTime: this.formatTimeForPicker(slot.endTime),
-                    capacityPerSlot: slot.capacityPerSlot
+                    capacityPerSlot: slot.capacityPerSlot,
+                    slotCharge: slot.slotCharge
                 }));
             });
         });
@@ -173,7 +174,8 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                 return {
                     startTime,
                     endTime,
-                    capacityPerSlot: slot.capacityPerSlot
+                    capacityPerSlot: slot.capacityPerSlot,
+                    slotCharge: slot.slotCharge
                 };
             })
             .filter(Boolean);
@@ -190,6 +192,7 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                 startTime: slot.startTime,
                 endTime: slot.endTime,
                 capacityPerSlot: slot.capacityPerSlot,
+                slotCharge: slot.slotCharge,
                 isActive: true
             }))
         };
@@ -309,11 +312,12 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         }
     }
 
-    private createTimeSlotGroup(values?: { startTime?: string; endTime?: string; capacityPerSlot?: number }): FormGroup {
+    private createTimeSlotGroup(values?: { startTime?: string; endTime?: string; capacityPerSlot?: number; slotCharge?: number }): FormGroup {
         return this.fb.group({
             startTime: [values?.startTime ?? '', Validators.required],
             endTime: [values?.endTime ?? '', Validators.required],
-            capacityPerSlot: [values?.capacityPerSlot ?? null]
+            capacityPerSlot: [values?.capacityPerSlot ?? null],
+            slotCharge: [values?.slotCharge ?? null, [Validators.min(0)]]
         });
     }
 }

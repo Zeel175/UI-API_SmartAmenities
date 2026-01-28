@@ -2,6 +2,7 @@ export interface AmenitySlotTemplateTime {
     startTime: string;
     endTime: string;
     capacityPerSlot?: number;
+    slotCharge?: number;
     isActive?: boolean;
 }
 
