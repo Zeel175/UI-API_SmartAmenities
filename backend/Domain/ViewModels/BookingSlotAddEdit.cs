@@ -1,9 +1,12 @@
 using System;
+using System.Text.Json.Serialization;
+using Domain.Serialization;
 
 namespace Domain.ViewModels
 {
     public class BookingSlotAddEdit
     {
+        [JsonConverter(typeof(NullableLongJsonConverter))]
         public long? Id { get; set; }
         public long BookingId { get; set; }
         public long BookingUnitId { get; set; }
