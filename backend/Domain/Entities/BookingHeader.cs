@@ -80,5 +80,6 @@ namespace Domain.Entities
         public AmenityMaster AmenityMaster { get; set; } = default!;
         public Property Society { get; set; } = default!;
         public ICollection<BookingUnit> BookingUnits { get; set; } = new List<BookingUnit>();
+        public ICollection<BookingSlot> BookingSlots { get; set; } = new List<BookingSlot>();
     }
 }

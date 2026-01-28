@@ -14,7 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { BookingHeaderService } from '../booking-header.service';
-import { BookingUnit } from 'app/model';
+import { BookingSlotAvailability, BookingUnit } from 'app/model';
 import { UnitService } from 'app/modules/unit/unit.service';
 import { ResidentMasterService } from 'app/modules/resident-master/resident-master.service';
 
@@ -48,6 +48,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
     residentUsers: any[] = [];
     hasAmenityUnits = false;
     isLoadingBooking = false;
+    availableSlotsByRow: Record<number, BookingSlotAvailability[]> = {};
 
     statusOptions = [
         'Draft',
@@ -115,11 +116,18 @@ export class BookingHeaderAddEditComponent implements OnInit {
             }
             this.applyChargesFromAmenityUnits();
         });
+        this.frmBooking.get('bookingDate')?.valueChanges.subscribe(() => {
+            if (this.isLoadingBooking) {
+                return;
+            }
+            this.reloadSlotsForAllRows();
+        });
         this.frmBooking.get('amenityId')?.valueChanges.subscribe((amenityId) => {
             if (!this.isLoadingBooking) {
                 this.applyAmenitySnapshots(amenityId ? +amenityId : null);
             }
             this.resetBookingUnits();
+            this.availableSlotsByRow = {};
             if (amenityId) {
                 this.loadAmenityUnits(+amenityId);
             } else {
@@ -202,21 +210,32 @@ export class BookingHeaderAddEditComponent implements OnInit {
     }
 
     addBookingUnitRow(unit?: BookingUnit): void {
-        this.bookingUnitsFormArray.push(this.fb.group({
+        const group = this.fb.group({
             amenityUnitId: [unit?.amenityUnitId ?? '', this.hasAmenityUnits ? Validators.required : []],
-            capacityReserved: [unit?.capacityReserved ?? null, [Validators.min(1)]]
-        }));
+            capacityReserved: [unit?.capacityReserved ?? null, [Validators.min(1)]],
+            slotSelection: [null],
+            slotStartDateTime: [unit?.bookingSlot?.slotStartDateTime ?? null],
+            slotEndDateTime: [unit?.bookingSlot?.slotEndDateTime ?? null],
+            bookingSlotId: [unit?.bookingSlot?.id ?? null],
+            slotStatus: [unit?.bookingSlot?.slotStatus ?? 'Reserved']
+        });
+        this.bookingUnitsFormArray.push(group);
+        this.registerBookingUnitListeners(group);
     }
 
     removeBookingUnitRow(index: number): void {
         this.bookingUnitsFormArray.removeAt(index);
+        this.availableSlotsByRow = {};
         if (!this.bookingUnitsFormArray.length) {
             this.addBookingUnitRow();
+        } else {
+            this.reloadSlotsForAllRows();
         }
     }
 
     private resetBookingUnits(): void {
         this.bookingUnitsFormArray.clear();
+        this.availableSlotsByRow = {};
     }
 
     private ensureBookingUnitRow(): void {
@@ -272,6 +291,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
             } else {
                 this.ensureBookingUnitRow();
             }
+            this.reloadSlotsForAllRows();
             this.isLoadingBooking = false;
         }, () => {
             this.isLoadingBooking = false;
@@ -284,11 +304,20 @@ export class BookingHeaderAddEditComponent implements OnInit {
             .filter((unit: any) => this.toNumber(unit.amenityUnitId))
             .map((unit: any) => {
             const selectedUnit = this.amenityUnits.find(item => item.id === +unit.amenityUnitId);
+            const slotSelection = unit.slotSelection as BookingSlotAvailability | null;
             return {
                 id: unit.id,
                 amenityUnitId: this.toNumber(unit.amenityUnitId),
                 capacityReserved: this.toNumber(unit.capacityReserved),
-                unitNameSnapshot: selectedUnit?.unitName ?? selectedUnit?.name ?? null
+                unitNameSnapshot: selectedUnit?.unitName ?? selectedUnit?.name ?? null,
+                bookingSlot: slotSelection
+                    ? {
+                        id: unit.bookingSlotId,
+                        slotStartDateTime: slotSelection.slotStartDateTime,
+                        slotEndDateTime: slotSelection.slotEndDateTime,
+                        slotStatus: unit.slotStatus ?? 'Reserved'
+                    }
+                    : null
             };
         });
         const payload = {
@@ -339,6 +368,134 @@ export class BookingHeaderAddEditComponent implements OnInit {
         this.updateAmenityUnitValidators();
     }
 
+    private registerBookingUnitListeners(group: any): void {
+        group.get('amenityUnitId')?.valueChanges.subscribe(() => {
+            if (this.isLoadingBooking) {
+                return;
+            }
+            const index = this.bookingUnitsFormArray.controls.indexOf(group);
+            if (index >= 0) {
+                this.loadSlotsForRow(index);
+            }
+        });
+        group.get('slotSelection')?.valueChanges.subscribe(() => {
+            if (this.isLoadingBooking) {
+                return;
+            }
+            const index = this.bookingUnitsFormArray.controls.indexOf(group);
+            if (index >= 0) {
+                this.applySlotSelection(index);
+            }
+        });
+    }
+
+    private reloadSlotsForAllRows(): void {
+        this.bookingUnitsFormArray.controls.forEach((control, index) => {
+            this.loadSlotsForRow(index);
+        });
+    }
+
+    private loadSlotsForRow(index: number): void {
+        const group = this.bookingUnitsFormArray.at(index);
+        if (!group) {
+            return;
+        }
+        const amenityId = this.toNumber(this.frmBooking.get('amenityId')?.value);
+        const amenityUnitId = this.toNumber(group.get('amenityUnitId')?.value);
+        const bookingDate = this.toDateValue(this.frmBooking.get('bookingDate')?.value);
+        if (!amenityId || !amenityUnitId || !bookingDate) {
+            this.availableSlotsByRow[index] = [];
+            group.patchValue({
+                slotSelection: null,
+                slotStartDateTime: null,
+                slotEndDateTime: null
+            }, { emitEvent: false });
+            return;
+        }
+        this.bookingService.getAvailableSlots(amenityId, amenityUnitId, bookingDate, this.isEditMode ? this.bookingId : null)
+            .subscribe((slots) => {
+                this.availableSlotsByRow[index] = slots || [];
+                this.syncSlotSelection(index);
+            }, () => {
+                this.availableSlotsByRow[index] = [];
+            });
+    }
+
+    private syncSlotSelection(index: number): void {
+        const group = this.bookingUnitsFormArray.at(index);
+        if (!group) {
+            return;
+        }
+        const slotStartDateTime = group.get('slotStartDateTime')?.value;
+        const slotEndDateTime = group.get('slotEndDateTime')?.value;
+        if (!slotStartDateTime || !slotEndDateTime) {
+            return;
+        }
+        const availableSlots = this.availableSlotsByRow[index] || [];
+        const match = availableSlots.find(slot =>
+            slot.slotStartDateTime === slotStartDateTime && slot.slotEndDateTime === slotEndDateTime);
+        if (match) {
+            group.patchValue({ slotSelection: match }, { emitEvent: false });
+        }
+    }
+
+    applySlotSelection(index: number): void {
+        const group = this.bookingUnitsFormArray.at(index);
+        if (!group) {
+            return;
+        }
+        const slot = group.get('slotSelection')?.value as BookingSlotAvailability | null;
+        if (!slot) {
+            group.patchValue({
+                slotStartDateTime: null,
+                slotEndDateTime: null
+            }, { emitEvent: false });
+            return;
+        }
+        group.patchValue({
+            slotStartDateTime: slot.slotStartDateTime,
+            slotEndDateTime: slot.slotEndDateTime
+        }, { emitEvent: false });
+        this.applyChargesFromAmenityUnits();
+    }
+
+    getSlotOptions(index: number): BookingSlotAvailability[] {
+        const available = this.availableSlotsByRow[index] || [];
+        const selectedKeys = this.bookingUnitsFormArray.controls
+            .map((control, idx) => {
+                if (idx === index) {
+                    return null;
+                }
+                const slot = control.get('slotSelection')?.value as BookingSlotAvailability | null;
+                return slot ? this.getSlotKey(slot) : null;
+            })
+            .filter((key): key is string => !!key);
+
+        return available.filter(slot => !selectedKeys.includes(this.getSlotKey(slot)));
+    }
+
+    hasSlotOptions(index: number): boolean {
+        return (this.availableSlotsByRow[index] || []).length > 0;
+    }
+
+    getSlotLabel(slot: BookingSlotAvailability): string {
+        const start = this.formatSlotTime(slot.slotStartDateTime);
+        const end = this.formatSlotTime(slot.slotEndDateTime);
+        return `${start} - ${end} (Cap: ${slot.availableCapacity}/${slot.capacityPerSlot})`;
+    }
+
+    private formatSlotTime(value: string): string {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    private getSlotKey(slot: BookingSlotAvailability): string {
+        return `${slot.slotStartDateTime}|${slot.slotEndDateTime}`;
+    }
+
     private updateAmenityUnitValidators(): void {
         this.bookingUnitsFormArray.controls.forEach(control => {
             const amenityUnitControl = control.get('amenityUnitId');
@@ -379,12 +536,6 @@ export class BookingHeaderAddEditComponent implements OnInit {
             return;
         }
 
-        const selectedUnits = this.amenityUnits.filter(unit => selectedUnitIds.includes(unit.id));
-        if (!selectedUnits.length) {
-            this.resetChargesSnapshot();
-            return;
-        }
-
         let baseRateTotal = 0;
         let depositTotal = 0;
         let taxTotal = 0;
@@ -394,10 +545,22 @@ export class BookingHeaderAddEditComponent implements OnInit {
         let hasAnyDeposit = false;
         let hasAnyTax = false;
 
-        selectedUnits.forEach(unit => {
-            const baseRate = this.toNumber(unit.baseRate);
-            const depositAmount = this.toNumber(unit.securityDeposit);
-            const taxPercentage = this.toNumber(unit.taxPercentage) ?? 0;
+        this.bookingUnitsFormArray.controls.forEach((control) => {
+            const unitId = this.toNumber(control.get('amenityUnitId')?.value);
+            if (!unitId) {
+                return;
+            }
+            const unit = this.amenityUnits.find(item => item.id === unitId);
+            const slotSelection = control.get('slotSelection')?.value as BookingSlotAvailability | null;
+            const slotRate = slotSelection ? this.toNumber(slotSelection.baseRate ?? slotSelection.slotCharge) : null;
+            const baseRate = slotRate ?? this.toNumber(unit?.baseRate);
+            const depositAmount = slotSelection
+                ? this.toNumber(slotSelection.securityDeposit)
+                : this.toNumber(unit?.securityDeposit);
+            const taxPercentage = slotSelection
+                ? this.toNumber(slotSelection.taxPercentage) ?? 0
+                : this.toNumber(unit?.taxPercentage) ?? 0;
+            const taxApplicable = slotSelection ? slotSelection.taxApplicable : unit?.taxApplicable;
 
             if (baseRate !== null) {
                 baseRateTotal += baseRate;
@@ -409,14 +572,14 @@ export class BookingHeaderAddEditComponent implements OnInit {
                 hasAnyDeposit = true;
             }
 
-            if (unit.taxApplicable && baseRate !== null) {
+            if (taxApplicable && baseRate !== null) {
                 taxTotal += (baseRate * taxPercentage) / 100;
                 hasAnyTax = true;
             }
 
-            if (unit.isChargeable === true) {
+            if ((slotSelection ? slotSelection.isChargeable : unit?.isChargeable) === true) {
                 hasChargeable = true;
-            } else if (unit.isChargeable === false) {
+            } else if ((slotSelection ? slotSelection.isChargeable : unit?.isChargeable) === false) {
                 hasNonChargeable = true;
             }
         });

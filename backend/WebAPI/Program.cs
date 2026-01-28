@@ -130,6 +130,7 @@ builder.Services.AddScoped<IAmenitySlotTemplateService, AmenitySlotTemplateServi
 builder.Services.AddScoped<IBookingHeaderRepository, BookingHeaderRepository>();
 builder.Services.AddScoped<IBookingHeaderService, BookingHeaderService>();
 builder.Services.AddScoped<IBookingUnitRepository, BookingUnitRepository>();
+builder.Services.AddScoped<IBookingSlotRepository, BookingSlotRepository>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<IUnitService, UnitService>();
 builder.Services.AddScoped<IZoneRepository, ZoneRepository>();

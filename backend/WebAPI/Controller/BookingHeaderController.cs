@@ -1,3 +1,4 @@
+using System;
 using Application.Interfaces;
 using Domain.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -60,6 +61,13 @@ namespace WebAPI.Controller
         {
             await _bookingService.DeleteBookingAsync(id);
             return NoContent();
+        }
+
+        [HttpGet("AvailableSlots")]
+        public async Task<IActionResult> GetAvailableSlots(long amenityId, long amenityUnitId, DateTime bookingDate, long? bookingId)
+        {
+            var slots = await _bookingService.GetAvailableSlotsAsync(amenityId, amenityUnitId, bookingDate, bookingId);
+            return Ok(slots);
         }
     }
 }

@@ -102,6 +102,15 @@
                   </mat-error>
                 </mat-form-field>
 
+                <mat-form-field appearance="outline" class="w-full" *ngIf="hasSlotOptions(i)">
+                  <mat-label>Slot</mat-label>
+                  <mat-select formControlName="slotSelection">
+                    <mat-option *ngFor="let slot of getSlotOptions(i)" [value]="slot">
+                      {{ getSlotLabel(slot) }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Capacity Reserved</mat-label>
                   <input matInput type="number" min="1" formControlName="capacityReserved" />

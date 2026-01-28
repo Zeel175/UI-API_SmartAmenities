@@ -194,7 +194,12 @@ namespace Domain
             #endregion
 
             #region BookingHeader
-            CreateMap<BookingUnit, BookingUnitAddEdit>().ReverseMap();
+            CreateMap<BookingSlot, BookingSlotAddEdit>().ReverseMap();
+            CreateMap<BookingUnit, BookingUnitAddEdit>()
+                .ForMember(dest => dest.BookingSlot,
+                    opt => opt.MapFrom(src => src.BookingSlots.OrderByDescending(slot => slot.Id).FirstOrDefault()));
+            CreateMap<BookingUnitAddEdit, BookingUnit>()
+                .ForMember(dest => dest.BookingSlots, opt => opt.Ignore());
             CreateMap<BookingHeader, BookingHeaderAddEdit>()
                 .ForMember(dest => dest.BookingUnits, opt => opt.MapFrom(src => src.BookingUnits));
             CreateMap<BookingHeaderAddEdit, BookingHeader>()

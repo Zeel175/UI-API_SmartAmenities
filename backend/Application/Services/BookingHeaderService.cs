@@ -4,6 +4,7 @@ using Domain.Interfaces;
 using Domain.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Application.Services
@@ -12,17 +13,23 @@ namespace Application.Services
     {
         private readonly IBookingHeaderRepository _bookingRepository;
         private readonly IBookingUnitRepository _bookingUnitRepository;
+        private readonly IBookingSlotRepository _bookingSlotRepository;
+        private readonly IAmenitySlotTemplateRepository _slotTemplateRepository;
         private readonly IAutoMapperGenericDataMapper _dataMapper;
         private readonly IClaimAccessorService _claimAccessorService;
 
         public BookingHeaderService(
             IBookingHeaderRepository bookingRepository,
             IBookingUnitRepository bookingUnitRepository,
+            IBookingSlotRepository bookingSlotRepository,
+            IAmenitySlotTemplateRepository slotTemplateRepository,
             IAutoMapperGenericDataMapper dataMapper,
             IClaimAccessorService claimAccessorService)
         {
             _bookingRepository = bookingRepository;
             _bookingUnitRepository = bookingUnitRepository;
+            _bookingSlotRepository = bookingSlotRepository;
+            _slotTemplateRepository = slotTemplateRepository;
             _dataMapper = dataMapper;
             _claimAccessorService = claimAccessorService;
         }
@@ -69,6 +76,21 @@ namespace Application.Services
                         unitEntity.ModifiedBy = loggedInUserId;
                         unitEntity.ModifiedDate = DateTime.Now;
                         await _bookingUnitRepository.AddAsync(unitEntity, loggedInUserId.ToString(), "Insert");
+
+                        if (unit.BookingSlot != null && unit.BookingSlot.SlotStartDateTime != default && unit.BookingSlot.SlotEndDateTime != default)
+                        {
+                            var slotEntity = _dataMapper.Map<BookingSlotAddEdit, BookingSlot>(unit.BookingSlot);
+                            slotEntity.BookingId = mappedModel.Id;
+                            slotEntity.BookingUnitId = unitEntity.Id;
+                            slotEntity.AmenityId = mappedModel.AmenityId;
+                            slotEntity.AmenityUnitId = unitEntity.AmenityUnitId;
+                            slotEntity.SlotStatus = string.IsNullOrWhiteSpace(slotEntity.SlotStatus) ? "Reserved" : slotEntity.SlotStatus;
+                            slotEntity.CreatedBy = loggedInUserId;
+                            slotEntity.CreatedDate = DateTime.Now;
+                            slotEntity.ModifiedBy = loggedInUserId;
+                            slotEntity.ModifiedDate = DateTime.Now;
+                            await _bookingSlotRepository.AddAsync(slotEntity, loggedInUserId.ToString(), "Insert");
+                        }
                     }
                 }
 
@@ -107,7 +129,7 @@ namespace Application.Services
         public async Task<BookingHeaderAddEdit?> GetBookingByIdAsync(long id)
         {
             var entity = await _bookingRepository
-                .Get(filter: booking => booking.Id == id, includeProperties: "BookingUnits")
+                .Get(filter: booking => booking.Id == id, includeProperties: "BookingUnits,BookingUnits.BookingSlots")
                 .FirstOrDefaultAsync();
             if (entity == null)
             {
@@ -182,6 +204,21 @@ namespace Application.Services
                         unitEntity.ModifiedBy = loggedInUserId;
                         unitEntity.ModifiedDate = DateTime.Now;
                         await _bookingUnitRepository.AddAsync(unitEntity, loggedInUserId.ToString(), "Insert");
+
+                        if (unit.BookingSlot != null && unit.BookingSlot.SlotStartDateTime != default && unit.BookingSlot.SlotEndDateTime != default)
+                        {
+                            var slotEntity = _dataMapper.Map<BookingSlotAddEdit, BookingSlot>(unit.BookingSlot);
+                            slotEntity.BookingId = entity.Id;
+                            slotEntity.BookingUnitId = unitEntity.Id;
+                            slotEntity.AmenityId = entity.AmenityId;
+                            slotEntity.AmenityUnitId = unitEntity.AmenityUnitId;
+                            slotEntity.SlotStatus = string.IsNullOrWhiteSpace(slotEntity.SlotStatus) ? "Reserved" : slotEntity.SlotStatus;
+                            slotEntity.CreatedBy = loggedInUserId;
+                            slotEntity.CreatedDate = DateTime.Now;
+                            slotEntity.ModifiedBy = loggedInUserId;
+                            slotEntity.ModifiedDate = DateTime.Now;
+                            await _bookingSlotRepository.AddAsync(slotEntity, loggedInUserId.ToString(), "Insert");
+                        }
                     }
                 }
 
@@ -201,6 +238,84 @@ namespace Application.Services
                     Message = ex.Message
                 };
             }
+        }
+
+        public async Task<IReadOnlyList<BookingSlotAvailability>> GetAvailableSlotsAsync(long amenityId, long amenityUnitId, DateTime bookingDate, long? bookingId)
+        {
+            var dayOfWeek = bookingDate.DayOfWeek.ToString();
+            var templates = await _slotTemplateRepository
+                .Get(filter: template => template.AmenityId == amenityId
+                    && template.DayOfWeek == dayOfWeek
+                    && template.IsActive
+                    && (template.AmenityUnitId == null || template.AmenityUnitId == amenityUnitId),
+                    includeProperties: "SlotTimes")
+                .ToListAsync();
+
+            if (!templates.Any())
+            {
+                return Array.Empty<BookingSlotAvailability>();
+            }
+
+            var unitSpecificTemplates = templates.Where(template => template.AmenityUnitId == amenityUnitId).ToList();
+            if (unitSpecificTemplates.Any())
+            {
+                templates = unitSpecificTemplates;
+            }
+            else
+            {
+                templates = templates.Where(template => template.AmenityUnitId == null).ToList();
+            }
+
+            var slots = new List<BookingSlotAvailability>();
+            foreach (var template in templates)
+            {
+                foreach (var slotTime in template.SlotTimes.Where(slot => slot.IsActive))
+                {
+                    var slotStart = bookingDate.Date.Add(slotTime.StartTime);
+                    var slotEnd = bookingDate.Date.Add(slotTime.EndTime);
+                    var capacity = slotTime.CapacityPerSlot ?? template.CapacityPerSlot ?? 1;
+
+                    var reservedQuery = _bookingSlotRepository.Get(filter: slot =>
+                        slot.AmenityId == amenityId
+                        && slot.AmenityUnitId == amenityUnitId
+                        && slot.SlotStatus == "Reserved"
+                        && slot.SlotStartDateTime == slotStart
+                        && slot.SlotEndDateTime == slotEnd);
+
+                    if (bookingId.HasValue)
+                    {
+                        reservedQuery = reservedQuery.Where(slot => slot.BookingId != bookingId.Value);
+                    }
+
+                    var reservedCount = await reservedQuery.CountAsync();
+                    var availableCapacity = capacity - reservedCount;
+                    if (availableCapacity <= 0)
+                    {
+                        continue;
+                    }
+
+                    slots.Add(new BookingSlotAvailability
+                    {
+                        SlotStartDateTime = slotStart,
+                        SlotEndDateTime = slotEnd,
+                        CapacityPerSlot = capacity,
+                        AvailableCapacity = availableCapacity,
+                        SlotCharge = slotTime.SlotCharge,
+                        IsChargeable = slotTime.IsChargeable,
+                        ChargeType = slotTime.ChargeType,
+                        BaseRate = slotTime.BaseRate,
+                        SecurityDeposit = slotTime.SecurityDeposit,
+                        RefundableDeposit = slotTime.RefundableDeposit,
+                        TaxApplicable = slotTime.TaxApplicable,
+                        TaxCodeId = slotTime.TaxCodeId,
+                        TaxPercentage = slotTime.TaxPercentage
+                    });
+                }
+            }
+
+            return slots
+                .OrderBy(slot => slot.SlotStartDateTime)
+                .ToList();
         }
     }
 }

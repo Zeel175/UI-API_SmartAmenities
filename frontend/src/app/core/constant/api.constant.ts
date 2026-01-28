@@ -169,6 +169,7 @@ export const APIConstant = {
     BookingHeaderAdd: `${basePath}BookingHeader/AddBooking`,
     BookingHeaderEdit: `${basePath}BookingHeader/EditBooking`,
     BookingHeaderDelete: `${basePath}BookingHeader/DeleteBooking`,
+    BookingHeaderAvailableSlots: `${basePath}BookingHeader/AvailableSlots`,
 
     //Floor
     FloorMasterList: `${basePath}Floor/GetAllFloor`,
