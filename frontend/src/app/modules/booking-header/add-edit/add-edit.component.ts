@@ -312,7 +312,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
                 unitNameSnapshot: selectedUnit?.unitName ?? selectedUnit?.name ?? null,
                 bookingSlot: slotSelection
                     ? {
-                        id: unit.bookingSlotId,
+                         id: this.toNumber(unit.bookingSlotId),
                         slotStartDateTime: slotSelection.slotStartDateTime,
                         slotEndDateTime: slotSelection.slotEndDateTime,
                         slotStatus: unit.slotStatus ?? 'Reserved'
