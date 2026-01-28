@@ -27,6 +27,7 @@ namespace Infrastructure.Context
         public DbSet<AmenitySlotTemplateTime> AmenitySlotTemplateTimes { get; set; }
         public DbSet<BookingHeader> BookingHeaders { get; set; }
         public DbSet<BookingUnit> BookingUnits { get; set; }
+        public DbSet<BookingSlot> BookingSlots { get; set; }
         public DbSet<ResidentFamilyMember> ResidentFamilyMembers { get; set; }
         public DbSet<ResidentFamilyMemberUnit> ResidentFamilyMemberUnits { get; set; }
         public DbSet<ResidentUserMap> ResidentUserMaps { get; set; }
@@ -405,6 +406,50 @@ namespace Infrastructure.Context
                 .HasOne(bu => bu.AmenityUnit)
                 .WithMany()
                 .HasForeignKey(bu => bu.AmenityUnitId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // ---------- Booking Slot ----------
+            modelBuilder.Entity<BookingSlot>()
+                .HasKey(bs => bs.Id);
+
+            modelBuilder.Entity<BookingSlot>()
+                .ToTable("adm_BookingSlot");
+
+            modelBuilder.Entity<BookingSlot>()
+                .Property(bs => bs.SlotStartDateTime)
+                .IsRequired();
+
+            modelBuilder.Entity<BookingSlot>()
+                .Property(bs => bs.SlotEndDateTime)
+                .IsRequired();
+
+            modelBuilder.Entity<BookingSlot>()
+                .Property(bs => bs.SlotStatus)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<BookingSlot>()
+                .HasOne(bs => bs.BookingHeader)
+                .WithMany(b => b.BookingSlots)
+                .HasForeignKey(bs => bs.BookingId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingSlot>()
+                .HasOne(bs => bs.BookingUnit)
+                .WithMany(bu => bu.BookingSlots)
+                .HasForeignKey(bs => bs.BookingUnitId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BookingSlot>()
+                .HasOne(bs => bs.AmenityMaster)
+                .WithMany()
+                .HasForeignKey(bs => bs.AmenityId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingSlot>()
+                .HasOne(bs => bs.AmenityUnit)
+                .WithMany()
+                .HasForeignKey(bs => bs.AmenityUnitId)
                 .OnDelete(DeleteBehavior.NoAction);
                                                     // ---------- Unit ----------
             modelBuilder.Entity<Unit>()

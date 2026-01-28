@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { APIConstant, BaseService, CRUDService } from 'app/core';
-import { BookingHeader } from 'app/model';
+import { BookingHeader, BookingSlotAvailability } from 'app/model';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -30,6 +30,13 @@ export class BookingHeaderService extends CRUDService<BookingHeader> {
 
     deleteBooking(id: number): Observable<void> {
         return this.http.delete<void>(`${APIConstant.BookingHeaderDelete}?id=${id}`);
+    }
+
+    getAvailableSlots(amenityId: number, amenityUnitId: number, bookingDate: string, bookingId?: number | null) {
+        const bookingParam = bookingId ? `&bookingId=${bookingId}` : '';
+        return this.http.get<BookingSlotAvailability[]>(
+            `${APIConstant.BookingHeaderAvailableSlots}?amenityId=${amenityId}&amenityUnitId=${amenityUnitId}&bookingDate=${bookingDate}${bookingParam}`
+        );
     }
 
     getAmenities() {

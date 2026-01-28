@@ -19,5 +19,6 @@ namespace Domain.Entities
 
         public BookingHeader BookingHeader { get; set; } = default!;
         public AmenityUnit AmenityUnit { get; set; } = default!;
+        public ICollection<BookingSlot> BookingSlots { get; set; } = new List<BookingSlot>();
     }
 }

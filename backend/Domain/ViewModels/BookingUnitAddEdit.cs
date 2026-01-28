@@ -7,5 +7,6 @@ namespace Domain.ViewModels
         public long AmenityUnitId { get; set; }
         public string? UnitNameSnapshot { get; set; }
         public int? CapacityReserved { get; set; }
+        public BookingSlotAddEdit? BookingSlot { get; set; }
     }
 }

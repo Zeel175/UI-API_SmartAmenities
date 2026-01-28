@@ -4,6 +4,37 @@ export interface BookingUnit {
     amenityUnitId?: number;
     unitNameSnapshot?: string;
     capacityReserved?: number;
+    bookingSlot?: BookingSlot | null;
+}
+
+export interface BookingSlot {
+    id?: number;
+    bookingId?: number;
+    bookingUnitId?: number;
+    amenityId?: number;
+    amenityUnitId?: number;
+    slotStartDateTime?: string;
+    slotEndDateTime?: string;
+    slotStatus?: string;
+    checkInRequired?: boolean;
+    checkInTime?: string;
+    checkOutTime?: string;
+}
+
+export interface BookingSlotAvailability {
+    slotStartDateTime: string;
+    slotEndDateTime: string;
+    capacityPerSlot: number;
+    availableCapacity: number;
+    slotCharge?: number;
+    isChargeable: boolean;
+    chargeType?: string;
+    baseRate?: number;
+    securityDeposit?: number;
+    refundableDeposit: boolean;
+    taxApplicable: boolean;
+    taxCodeId?: number;
+    taxPercentage?: number;
 }
 
 export class BookingHeader {
