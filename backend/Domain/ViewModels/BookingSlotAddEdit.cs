@@ -4,7 +4,7 @@ namespace Domain.ViewModels
 {
     public class BookingSlotAddEdit
     {
-        public long Id { get; set; }
+        public long? Id { get; set; }
         public long BookingId { get; set; }
         public long BookingUnitId { get; set; }
         public long AmenityId { get; set; }
