@@ -136,7 +136,6 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                     startTime: this.formatTimeForPicker(slot.startTime),
                     endTime: this.formatTimeForPicker(slot.endTime),
                     capacityPerSlot: slot.capacityPerSlot,
-                    slotCharge: slot.slotCharge,
                     isChargeable: slot.isChargeable,
                     chargeType: slot.chargeType,
                     baseRate: slot.baseRate,
@@ -188,7 +187,6 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                     startTime,
                     endTime,
                     capacityPerSlot: slot.capacityPerSlot,
-                    slotCharge: slot.slotCharge,
                     isChargeable: slot.isChargeable,
                     chargeType: slot.chargeType,
                     baseRate: slot.baseRate,
@@ -213,7 +211,6 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
                 startTime: slot.startTime,
                 endTime: slot.endTime,
                 capacityPerSlot: slot.capacityPerSlot,
-                slotCharge: slot.slotCharge,
                 isChargeable: slot.isChargeable,
                 chargeType: slot.chargeType,
                 baseRate: slot.baseRate,
@@ -345,7 +342,6 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
         startTime?: string;
         endTime?: string;
         capacityPerSlot?: number;
-        slotCharge?: number;
         isChargeable?: boolean;
         chargeType?: string;
         baseRate?: number;
@@ -359,7 +355,6 @@ export class AmenitySlotTemplateAddEditComponent implements OnInit {
             startTime: [values?.startTime ?? '', Validators.required],
             endTime: [values?.endTime ?? '', Validators.required],
             capacityPerSlot: [values?.capacityPerSlot ?? null],
-            slotCharge: [values?.slotCharge ?? null, [Validators.min(0)]],
             isChargeable: [values?.isChargeable ?? false],
             chargeType: [values?.chargeType ?? ''],
             baseRate: [values?.baseRate ?? null],
