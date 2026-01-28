@@ -78,7 +78,7 @@
               <div
                 *ngFor="let slotGroup of timeSlots.controls; let i = index"
                 [formGroupName]="i"
-                class="grid grid-cols-1 gap-4 md:grid-cols-3 auto-rows-min mb-4"
+                class="grid grid-cols-1 gap-4 md:grid-cols-4 auto-rows-min mb-4"
               >
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Start Time</mat-label>
@@ -101,6 +101,11 @@
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Capacity Per Slot</mat-label>
                   <input matInput type="number" formControlName="capacityPerSlot" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Slot Charge</mat-label>
+                  <input matInput type="number" min="0" step="0.01" formControlName="slotCharge" />
                 </mat-form-field>
 
                 <div class="flex items-center gap-2">

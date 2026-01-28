@@ -62,6 +62,7 @@ export class AmenitySlotTemplateListComponent implements OnInit {
         //{ name: 'Slot Times', prop: 'slotTimesSummary', visible: true },
         { name: 'Slot Duration (Min)', prop: 'slotDurationMinutes', visible: true },
         { name: 'Buffer (Min)', prop: 'bufferTimeMinutes', visible: true },
+        { name: 'Slot Charges', prop: 'slotChargesSummary', visible: true },
         //{ name: 'Capacity', prop: 'capacitySummary', visible: true },
         //{ name: 'Active', prop: 'isActive', visible: true }
     ];
@@ -90,7 +91,8 @@ export class AmenitySlotTemplateListComponent implements OnInit {
                 this.slotTemplateData = (rows || []).map((row: any) => ({
                     ...row,
                     slotTimesSummary: this.formatSlotTimes(row?.slotTimes),
-                    capacitySummary: this.formatCapacity(row?.slotTimes)
+                    capacitySummary: this.formatCapacity(row?.slotTimes),
+                    slotChargesSummary: this.formatSlotCharges(row?.slotTimes)
                 }));
                 this.totalItems = result.totalCount || this.slotTemplateData.length;
                 this.filteredData = this.slotTemplateData;
@@ -154,6 +156,16 @@ export class AmenitySlotTemplateListComponent implements OnInit {
         }
         return slotTimes
             .map((slot) => slot.capacityPerSlot ?? '')
+            .filter((value) => value !== '')
+            .join(', ');
+    }
+
+    private formatSlotCharges(slotTimes: any[] | null | undefined): string {
+        if (!slotTimes || !slotTimes.length) {
+            return '';
+        }
+        return slotTimes
+            .map((slot) => slot.slotCharge ?? '')
             .filter((value) => value !== '')
             .join(', ');
     }

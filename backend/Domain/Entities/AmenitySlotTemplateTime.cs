@@ -18,6 +18,9 @@ namespace Domain.Entities
 
         public int? CapacityPerSlot { get; set; }
 
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? SlotCharge { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         public AmenitySlotTemplate AmenitySlotTemplate { get; set; } = default!;
