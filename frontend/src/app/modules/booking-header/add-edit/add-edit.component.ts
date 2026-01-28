@@ -387,6 +387,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
             }
             const index = this.bookingUnitsFormArray.controls.indexOf(group);
             if (index >= 0) {
+                this.clearSlotSelection(index);
                 this.loadSlotsForRow(index);
             }
         });
@@ -426,10 +427,14 @@ export class BookingHeaderAddEditComponent implements OnInit {
         this.bookingService.getAvailableSlots(amenityId, amenityUnitId, bookingDate, this.isEditMode ? this.bookingId : null)
             .subscribe((slots) => {
                 const slotOptions = slots || [];
+                if (!slotOptions.length) {
+                    this.clearSlotSelection(index);
+                    return;
+                }
                 this.availableSlotsByRow[index] = this.ensureSelectedSlotOption(index, slotOptions);
                 this.syncSlotSelection(index);
             }, () => {
-                this.availableSlotsByRow[index] = [];
+                this.clearSlotSelection(index);
             });
     }
 
@@ -500,7 +505,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
         if (!this.bookingSlotRequired) {
             return false;
         }
-        return (this.availableSlotsByRow[index] || []).length > 0 || !!this.getSelectedSlot(index);
+        return (this.availableSlotsByRow[index] || []).length > 0;
     }
 
     getSlotLabel(slot: BookingSlotAvailability): string {
