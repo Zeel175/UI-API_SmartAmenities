@@ -44,6 +44,7 @@ namespace Application.Services
             {
                 long loggedinUserId = _claimAccessorService.GetUserId();
                 var mappedModel = _dataMapper.Map<AmenityMasterAddEdit, AmenityMaster>(amenity);
+                mappedModel.AllowMultipleSlotsPerBooking = amenity.AllowMultipleSlotsPerBooking;
                 mappedModel.CreatedBy = loggedinUserId;
                 mappedModel.CreatedDate = DateTime.Now;
                 mappedModel.ModifiedBy = loggedinUserId;
@@ -171,6 +172,7 @@ namespace Application.Services
                 entity.ModifiedDate = DateTime.Now;
 
                 var mappedModel = _dataMapper.Map(amenity, entity);
+                mappedModel.AllowMultipleSlotsPerBooking = amenity.AllowMultipleSlotsPerBooking;
                 if (string.IsNullOrWhiteSpace(mappedModel.Status))
                 {
                     mappedModel.Status = "Active";
