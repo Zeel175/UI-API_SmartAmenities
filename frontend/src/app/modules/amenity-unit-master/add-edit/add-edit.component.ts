@@ -42,6 +42,8 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
     unitId: number;
     isEditMode = false;
     amenities: any[] = [];
+    allAmenities: any[] = [];
+    selectedAmenityId: number | null = null;
     statuses = ['Active', 'Inactive', 'Maintenance'];
     chargeTypes = ['Free', 'Per Slot', 'Per Hour', 'Per Day', 'Flat Fee'];
     yesNoOptions = [
@@ -111,12 +113,23 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
 
     private loadAmenities(): void {
         this.amenityUnitService.getAmenities().subscribe((res: any) => {
-            this.amenities = res.items || res;
+            this.allAmenities = res.items || res;
+            this.filterAmenities();
+        });
+    }
+
+    private filterAmenities(): void {
+        this.amenities = (this.allAmenities || []).filter((amenity: any) => {
+            if (amenity?.allowMultipleUnits) {
+                return true;
+            }
+            return this.selectedAmenityId !== null && amenity?.id === this.selectedAmenityId;
         });
     }
 
     private getAmenityUnitDetails(): void {
         this.amenityUnitService.getAmenityUnitById(this.unitId).subscribe((res: any) => {
+            this.selectedAmenityId = res.amenityId ?? null;
             this.frmAmenityUnit.patchValue({
                 amenityId: res.amenityId,
                 unitName: res.unitName,
@@ -133,6 +146,7 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
                 taxCodeId: res.taxCodeId,
                 taxPercentage: res.taxPercentage
             });
+            this.filterAmenities();
 
             this.features.clear();
             (res.features || []).forEach((feature: any) => {

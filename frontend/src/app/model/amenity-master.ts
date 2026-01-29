@@ -27,6 +27,7 @@ export class AmenityMaster {
     slotDurationMinutes?: number;
     bufferTimeMinutes?: number;
     allowMultipleSlotsPerBooking?: boolean;
+    allowMultipleUnits?: boolean;
     requiresApproval?: boolean;
     allowGuests?: boolean;
     maxGuestsAllowed?: number;

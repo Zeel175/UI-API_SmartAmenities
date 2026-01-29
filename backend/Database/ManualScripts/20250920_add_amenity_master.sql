@@ -19,6 +19,7 @@ BEGIN
         [SlotDurationMinutes] [int] NULL,
         [BufferTimeMinutes] [int] NULL,
         [AllowMultipleSlotsPerBooking] [bit] NOT NULL CONSTRAINT [DF_adm_AmenityMaster_AllowMultipleSlotsPerBooking] DEFAULT(0),
+        [AllowMultipleUnits] [bit] NOT NULL CONSTRAINT [DF_adm_AmenityMaster_AllowMultipleUnits] DEFAULT(0),
         [RequiresApproval] [bit] NOT NULL CONSTRAINT [DF_adm_AmenityMaster_RequiresApproval] DEFAULT(0),
         [AllowGuests] [bit] NOT NULL CONSTRAINT [DF_adm_AmenityMaster_AllowGuests] DEFAULT(0),
         [MaxGuestsAllowed] [int] NULL,
