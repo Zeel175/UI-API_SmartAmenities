@@ -53,10 +53,26 @@ namespace Application.Services
 
         public async Task<LoginResponse> LoginWithIdentifierAsync(string identifier, string password)
         {
-            var user = await _userManager.FindByNameAsync(identifier);
+            if (string.IsNullOrWhiteSpace(identifier))
+            {
+                return await BuildLoginResponseAsync(null, password);
+            }
+
+            var normalizedIdentifier = identifier.Trim();
+            var user = await _userManager.FindByNameAsync(normalizedIdentifier);
+            if (user == null && normalizedIdentifier.Contains("@", StringComparison.Ordinal))
+            {
+                user = await _userManager.FindByEmailAsync(normalizedIdentifier);
+            }
             if (user == null)
             {
-                user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == identifier);
+                var normalizedUpper = normalizedIdentifier.ToUpperInvariant();
+                user = await _userManager.Users.FirstOrDefaultAsync(u =>
+                    u.PhoneNumber == normalizedIdentifier
+                    || u.Email == normalizedIdentifier
+                    || u.NormalizedEmail == normalizedUpper
+                    || u.UserName == normalizedIdentifier
+                    || u.NormalizedUserName == normalizedUpper);
             }
 
             return await BuildLoginResponseAsync(user, password);
