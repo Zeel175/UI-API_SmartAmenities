@@ -867,7 +867,21 @@ namespace Infrastructure.Integrations.Hikvision
             using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             LogInfo($"Face image download request\nURL: {requestUri}");
 
-            var response = await http.SendAsync(request, ct);
+            HttpResponseMessage response;
+            try
+            {
+                response = await http.SendAsync(request, ct);
+            }
+            catch (HttpRequestException ex)
+            {
+                LogWarning($"Face image download request failed\nURL: {requestUri}\nError: {ex.Message}");
+                return null;
+            }
+            catch (TaskCanceledException ex)
+            {
+                LogWarning($"Face image download request timed out\nURL: {requestUri}\nError: {ex.Message}");
+                return null;
+            }
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync(ct);
