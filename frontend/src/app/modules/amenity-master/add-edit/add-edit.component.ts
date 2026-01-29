@@ -141,25 +141,25 @@ export class AmenityMasterAddEditComponent implements OnInit {
                 minAdvanceBookingHours: res.minAdvanceBookingHours,
                 minAdvanceBookingDays: res.minAdvanceBookingDays,
                 maxAdvanceBookingDays: res.maxAdvanceBookingDays,
-                bookingSlotRequired: !!res.bookingSlotRequired,
+                bookingSlotRequired: this.toBoolean(res.bookingSlotRequired),
                 slotDurationMinutes: res.slotDurationMinutes,
                 bufferTimeMinutes: res.bufferTimeMinutes,
-                allowMultipleSlotsPerBooking: !!res.allowMultipleSlotsPerBooking,
-                allowMultipleUnits: !!res.allowMultipleUnits,
-                requiresApproval: !!res.requiresApproval,
-                allowGuests: !!res.allowGuests,
+                allowMultipleSlotsPerBooking: this.toBoolean(res.allowMultipleSlotsPerBooking),
+                allowMultipleUnits: this.toBoolean(res.allowMultipleUnits),
+                requiresApproval: this.toBoolean(res.requiresApproval),
+                allowGuests: this.toBoolean(res.allowGuests),
                 maxGuestsAllowed: res.maxGuestsAllowed,
                 availableDays: res.availableDays ? res.availableDays.split(',').map((day: string) => day.trim()).filter(Boolean) : [],
                 openTime: this.formatTimeForPicker(res.openTime),
                 closeTime: this.formatTimeForPicker(res.closeTime),
-                holidayBlocked: !!res.holidayBlocked,
+                holidayBlocked: this.toBoolean(res.holidayBlocked),
                 maintenanceSchedule: res.maintenanceSchedule,
-                isChargeable: !!res.isChargeable,
+                isChargeable: this.toBoolean(res.isChargeable),
                 chargeType: res.chargeType || 'Free',
                 baseRate: res.baseRate,
                 securityDeposit: res.securityDeposit,
-                refundableDeposit: !!res.refundableDeposit,
-                taxApplicable: !!res.taxApplicable,
+                refundableDeposit: this.toBoolean(res.refundableDeposit),
+                taxApplicable: this.toBoolean(res.taxApplicable),
                 taxCodeId: res.taxCodeId,
                 taxPercentage: res.taxPercentage,
                 termsAndConditions: res.termsAndConditions
@@ -264,6 +264,13 @@ export class AmenityMasterAddEditComponent implements OnInit {
         }
         const parsed = Number(value);
         return Number.isNaN(parsed) ? null : parsed;
+    }
+
+    private toBoolean(value: unknown): boolean {
+        if (value === true || value === 'true' || value === 1 || value === '1') {
+            return true;
+        }
+        return false;
     }
 
     private formatTimeForPicker(value: string | null | undefined): string {

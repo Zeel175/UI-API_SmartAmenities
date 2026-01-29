@@ -167,7 +167,8 @@ namespace Domain
                 .ForMember(dest => dest.Documents, opt => opt.Ignore());
             CreateMap<AmenityMaster, AmenityMasterList>()
                 .ForMember(dest => dest.BuildingName, opt => opt.MapFrom(src => src.Building.BuildingName))
-                .ForMember(dest => dest.FloorName, opt => opt.MapFrom(src => src.Floor.FloorName));
+                .ForMember(dest => dest.FloorName, opt => opt.MapFrom(src => src.Floor.FloorName))
+                .ForMember(dest => dest.AllowMultipleSlotsPerBooking, opt => opt.MapFrom(src => src.AllowMultipleSlotsPerBooking));
             #endregion
 
             #region AmenityUnit
