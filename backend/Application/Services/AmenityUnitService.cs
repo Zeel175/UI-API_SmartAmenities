@@ -12,15 +12,18 @@ namespace Application.Services
     public class AmenityUnitService : IAmenityUnitService
     {
         private readonly IAmenityUnitRepository _unitRepository;
+        private readonly IAmenitySlotTemplateRepository _slotTemplateRepository;
         private readonly IAutoMapperGenericDataMapper _dataMapper;
         private readonly IClaimAccessorService _claimAccessorService;
 
         public AmenityUnitService(
             IAmenityUnitRepository unitRepository,
+            IAmenitySlotTemplateRepository slotTemplateRepository,
             IAutoMapperGenericDataMapper dataMapper,
             IClaimAccessorService claimAccessorService)
         {
             _unitRepository = unitRepository;
+            _slotTemplateRepository = slotTemplateRepository;
             _dataMapper = dataMapper;
             _claimAccessorService = claimAccessorService;
         }
@@ -151,6 +154,46 @@ namespace Application.Services
 
             var mapped = _dataMapper.Project<AmenityUnit, AmenityUnitList>(rows.AsQueryable());
             return mapped.ToList();
+        }
+
+        public async Task<IReadOnlyList<AmenityUnitWithSlotsList>> GetAmenityUnitsWithSlotsByAmenityIdAsync(long amenityId)
+        {
+            var units = await _unitRepository
+                .Get(unit => unit.AmenityId == amenityId, includeProperties: "AmenityMaster,Features")
+                .OrderByDescending(unit => unit.Id)
+                .ToListAsync();
+
+            if (!units.Any())
+            {
+                return new List<AmenityUnitWithSlotsList>();
+            }
+
+            var unitIds = units.Select(unit => unit.Id).ToList();
+            var slotTemplates = await _slotTemplateRepository
+                .Get(slot => slot.AmenityId == amenityId
+                    && slot.AmenityUnitId.HasValue
+                    && unitIds.Contains(slot.AmenityUnitId.Value),
+                    includeProperties: "AmenityMaster,SlotTimes")
+                .ToListAsync();
+
+            var mappedUnits = _dataMapper.Project<AmenityUnit, AmenityUnitWithSlotsList>(units.AsQueryable())
+                .ToList();
+            var mappedSlots = _dataMapper.Project<AmenitySlotTemplate, AmenitySlotTemplateList>(slotTemplates.AsQueryable())
+                .ToList();
+
+            var slotLookup = mappedSlots
+                .GroupBy(slot => slot.AmenityUnitId ?? 0)
+                .ToDictionary(group => group.Key, group => group.ToList());
+
+            foreach (var unit in mappedUnits)
+            {
+                if (slotLookup.TryGetValue(unit.Id, out var slots))
+                {
+                    unit.Slots = slots;
+                }
+            }
+
+            return mappedUnits;
         }
 
         public async Task<InsertResponseModel> UpdateAmenityUnitAsync(AmenityUnitAddEdit unit)
