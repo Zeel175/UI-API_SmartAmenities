@@ -28,6 +28,9 @@ IF COL_LENGTH('dbo.adm_AmenityMaster', 'BufferTimeMinutes') IS NULL
 IF COL_LENGTH('dbo.adm_AmenityMaster', 'AllowMultipleSlotsPerBooking') IS NULL
     ALTER TABLE dbo.adm_AmenityMaster ADD AllowMultipleSlotsPerBooking BIT NOT NULL CONSTRAINT DF_adm_AmenityMaster_AllowMultipleSlotsPerBooking DEFAULT(0);
 
+IF COL_LENGTH('dbo.adm_AmenityMaster', 'AllowMultipleUnits') IS NULL
+    ALTER TABLE dbo.adm_AmenityMaster ADD AllowMultipleUnits BIT NOT NULL CONSTRAINT DF_adm_AmenityMaster_AllowMultipleUnits DEFAULT(0);
+
 IF COL_LENGTH('dbo.adm_AmenityMaster', 'RequiresApproval') IS NULL
     ALTER TABLE dbo.adm_AmenityMaster ADD RequiresApproval BIT NOT NULL CONSTRAINT DF_adm_AmenityMaster_RequiresApproval DEFAULT(0);
 

@@ -144,7 +144,8 @@ namespace Application.Services
                 {
                     x.Id,
                     x.Name,
-                    x.BookingSlotRequired
+                    x.BookingSlotRequired,
+                    x.AllowMultipleUnits
                 })
                 .ToListAsync<object>();
 

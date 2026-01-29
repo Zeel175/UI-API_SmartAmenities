@@ -26,6 +26,7 @@ namespace Domain.ViewModels
         public int? SlotDurationMinutes { get; set; }
         public int? BufferTimeMinutes { get; set; }
         public bool AllowMultipleSlotsPerBooking { get; set; }
+        public bool AllowMultipleUnits { get; set; }
         public bool RequiresApproval { get; set; }
         public bool AllowGuests { get; set; }
         public int? MaxGuestsAllowed { get; set; }
