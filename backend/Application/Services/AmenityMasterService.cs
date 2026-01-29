@@ -172,6 +172,7 @@ namespace Application.Services
                 entity.ModifiedDate = DateTime.Now;
 
                 var mappedModel = _dataMapper.Map(amenity, entity);
+                mappedModel.AllowMultipleUnits = amenity.AllowMultipleUnits;
                 if (string.IsNullOrWhiteSpace(mappedModel.Status))
                 {
                     mappedModel.Status = "Active";
