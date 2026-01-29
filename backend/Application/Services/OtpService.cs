@@ -8,10 +8,12 @@ using Infrastructure.Integrations.Hikvision;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application.Services
@@ -25,6 +27,7 @@ namespace Application.Services
         private readonly HikvisionClient _hikvisionClient;
         private readonly ISecretProtector _secretProtector;
         private readonly ILogger<OtpService> _logger;
+        private readonly TimeSpan _faceImageTimeout;
 
         public OtpService(
            AppDbContext db,
@@ -33,7 +36,8 @@ namespace Application.Services
            RoleManager<Role> roleManager,
            HikvisionClient hikvisionClient,
            ISecretProtector secretProtector,
-           ILogger<OtpService> logger)
+           ILogger<OtpService> logger,
+           IOptions<HikvisionOptions> hikvisionOptions)
         {
             _db = db;
             _userManager = userManager;
@@ -42,6 +46,7 @@ namespace Application.Services
             _hikvisionClient = hikvisionClient;
             _secretProtector = secretProtector;
             _logger = logger;
+            _faceImageTimeout = ResolveFaceImageTimeout(hikvisionOptions?.Value);
         }
 
         public async Task<GenerateOtpResponse> GenerateOtpAsync(GenerateOtpRequest request)
@@ -246,6 +251,21 @@ namespace Application.Services
 
         private async Task TryAttachFaceImageAsync(LoginResponse response)
         {
+            using var cts = new CancellationTokenSource(_faceImageTimeout);
+            try
+            {
+                await TryAttachFaceImageAsync(response, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning(
+                    "Face image download skipped due to timeout. TimeoutSeconds={TimeoutSeconds}",
+                    _faceImageTimeout.TotalSeconds);
+            }
+        }
+
+        private async Task TryAttachFaceImageAsync(LoginResponse response, CancellationToken ct)
+        {
             if (response.ResidentMasterId.HasValue)
             {
                 var residentData = await _db.ResidentMasters
@@ -263,7 +283,7 @@ namespace Application.Services
                     .Select(u => u.UnitId)
                     .ToListAsync();
 
-                await TryAttachFaceImageAsync(response, residentData.FaceUrl, unitIds);
+                await TryAttachFaceImageAsync(response, residentData.FaceUrl, unitIds, ct);
                 return;
             }
 
@@ -284,11 +304,15 @@ namespace Application.Services
                     .Select(u => u.UnitId)
                     .ToListAsync();
 
-                await TryAttachFaceImageAsync(response, memberData.FaceUrl, unitIds);
+                await TryAttachFaceImageAsync(response, memberData.FaceUrl, unitIds, ct);
             }
         }
 
-        private async Task TryAttachFaceImageAsync(LoginResponse response, string faceUrl, List<long> unitIds)
+        private async Task TryAttachFaceImageAsync(
+            LoginResponse response,
+            string faceUrl,
+            List<long> unitIds,
+            CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(faceUrl) || unitIds == null || unitIds.Count == 0)
                 return;
@@ -302,7 +326,7 @@ namespace Application.Services
             if (buildingId == 0)
                 return;
 
-            var result = await TryDownloadFaceImageAsync(buildingId, faceUrl);
+            var result = await TryDownloadFaceImageAsync(buildingId, faceUrl, ct);
             if (result == null || result.Value.Data.Length == 0)
                 return;
 
@@ -312,7 +336,8 @@ namespace Application.Services
 
         private async Task<(byte[] Data, string? ContentType)?> TryDownloadFaceImageAsync(
             long buildingId,
-            string faceUrl)
+            string faceUrl,
+            CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(faceUrl))
                 return null;
@@ -346,7 +371,18 @@ namespace Application.Services
                 device.DeviceUserName,
                 password,
                 faceUrl,
-                CancellationToken.None);
+                ct);
+        }
+
+        private static TimeSpan ResolveFaceImageTimeout(HikvisionOptions? options)
+        {
+            var seconds = options?.FaceImageTimeoutSeconds ?? 3;
+            if (seconds <= 0)
+            {
+                seconds = 3;
+            }
+
+            return TimeSpan.FromSeconds(seconds);
         }
 
         private async Task PopulateBiometricStatusAsync(LoginResponse response, long? residentMasterId, long? residentFamilyMemberId)
