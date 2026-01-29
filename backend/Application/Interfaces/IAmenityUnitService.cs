@@ -12,5 +12,6 @@ namespace Application.Interfaces
         Task<PaginatedList<AmenityUnitList>> GetAmenityUnitsAsync(int pageIndex, int pageSize);
         Task<IReadOnlyList<AmenityUnitList>> GetAmenityUnitsAsync();
         Task<IReadOnlyList<AmenityUnitList>> GetAmenityUnitsByAmenityIdAsync(long amenityId);
+        Task<IReadOnlyList<AmenityUnitWithSlotsList>> GetAmenityUnitsWithSlotsByAmenityIdAsync(long amenityId);
     }
 }

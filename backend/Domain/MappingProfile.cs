@@ -179,6 +179,10 @@ namespace Domain
             CreateMap<AmenityUnit, AmenityUnitList>()
                 .ForMember(dest => dest.AmenityName, opt => opt.MapFrom(src => src.AmenityMaster.Name))
                 .ForMember(dest => dest.Features, opt => opt.MapFrom(src => src.Features));
+            CreateMap<AmenityUnit, AmenityUnitWithSlotsList>()
+                .ForMember(dest => dest.AmenityName, opt => opt.MapFrom(src => src.AmenityMaster.Name))
+                .ForMember(dest => dest.Features, opt => opt.MapFrom(src => src.Features))
+                .ForMember(dest => dest.Slots, opt => opt.Ignore());
             #endregion
 
             #region AmenitySlotTemplate
