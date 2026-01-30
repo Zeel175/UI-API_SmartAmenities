@@ -298,8 +298,10 @@ namespace Application.Services
                         reservedQuery = reservedQuery.Where(slot => slot.BookingId != bookingId.Value);
                     }
 
-                    var reservedCount = await reservedQuery.CountAsync();
-                    var availableCapacity = capacity - reservedCount;
+                    var reservedCapacity = await reservedQuery
+                        .Select(slot => (int?)(slot.BookingUnit.CapacityReserved ?? 1))
+                        .SumAsync() ?? 0;
+                    var availableCapacity = capacity - reservedCapacity;
                     if (availableCapacity <= 0)
                     {
                         continue;
