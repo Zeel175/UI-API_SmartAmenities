@@ -50,6 +50,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
     bookingSlotRequired = false;
     isLoadingBooking = false;
     availableSlotsByRow: Record<number, BookingSlotAvailability[]> = {};
+    amenityUnitAvailability: Record<number, boolean> = {};
 
     statusOptions = [
         'Draft',
@@ -122,6 +123,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
                 return;
             }
             this.reloadSlotsForAllRows();
+            this.reloadAmenityUnitAvailability();
         });
         this.frmBooking.get('amenityId')?.valueChanges.subscribe((amenityId) => {
             if (!this.isLoadingBooking) {
@@ -210,6 +212,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
             if (this.bookingSlotRequired) {
                 this.reloadSlotsForAllRows();
             }
+            this.reloadAmenityUnitAvailability();
         }, () => {
             this.setAmenityUnits([]);
             this.ensureBookingUnitRow();
@@ -304,6 +307,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
             }
             this.updateSlotRequirement(res.amenityId ?? null);
             this.reloadSlotsForAllRows();
+            this.reloadAmenityUnitAvailability();
             this.isLoadingBooking = false;
         }, () => {
             this.isLoadingBooking = false;
@@ -625,6 +629,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
         if (!amenityId) {
             this.bookingSlotRequired = false;
             this.availableSlotsByRow = {};
+            this.amenityUnitAvailability = {};
             this.clearAllSlotSelections();
             return;
         }
@@ -633,6 +638,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
         this.bookingSlotRequired = !!amenity?.bookingSlotRequired;
         if (!this.bookingSlotRequired) {
             this.availableSlotsByRow = {};
+            this.amenityUnitAvailability = {};
             this.clearAllSlotSelections();
         }
     }
@@ -782,6 +788,24 @@ export class BookingHeaderAddEditComponent implements OnInit {
         return combined || user.userName || user.name || '';
     }
 
+    getAmenityUnitOptions(index: number): any[] {
+        if (!this.bookingSlotRequired || !this.hasAmenityUnits) {
+            return this.amenityUnits;
+        }
+        if (!Object.keys(this.amenityUnitAvailability).length) {
+            return this.amenityUnits;
+        }
+        const selectedUnitId = this.toNumber(this.bookingUnitsFormArray.at(index)?.get('amenityUnitId')?.value);
+        return this.amenityUnits.filter(unit => {
+            const unitId = unit?.id;
+            if (selectedUnitId && unitId === selectedUnitId) {
+                return true;
+            }
+            const isAvailable = this.amenityUnitAvailability[unitId];
+            return isAvailable !== false;
+        });
+    }
+
     private toDateInput(value: string | null | undefined): Date | null {
         if (!value) {
             return null;
@@ -812,5 +836,57 @@ export class BookingHeaderAddEditComponent implements OnInit {
         }
         const parsed = Number(value);
         return Number.isNaN(parsed) ? null : parsed;
+    }
+
+    private reloadAmenityUnitAvailability(): void {
+        if (!this.bookingSlotRequired || !this.hasAmenityUnits) {
+            this.amenityUnitAvailability = {};
+            return;
+        }
+        const amenityId = this.toNumber(this.frmBooking.get('amenityId')?.value);
+        const bookingDate = this.toDateValue(this.frmBooking.get('bookingDate')?.value);
+        if (!amenityId || !bookingDate) {
+            this.amenityUnitAvailability = {};
+            return;
+        }
+        const availability: Record<number, boolean> = {};
+        let remaining = this.amenityUnits.length;
+        if (!remaining) {
+            this.amenityUnitAvailability = {};
+            return;
+        }
+        this.amenityUnits.forEach(unit => {
+            const unitId = unit?.id;
+            if (!unitId) {
+                remaining -= 1;
+                if (remaining === 0) {
+                    this.amenityUnitAvailability = availability;
+                }
+                return;
+            }
+            this.bookingService
+                .getAvailableSlots(amenityId, unitId, bookingDate, this.isEditMode ? this.bookingId : null)
+                .subscribe((slots) => {
+                    availability[unitId] = this.hasAvailableSlot(slots);
+                    remaining -= 1;
+                    if (remaining === 0) {
+                        this.amenityUnitAvailability = availability;
+                    }
+                }, () => {
+                    availability[unitId] = false;
+                    remaining -= 1;
+                    if (remaining === 0) {
+                        this.amenityUnitAvailability = availability;
+                    }
+                });
+        });
+    }
+
+    private hasAvailableSlot(slots: BookingSlotAvailability[] | null | undefined): boolean {
+        const slotOptions = slots || [];
+        if (!slotOptions.length) {
+            return false;
+        }
+        return slotOptions.some(slot => slot.availableCapacity === undefined || slot.availableCapacity > 0);
     }
 }
