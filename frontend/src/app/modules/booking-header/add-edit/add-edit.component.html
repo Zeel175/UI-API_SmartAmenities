@@ -93,7 +93,7 @@
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Amenity Unit</mat-label>
                   <mat-select formControlName="amenityUnitId">
-                    <mat-option *ngFor="let unitOption of amenityUnits" [value]="unitOption.id">
+                    <mat-option *ngFor="let unitOption of getAmenityUnitOptions(i)" [value]="unitOption.id">
                       {{ unitOption.unitName || unitOption.name }}
                     </mat-option>
                   </mat-select>
