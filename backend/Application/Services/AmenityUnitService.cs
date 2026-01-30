@@ -70,6 +70,23 @@ namespace Application.Services
                 {
                     mappedModel.UnitCode = await GenerateCode(mappedModel.AmenityId);
                 }
+                else
+                {
+                    var unitCodeExists = await _unitRepository
+                        .Get(u => u.AmenityId == mappedModel.AmenityId
+                            && u.UnitCode == mappedModel.UnitCode)
+                        .AnyAsync();
+
+                    if (unitCodeExists)
+                    {
+                        return new InsertResponseModel
+                        {
+                            Id = 0,
+                            Code = "409",
+                            Message = "Unit code already exists for the selected amenity."
+                        };
+                    }
+                }
 
                 mappedModel.Features = unit.Features.Select(feature => new AmenityUnitFeature
                 {
