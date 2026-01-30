@@ -501,7 +501,7 @@ export class BookingHeaderAddEditComponent implements OnInit {
         if (!this.bookingSlotRequired) {
             return false;
         }
-        return (this.availableSlotsByRow[index] || []).length > 0;
+        return this.getSlotOptions(index).length > 0;
     }
 
     getSlotLabel(slot: BookingSlotAvailability, index?: number): string {
