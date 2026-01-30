@@ -241,6 +241,12 @@ namespace Infrastructure.Context
                 .HasForeignKey(a => a.FloorId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<AmenityMaster>()
+                .HasOne(a => a.Device)
+                .WithMany()
+                .HasForeignKey(a => a.DeviceId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             // ---------- Amenity Unit ----------
             modelBuilder.Entity<AmenityUnit>()
                 .HasKey(u => u.Id);

@@ -61,26 +61,62 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Building</mat-label>
                 <mat-select formControlName="buildingId">
+                  <mat-option [value]="null">None</mat-option>
                   <mat-option *ngFor="let b of buildings" [value]="b.id">
                     {{ b.buildingName }} - {{ b.code }}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="frmAmenity.get('buildingId')?.invalid && frmAmenity.get('buildingId')?.touched">
-                  Building is required.
-                </mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Floor</mat-label>
                 <mat-select formControlName="floorId">
+                  <mat-option [value]="null">None</mat-option>
                   <mat-option *ngFor="let f of floors" [value]="f.id">
                     {{ f.floorName }} - {{ f.code }}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="frmAmenity.get('floorId')?.invalid && frmAmenity.get('floorId')?.touched">
-                  Floor is required.
-                </mat-error>
               </mat-form-field>
+
+              <ng-container *ngIf="!frmAmenity.get('buildingId')?.value">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Device</mat-label>
+                  <mat-select formControlName="deviceId">
+                    <mat-option [value]="null">None</mat-option>
+                    <mat-option *ngFor="let device of devices" [value]="device.id || device.deviceId">
+                      {{ device.devName || device.name || device.deviceId || device.id }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field *ngIf="frmAmenity.get('deviceId')?.value" appearance="outline" class="w-full">
+                  <mat-label>Device Username</mat-label>
+                  <input matInput formControlName="deviceUserName" />
+                  <mat-error *ngIf="frmAmenity.get('deviceUserName')?.invalid && frmAmenity.get('deviceUserName')?.touched">
+                    Device Username is required.
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field *ngIf="frmAmenity.get('deviceId')?.value" appearance="outline" class="w-full">
+                  <mat-label>Device Password</mat-label>
+                  <input matInput type="password" formControlName="devicePassword" #devicePasswordField />
+                  <button mat-icon-button type="button" (click)="
+                      devicePasswordField.type === 'password'
+                        ? (devicePasswordField.type = 'text')
+                        : (devicePasswordField.type = 'password')
+                    " matSuffix>
+                    @if (devicePasswordField.type === 'password') {
+                      <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
+                    }
+                    @if (devicePasswordField.type === 'text') {
+                      <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
+                    }
+                  </button>
+                  <mat-error *ngIf="frmAmenity.get('devicePassword')?.invalid && frmAmenity.get('devicePassword')?.touched">
+                    Device Password is required.
+                  </mat-error>
+                </mat-form-field>
+              </ng-container>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Location / Landmark / Address</mat-label>

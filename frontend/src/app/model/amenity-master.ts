@@ -11,10 +11,13 @@ export class AmenityMaster {
     code?: string;
     type: string;
     description?: string;
-    buildingId: number;
+    buildingId?: number;
     buildingName?: string;
-    floorId: number;
+    floorId?: number;
     floorName?: string;
+    deviceId?: number;
+    deviceUserName?: string;
+    devicePassword?: string;
     location?: string;
     status: string;
     maxCapacity?: number;
