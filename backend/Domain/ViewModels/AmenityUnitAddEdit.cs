@@ -9,6 +9,9 @@ namespace Domain.ViewModels
         public long AmenityId { get; set; }
         public string UnitName { get; set; } = string.Empty;
         public string? UnitCode { get; set; }
+        public int? DeviceId { get; set; }
+        public string? DeviceUserName { get; set; }
+        public string? DevicePassword { get; set; }
         public string Status { get; set; } = "Active";
         public string? ShortDescription { get; set; }
         public string? LongDescription { get; set; }

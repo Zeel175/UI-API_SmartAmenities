@@ -78,7 +78,7 @@
                 </mat-select>
               </mat-form-field>
 
-              <ng-container *ngIf="!frmAmenity.get('buildingId')?.value">
+              <ng-container *ngIf="!frmAmenity.get('buildingId')?.value && !frmAmenity.get('allowMultipleUnits')?.value">
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Device</mat-label>
                   <mat-select formControlName="deviceId">

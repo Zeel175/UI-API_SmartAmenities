@@ -10,6 +10,9 @@ export class AmenityUnit {
     amenityName?: string;
     unitName: string;
     unitCode?: string;
+    deviceId?: number;
+    deviceUserName?: string;
+    devicePassword?: string;
     status: string;
     shortDescription?: string;
     longDescription?: string;

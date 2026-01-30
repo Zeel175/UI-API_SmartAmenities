@@ -35,4 +35,8 @@ export class AmenityUnitMasterService extends CRUDService<AmenityUnit> {
     getAmenities() {
         return this.http.get(`${APIConstant.AmenityMasterBasicList}`);
     }
+
+    getHikvisionDevices() {
+        return this.http.get(`${APIConstant.HikvisionDevicesList}`);
+    }
 }
