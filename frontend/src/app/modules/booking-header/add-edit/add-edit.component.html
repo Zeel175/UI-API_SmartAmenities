@@ -106,7 +106,7 @@
                   <mat-label>Slot</mat-label>
                   <mat-select formControlName="slotSelection">
                     <mat-option *ngFor="let slot of getSlotOptions(i)" [value]="slot">
-                      {{ getSlotLabel(slot) }}
+                      {{ getSlotLabel(slot, i) }}
                     </mat-option>
                   </mat-select>
                 </mat-form-field>

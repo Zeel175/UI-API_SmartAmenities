@@ -484,22 +484,16 @@ export class BookingHeaderAddEditComponent implements OnInit {
     getSlotOptions(index: number): BookingSlotAvailability[] {
         const available = this.availableSlotsByRow[index] || [];
         const selectedSlot = this.getSelectedSlot(index);
-        const selectedKeys = this.bookingUnitsFormArray.controls
-            .map((control, idx) => {
-                if (idx === index) {
-                    return null;
-                }
-                const slot = control.get('slotSelection')?.value as BookingSlotAvailability | null;
-                return slot ? this.getSlotKey(slot) : null;
-            })
-            .filter((key): key is string => !!key);
 
         return available.filter(slot => {
-            const slotKey = this.getSlotKey(slot);
-            if (selectedSlot && slotKey === this.getSlotKey(selectedSlot)) {
+            if (selectedSlot && this.getSlotKey(slot) === this.getSlotKey(selectedSlot)) {
                 return true;
             }
-            return !selectedKeys.includes(slotKey);
+            const remainingCapacity = this.getRemainingSlotCapacity(slot, index);
+            if (remainingCapacity === null) {
+                return true;
+            }
+            return remainingCapacity > 0;
         });
     }
 
@@ -510,13 +504,16 @@ export class BookingHeaderAddEditComponent implements OnInit {
         return (this.availableSlotsByRow[index] || []).length > 0;
     }
 
-    getSlotLabel(slot: BookingSlotAvailability): string {
+    getSlotLabel(slot: BookingSlotAvailability, index?: number): string {
         const start = this.formatSlotTime(slot.slotStartDateTime);
         const end = this.formatSlotTime(slot.slotEndDateTime);
         if (slot.capacityPerSlot === undefined || slot.availableCapacity === undefined) {
             return `${start} - ${end}`;
         }
-        return `${start} - ${end} (Cap: ${slot.availableCapacity}/${slot.capacityPerSlot})`;
+        const remainingCapacity = index === undefined
+            ? slot.availableCapacity
+            : this.getRemainingSlotCapacity(slot, index) ?? slot.availableCapacity;
+        return `${start} - ${end} (Cap: ${remainingCapacity}/${slot.capacityPerSlot})`;
     }
 
     private formatSlotTime(value: string): string {
@@ -537,6 +534,30 @@ export class BookingHeaderAddEditComponent implements OnInit {
             return null;
         }
         return group.get('slotSelection')?.value as BookingSlotAvailability | null;
+    }
+
+    private getRemainingSlotCapacity(slot: BookingSlotAvailability, index: number): number | null {
+        if (slot.availableCapacity === undefined) {
+            return null;
+        }
+        const targetSlotKey = this.getSlotKey(slot);
+        const targetUnitId = this.toNumber(this.bookingUnitsFormArray.at(index)?.get('amenityUnitId')?.value);
+        const reservedCapacity = this.bookingUnitsFormArray.controls.reduce((total, control, idx) => {
+            if (idx === index) {
+                return total;
+            }
+            const unitId = this.toNumber(control.get('amenityUnitId')?.value);
+            if (!unitId || unitId !== targetUnitId) {
+                return total;
+            }
+            const selectedSlot = control.get('slotSelection')?.value as BookingSlotAvailability | null;
+            if (!selectedSlot || this.getSlotKey(selectedSlot) !== targetSlotKey) {
+                return total;
+            }
+            const reserved = this.toNumber(control.get('capacityReserved')?.value);
+            return total + (reserved ?? 0);
+        }, 0);
+        return Math.max(slot.availableCapacity - reservedCapacity, 0);
     }
 
     private buildSlotFallback(slotStartDateTime: string, slotEndDateTime: string): BookingSlotAvailability {
