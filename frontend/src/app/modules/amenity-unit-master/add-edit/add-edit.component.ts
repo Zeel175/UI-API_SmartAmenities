@@ -103,6 +103,15 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
         this.IsViewPermission = this.permissionService.hasPermission('Amenity Unit (PER_AMENITY_UNIT) - View');
         this.loadAmenities();
         this.loadDevices();
+        this.frmAmenityUnit.get('amenityId')?.valueChanges.subscribe((amenityId) => {
+            const selectedAmenityId = amenityId ? Number(amenityId) : null;
+            this.selectedAmenityId = Number.isNaN(selectedAmenityId) ? null : selectedAmenityId;
+            this.filterAmenities();
+            if (!selectedAmenityId) {
+                this.frmAmenityUnit.get('deviceId')?.setValue(null);
+                this.toggleDeviceCredentialsValidators(false);
+            }
+        });
         this.frmAmenityUnit.get('deviceId')?.valueChanges.subscribe((deviceId) => {
             const hasDevice = deviceId !== null && deviceId !== undefined && deviceId !== '';
             this.toggleDeviceCredentialsValidators(hasDevice);
@@ -118,6 +127,10 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
 
     get features(): FormArray {
         return this.frmAmenityUnit.get('features') as FormArray;
+    }
+
+    get hasSelectedAmenity(): boolean {
+        return !!this.frmAmenityUnit.get('amenityId')?.value;
     }
 
     private loadAmenities(): void {

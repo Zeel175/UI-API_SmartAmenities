@@ -50,7 +50,7 @@
                 <input matInput formControlName="unitCode" />
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="w-full">
+              <mat-form-field *ngIf="hasSelectedAmenity" appearance="outline" class="w-full">
                 <mat-label>Device</mat-label>
                 <mat-select formControlName="deviceId">
                   <mat-option [value]="null">None</mat-option>
@@ -60,7 +60,7 @@
                 </mat-select>
               </mat-form-field>
 
-              <mat-form-field *ngIf="frmAmenityUnit.get('deviceId')?.value" appearance="outline" class="w-full">
+              <mat-form-field *ngIf="hasSelectedAmenity && frmAmenityUnit.get('deviceId')?.value" appearance="outline" class="w-full">
                 <mat-label>Device Username</mat-label>
                 <input matInput formControlName="deviceUserName" />
                 <mat-error *ngIf="frmAmenityUnit.get('deviceUserName')?.invalid && frmAmenityUnit.get('deviceUserName')?.touched">
@@ -68,7 +68,7 @@
                 </mat-error>
               </mat-form-field>
 
-              <mat-form-field *ngIf="frmAmenityUnit.get('deviceId')?.value" appearance="outline" class="w-full">
+              <mat-form-field *ngIf="hasSelectedAmenity && frmAmenityUnit.get('deviceId')?.value" appearance="outline" class="w-full">
                 <mat-label>Device Password</mat-label>
                 <input matInput type="password" formControlName="devicePassword" #unitDevicePasswordField />
                 <button mat-icon-button type="button" (click)="
