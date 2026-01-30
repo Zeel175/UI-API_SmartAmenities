@@ -17,6 +17,15 @@ namespace Domain.Entities
         [MaxLength(50)]
         public string? UnitCode { get; set; }
 
+        [ForeignKey(nameof(Device))]
+        public int? DeviceId { get; set; }
+
+        [MaxLength(100)]
+        public string? DeviceUserName { get; set; }
+
+        [MaxLength(100)]
+        public string? DevicePassword { get; set; }
+
         [Required]
         [MaxLength(50)]
         public string Status { get; set; } = "Active";
@@ -47,6 +56,7 @@ namespace Domain.Entities
         public decimal? TaxPercentage { get; set; }
 
         public AmenityMaster AmenityMaster { get; set; } = default!;
+        public HikDevice? Device { get; set; }
 
         public ICollection<AmenityUnitFeature> Features { get; set; } = new List<AmenityUnitFeature>();
     }

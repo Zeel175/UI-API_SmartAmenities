@@ -43,6 +43,7 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
     isEditMode = false;
     amenities: any[] = [];
     allAmenities: any[] = [];
+    devices: any[] = [];
     selectedAmenityId: number | null = null;
     statuses = ['Active', 'Inactive', 'Maintenance'];
     chargeTypes = ['Free', 'Per Slot', 'Per Hour', 'Per Day', 'Flat Fee'];
@@ -69,6 +70,9 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
         amenityId: ['', Validators.required],
         unitName: ['', Validators.required],
         unitCode: [{ value: '', disabled: true }],
+        deviceId: [null],
+        deviceUserName: [''],
+        devicePassword: [''],
         status: ['Active', Validators.required],
         shortDescription: [''],
         longDescription: [''],
@@ -98,6 +102,11 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
     ngOnInit(): void {
         this.IsViewPermission = this.permissionService.hasPermission('Amenity Unit (PER_AMENITY_UNIT) - View');
         this.loadAmenities();
+        this.loadDevices();
+        this.frmAmenityUnit.get('deviceId')?.valueChanges.subscribe((deviceId) => {
+            const hasDevice = deviceId !== null && deviceId !== undefined && deviceId !== '';
+            this.toggleDeviceCredentialsValidators(hasDevice);
+        });
         this.route.params.subscribe(params => {
             if (params['id']) {
                 this.isEditMode = true;
@@ -118,6 +127,12 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
         });
     }
 
+    private loadDevices(): void {
+        this.amenityUnitService.getHikvisionDevices().subscribe((res: any) => {
+            this.devices = res.items || res;
+        }, () => this.notificationService.error('Failed to load device list.'));
+    }
+
     private filterAmenities(): void {
         this.amenities = (this.allAmenities || []).filter((amenity: any) => {
             if (amenity?.allowMultipleUnits) {
@@ -134,6 +149,9 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
                 amenityId: res.amenityId,
                 unitName: res.unitName,
                 unitCode: res.unitCode,
+                deviceId: res.deviceId,
+                deviceUserName: res.deviceUserName,
+                devicePassword: res.devicePassword,
                 status: res.status,
                 shortDescription: res.shortDescription,
                 longDescription: res.longDescription,
@@ -147,6 +165,7 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
                 taxPercentage: res.taxPercentage
             });
             this.filterAmenities();
+            this.toggleDeviceCredentialsValidators(!!res.deviceId);
 
             this.features.clear();
             (res.features || []).forEach((feature: any) => {
@@ -191,6 +210,9 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
             amenityId: +formValue.amenityId,
             unitName: formValue.unitName,
             unitCode: this.isEditMode ? formValue.unitCode : null,
+            deviceId: formValue.deviceId ? +formValue.deviceId : null,
+            deviceUserName: formValue.deviceId ? formValue.deviceUserName : null,
+            devicePassword: formValue.deviceId ? formValue.devicePassword : null,
             status: formValue.status,
             shortDescription: formValue.shortDescription,
             longDescription: formValue.longDescription,
@@ -217,6 +239,25 @@ export class AmenityUnitMasterAddEditComponent implements OnInit {
             this.notificationService.success('Saved successfully.');
             this.router.navigate(['/amenity-unit-master']);
         }, () => this.notificationService.error('Save failed.'));
+    }
+
+    private toggleDeviceCredentialsValidators(hasDevice: boolean): void {
+        const userNameControl = this.frmAmenityUnit.get('deviceUserName');
+        const passwordControl = this.frmAmenityUnit.get('devicePassword');
+        if (!userNameControl || !passwordControl) {
+            return;
+        }
+        if (hasDevice) {
+            userNameControl.setValidators([Validators.required]);
+            passwordControl.setValidators([Validators.required]);
+        } else {
+            userNameControl.clearValidators();
+            passwordControl.clearValidators();
+            userNameControl.setValue('');
+            passwordControl.setValue('');
+        }
+        userNameControl.updateValueAndValidity();
+        passwordControl.updateValueAndValidity();
     }
 
     cancel(): void {

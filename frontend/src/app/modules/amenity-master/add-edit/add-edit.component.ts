@@ -110,28 +110,14 @@ export class AmenityMasterAddEditComponent implements OnInit {
     ngOnInit(): void {
         this.IsViewPermission = this.permissionService.hasPermission('Amenity (PER_AMENITY) - View');
         this.loadLookups();
-        this.frmAmenity.get('buildingId')?.valueChanges.subscribe((buildingId) => {
-            const hasBuilding = !CommonUtility.isEmpty(buildingId);
-            if (hasBuilding) {
-                this.frmAmenity.patchValue({
-                    deviceId: null,
-                    deviceUserName: '',
-                    devicePassword: ''
-                });
-                this.toggleDeviceCredentialsValidators(false);
-                return;
-            }
-            const hasDevice = !CommonUtility.isEmpty(this.frmAmenity.get('deviceId')?.value);
-            this.toggleDeviceCredentialsValidators(hasDevice);
+        this.frmAmenity.get('buildingId')?.valueChanges.subscribe(() => {
+            this.updateDeviceCredentialsState();
         });
-        this.frmAmenity.get('deviceId')?.valueChanges.subscribe((deviceId) => {
-            const hasBuilding = !CommonUtility.isEmpty(this.frmAmenity.get('buildingId')?.value);
-            if (hasBuilding) {
-                this.toggleDeviceCredentialsValidators(false);
-                return;
-            }
-            const hasDevice = !CommonUtility.isEmpty(deviceId);
-            this.toggleDeviceCredentialsValidators(hasDevice);
+        this.frmAmenity.get('allowMultipleUnits')?.valueChanges.subscribe(() => {
+            this.updateDeviceCredentialsState();
+        });
+        this.frmAmenity.get('deviceId')?.valueChanges.subscribe(() => {
+            this.updateDeviceCredentialsState();
         });
         this.route.params.subscribe(params => {
             if (params['id']) {
@@ -198,9 +184,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
                 termsAndConditions: res.termsAndConditions
             });
             this.existingDocuments = res.documentDetails ?? [];
-            const hasBuilding = !CommonUtility.isEmpty(res.buildingId);
-            const hasDevice = !CommonUtility.isEmpty(res.deviceId);
-            this.toggleDeviceCredentialsValidators(!hasBuilding && hasDevice);
+            this.updateDeviceCredentialsState();
         });
     }
 
@@ -248,13 +232,15 @@ export class AmenityMasterAddEditComponent implements OnInit {
     save(): void {
         const formValue = this.frmAmenity.getRawValue();
         const hasBuilding = !CommonUtility.isEmpty(formValue.buildingId);
+        const allowMultipleUnits = !!formValue.allowMultipleUnits;
+        const shouldClearDevice = hasBuilding || allowMultipleUnits;
         const payload = {
             ...formValue,
             buildingId: this.toNumber(formValue.buildingId),
             floorId: this.toNumber(formValue.floorId),
-            deviceId: hasBuilding ? null : this.toNumber(formValue.deviceId),
-            deviceUserName: hasBuilding ? null : this.toNullableString(formValue.deviceUserName),
-            devicePassword: hasBuilding ? null : this.toNullableString(formValue.devicePassword),
+            deviceId: shouldClearDevice ? null : this.toNumber(formValue.deviceId),
+            deviceUserName: shouldClearDevice ? null : this.toNullableString(formValue.deviceUserName),
+            devicePassword: shouldClearDevice ? null : this.toNullableString(formValue.devicePassword),
             maxCapacity: this.toNumber(formValue.maxCapacity),
             maxBookingsPerDayPerFlat: this.toNumber(formValue.maxBookingsPerDayPerFlat),
             maxActiveBookingsPerFlat: this.toNumber(formValue.maxActiveBookingsPerFlat),
@@ -399,6 +385,24 @@ export class AmenityMasterAddEditComponent implements OnInit {
         }
         userNameControl.updateValueAndValidity();
         passwordControl.updateValueAndValidity();
+    }
+
+    private updateDeviceCredentialsState(): void {
+        const hasBuilding = !CommonUtility.isEmpty(this.frmAmenity.get('buildingId')?.value);
+        const allowMultipleUnits = !!this.frmAmenity.get('allowMultipleUnits')?.value;
+        const hasDevice = !CommonUtility.isEmpty(this.frmAmenity.get('deviceId')?.value);
+
+        if (hasBuilding || allowMultipleUnits) {
+            this.frmAmenity.patchValue({
+                deviceId: null,
+                deviceUserName: '',
+                devicePassword: ''
+            }, { emitEvent: false });
+            this.toggleDeviceCredentialsValidators(false);
+            return;
+        }
+
+        this.toggleDeviceCredentialsValidators(hasDevice);
     }
 
     private buildFormData(payload: Record<string, unknown>): FormData {

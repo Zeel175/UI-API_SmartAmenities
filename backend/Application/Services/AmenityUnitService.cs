@@ -1,3 +1,4 @@
+using Application.Helper;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Interfaces;
@@ -15,17 +16,20 @@ namespace Application.Services
         private readonly IAmenitySlotTemplateRepository _slotTemplateRepository;
         private readonly IAutoMapperGenericDataMapper _dataMapper;
         private readonly IClaimAccessorService _claimAccessorService;
+        private readonly ISecretProtector _secretProtector;
 
         public AmenityUnitService(
             IAmenityUnitRepository unitRepository,
             IAmenitySlotTemplateRepository slotTemplateRepository,
             IAutoMapperGenericDataMapper dataMapper,
-            IClaimAccessorService claimAccessorService)
+            IClaimAccessorService claimAccessorService,
+            ISecretProtector secretProtector)
         {
             _unitRepository = unitRepository;
             _slotTemplateRepository = slotTemplateRepository;
             _dataMapper = dataMapper;
             _claimAccessorService = claimAccessorService;
+            _secretProtector = secretProtector;
         }
 
         private async Task<string> GenerateCode(long amenityId)
@@ -43,6 +47,15 @@ namespace Application.Services
             try
             {
                 long loggedInUserId = _claimAccessorService.GetUserId();
+                if (!unit.DeviceId.HasValue)
+                {
+                    unit.DeviceUserName = null;
+                    unit.DevicePassword = null;
+                }
+                else if (!string.IsNullOrWhiteSpace(unit.DevicePassword))
+                {
+                    unit.DevicePassword = _secretProtector.Protect(unit.DevicePassword);
+                }
                 var mappedModel = _dataMapper.Map<AmenityUnitAddEdit, AmenityUnit>(unit);
                 mappedModel.CreatedBy = loggedInUserId;
                 mappedModel.CreatedDate = DateTime.Now;
@@ -114,8 +127,13 @@ namespace Application.Services
             {
                 return null;
             }
-
-            return _dataMapper.Map<AmenityUnit, AmenityUnitAddEdit>(entity);
+            var model = _dataMapper.Map<AmenityUnit, AmenityUnitAddEdit>(entity);
+            if (!string.IsNullOrWhiteSpace(model.DevicePassword)
+                && _secretProtector.IsProtected(model.DevicePassword))
+            {
+                model.DevicePassword = _secretProtector.Unprotect(model.DevicePassword);
+            }
+            return model;
         }
 
         public async Task<PaginatedList<AmenityUnitList>> GetAmenityUnitsAsync(int pageIndex, int pageSize)
@@ -217,6 +235,15 @@ namespace Application.Services
                 long loggedInUserId = _claimAccessorService.GetUserId();
                 entity.ModifiedBy = loggedInUserId;
                 entity.ModifiedDate = DateTime.Now;
+                if (!unit.DeviceId.HasValue)
+                {
+                    unit.DeviceUserName = null;
+                    unit.DevicePassword = null;
+                }
+                else if (!string.IsNullOrWhiteSpace(unit.DevicePassword))
+                {
+                    unit.DevicePassword = _secretProtector.Protect(unit.DevicePassword);
+                }
                 var existingUnitCode = entity.UnitCode;
                 var mappedModel = _dataMapper.Map(unit, entity);
                 if (string.IsNullOrWhiteSpace(mappedModel.Status))

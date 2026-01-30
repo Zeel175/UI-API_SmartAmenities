@@ -51,6 +51,44 @@
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Device</mat-label>
+                <mat-select formControlName="deviceId">
+                  <mat-option [value]="null">None</mat-option>
+                  <mat-option *ngFor="let device of devices" [value]="device.id || device.deviceId">
+                    {{ device.devName || device.name || device.deviceId || device.id }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field *ngIf="frmAmenityUnit.get('deviceId')?.value" appearance="outline" class="w-full">
+                <mat-label>Device Username</mat-label>
+                <input matInput formControlName="deviceUserName" />
+                <mat-error *ngIf="frmAmenityUnit.get('deviceUserName')?.invalid && frmAmenityUnit.get('deviceUserName')?.touched">
+                  Device Username is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field *ngIf="frmAmenityUnit.get('deviceId')?.value" appearance="outline" class="w-full">
+                <mat-label>Device Password</mat-label>
+                <input matInput type="password" formControlName="devicePassword" #unitDevicePasswordField />
+                <button mat-icon-button type="button" (click)="
+                    unitDevicePasswordField.type === 'password'
+                      ? (unitDevicePasswordField.type = 'text')
+                      : (unitDevicePasswordField.type = 'password')
+                  " matSuffix>
+                  @if (unitDevicePasswordField.type === 'password') {
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
+                  }
+                  @if (unitDevicePasswordField.type === 'text') {
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
+                  }
+                </button>
+                <mat-error *ngIf="frmAmenityUnit.get('devicePassword')?.invalid && frmAmenityUnit.get('devicePassword')?.touched">
+                  Device Password is required.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Status</mat-label>
                 <mat-select formControlName="status">
                   <mat-option *ngFor="let s of statuses" [value]="s">{{ s }}</mat-option>
