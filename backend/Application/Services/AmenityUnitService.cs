@@ -245,17 +245,40 @@ namespace Application.Services
                     unit.DevicePassword = _secretProtector.Protect(unit.DevicePassword);
                 }
                 var existingUnitCode = entity.UnitCode;
+                var existingAmenityId = entity.AmenityId;
+                var requestedAmenityId = unit.AmenityId > 0 ? unit.AmenityId : existingAmenityId;
                 var mappedModel = _dataMapper.Map(unit, entity);
+                mappedModel.AmenityId = requestedAmenityId;
                 if (string.IsNullOrWhiteSpace(mappedModel.Status))
                 {
                     mappedModel.Status = "Active";
                 }
+                var amenityChanged = requestedAmenityId != existingAmenityId;
                 if (string.IsNullOrWhiteSpace(mappedModel.UnitCode)
                     || mappedModel.UnitCode.Equals("string", StringComparison.OrdinalIgnoreCase))
                 {
-                    mappedModel.UnitCode = !string.IsNullOrWhiteSpace(existingUnitCode)
+                    mappedModel.UnitCode = !amenityChanged && !string.IsNullOrWhiteSpace(existingUnitCode)
                         ? existingUnitCode
                         : await GenerateCode(mappedModel.AmenityId);
+                }
+
+                if (!string.IsNullOrWhiteSpace(mappedModel.UnitCode))
+                {
+                    var unitCodeExists = await _unitRepository
+                        .Get(u => u.AmenityId == mappedModel.AmenityId
+                            && u.UnitCode == mappedModel.UnitCode
+                            && u.Id != entity.Id)
+                        .AnyAsync();
+
+                    if (unitCodeExists)
+                    {
+                        return new InsertResponseModel
+                        {
+                            Id = 0,
+                            Code = "409",
+                            Message = "Unit code already exists for the selected amenity."
+                        };
+                    }
                 }
 
                 entity.Features.Clear();
