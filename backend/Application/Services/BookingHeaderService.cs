@@ -301,11 +301,8 @@ namespace Application.Services
                     var reservedCapacity = await reservedQuery
                         .Select(slot => (int?)(slot.BookingUnit.CapacityReserved ?? 1))
                         .SumAsync() ?? 0;
-                    var availableCapacity = capacity - reservedCapacity;
-                    if (availableCapacity <= 0)
-                    {
-                        continue;
-                    }
+                    var availableCapacity = Math.Max(0, capacity - reservedCapacity);
+                    var isReserved = reservedCapacity > 0;
 
                     slots.Add(new BookingSlotAvailability
                     {
@@ -313,6 +310,7 @@ namespace Application.Services
                         SlotEndDateTime = slotEnd,
                         CapacityPerSlot = capacity,
                         AvailableCapacity = availableCapacity,
+                        IsReserved = isReserved,
                         SlotCharge = slotTime.SlotCharge,
                         IsChargeable = slotTime.IsChargeable,
                         ChargeType = slotTime.ChargeType,

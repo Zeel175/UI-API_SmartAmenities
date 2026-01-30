@@ -8,6 +8,7 @@ namespace Domain.ViewModels
         public DateTime SlotEndDateTime { get; set; }
         public int CapacityPerSlot { get; set; }
         public int AvailableCapacity { get; set; }
+        public bool IsReserved { get; set; }
         public decimal? SlotCharge { get; set; }
         public bool IsChargeable { get; set; }
         public string? ChargeType { get; set; }
