@@ -22,11 +22,20 @@ namespace Domain.Entities
         [MaxLength(500)]
         public string? Description { get; set; }
 
-        [Required, ForeignKey(nameof(Building))]
-        public long BuildingId { get; set; }
+        [ForeignKey(nameof(Building))]
+        public long? BuildingId { get; set; }
 
-        [Required, ForeignKey(nameof(Floor))]
-        public long FloorId { get; set; }
+        [ForeignKey(nameof(Floor))]
+        public long? FloorId { get; set; }
+
+        [ForeignKey(nameof(Device))]
+        public int? DeviceId { get; set; }
+
+        [MaxLength(100)]
+        public string? DeviceUserName { get; set; }
+
+        [MaxLength(100)]
+        public string? DevicePassword { get; set; }
 
         [MaxLength(500)]
         public string? Location { get; set; }
@@ -99,7 +108,8 @@ namespace Domain.Entities
 
         public ICollection<AmenityDocument> Documents { get; set; } = new List<AmenityDocument>();
 
-        public Building Building { get; set; } = default!;
-        public Floor Floor { get; set; } = default!;
+        public Building? Building { get; set; }
+        public Floor? Floor { get; set; }
+        public HikDevice? Device { get; set; }
     }
 }

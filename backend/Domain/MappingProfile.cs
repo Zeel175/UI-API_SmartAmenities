@@ -166,8 +166,8 @@ namespace Domain
             CreateMap<AmenityMasterAddEdit, AmenityMaster>()
                 .ForMember(dest => dest.Documents, opt => opt.Ignore());
             CreateMap<AmenityMaster, AmenityMasterList>()
-                .ForMember(dest => dest.BuildingName, opt => opt.MapFrom(src => src.Building.BuildingName))
-                .ForMember(dest => dest.FloorName, opt => opt.MapFrom(src => src.Floor.FloorName));
+                .ForMember(dest => dest.BuildingName, opt => opt.MapFrom(src => src.Building != null ? src.Building.BuildingName : null))
+                .ForMember(dest => dest.FloorName, opt => opt.MapFrom(src => src.Floor != null ? src.Floor.FloorName : null));
             #endregion
 
             #region AmenityUnit

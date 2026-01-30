@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ApplicationPage, PermissionType } from 'app/core';
+import { ApplicationPage, CommonUtility, PermissionType } from 'app/core';
 import { PermissionService } from 'app/core/service/permission.service';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { ToastrService } from 'ngx-toastr';
@@ -45,8 +45,11 @@ export class AmenityMasterAddEditComponent implements OnInit {
         name: ['', Validators.required],
         type: ['', Validators.required],
         description: [''],
-        buildingId: ['', Validators.required],
-        floorId: ['', Validators.required],
+        buildingId: [null],
+        floorId: [null],
+        deviceId: [null],
+        deviceUserName: [''],
+        devicePassword: [''],
         location: [''],
         status: ['Active', Validators.required],
         maxCapacity: [''],
@@ -81,6 +84,7 @@ export class AmenityMasterAddEditComponent implements OnInit {
 
     buildings: any[] = [];
     floors: any[] = [];
+    devices: any[] = [];
     types = ['Indoor', 'Outdoor', 'Room', 'Court', 'Service'];
     statuses = ['Active', 'Inactive', 'Maintenance'];
     yesNoOptions = [
@@ -106,6 +110,29 @@ export class AmenityMasterAddEditComponent implements OnInit {
     ngOnInit(): void {
         this.IsViewPermission = this.permissionService.hasPermission('Amenity (PER_AMENITY) - View');
         this.loadLookups();
+        this.frmAmenity.get('buildingId')?.valueChanges.subscribe((buildingId) => {
+            const hasBuilding = !CommonUtility.isEmpty(buildingId);
+            if (hasBuilding) {
+                this.frmAmenity.patchValue({
+                    deviceId: null,
+                    deviceUserName: '',
+                    devicePassword: ''
+                });
+                this.toggleDeviceCredentialsValidators(false);
+                return;
+            }
+            const hasDevice = !CommonUtility.isEmpty(this.frmAmenity.get('deviceId')?.value);
+            this.toggleDeviceCredentialsValidators(hasDevice);
+        });
+        this.frmAmenity.get('deviceId')?.valueChanges.subscribe((deviceId) => {
+            const hasBuilding = !CommonUtility.isEmpty(this.frmAmenity.get('buildingId')?.value);
+            if (hasBuilding) {
+                this.toggleDeviceCredentialsValidators(false);
+                return;
+            }
+            const hasDevice = !CommonUtility.isEmpty(deviceId);
+            this.toggleDeviceCredentialsValidators(hasDevice);
+        });
         this.route.params.subscribe(params => {
             if (params['id']) {
                 this.isEditMode = true;
@@ -122,6 +149,9 @@ export class AmenityMasterAddEditComponent implements OnInit {
         this.amenityService.getFloors().subscribe((res: any) => {
             this.floors = res.items || res;
         });
+        this.amenityService.getHikvisionDevices().subscribe((res: any) => {
+            this.devices = res.items || res;
+        }, () => this.notificationService.error('Failed to load device list.'));
     }
 
     private getAmenityDetails(): void {
@@ -133,6 +163,9 @@ export class AmenityMasterAddEditComponent implements OnInit {
                 description: res.description,
                 buildingId: res.buildingId,
                 floorId: res.floorId,
+                deviceId: res.deviceId,
+                deviceUserName: res.deviceUserName,
+                devicePassword: res.devicePassword,
                 location: res.location,
                 status: res.status,
                 maxCapacity: res.maxCapacity,
@@ -165,6 +198,9 @@ export class AmenityMasterAddEditComponent implements OnInit {
                 termsAndConditions: res.termsAndConditions
             });
             this.existingDocuments = res.documentDetails ?? [];
+            const hasBuilding = !CommonUtility.isEmpty(res.buildingId);
+            const hasDevice = !CommonUtility.isEmpty(res.deviceId);
+            this.toggleDeviceCredentialsValidators(!hasBuilding && hasDevice);
         });
     }
 
@@ -211,10 +247,14 @@ export class AmenityMasterAddEditComponent implements OnInit {
 
     save(): void {
         const formValue = this.frmAmenity.getRawValue();
+        const hasBuilding = !CommonUtility.isEmpty(formValue.buildingId);
         const payload = {
             ...formValue,
-            buildingId: +formValue.buildingId,
-            floorId: +formValue.floorId,
+            buildingId: this.toNumber(formValue.buildingId),
+            floorId: this.toNumber(formValue.floorId),
+            deviceId: hasBuilding ? null : this.toNumber(formValue.deviceId),
+            deviceUserName: hasBuilding ? null : this.toNullableString(formValue.deviceUserName),
+            devicePassword: hasBuilding ? null : this.toNullableString(formValue.devicePassword),
             maxCapacity: this.toNumber(formValue.maxCapacity),
             maxBookingsPerDayPerFlat: this.toNumber(formValue.maxBookingsPerDayPerFlat),
             maxActiveBookingsPerFlat: this.toNumber(formValue.maxActiveBookingsPerFlat),
@@ -332,6 +372,33 @@ export class AmenityMasterAddEditComponent implements OnInit {
         }
 
         return { hours, minutes };
+    }
+
+    private toNullableString(value: unknown): string | null {
+        if (value === null || value === undefined) {
+            return null;
+        }
+        const normalized = String(value).trim();
+        return normalized.length ? normalized : null;
+    }
+
+    private toggleDeviceCredentialsValidators(hasDevice: boolean) {
+        const userNameControl = this.frmAmenity.get('deviceUserName');
+        const passwordControl = this.frmAmenity.get('devicePassword');
+        if (!userNameControl || !passwordControl) {
+            return;
+        }
+        if (hasDevice) {
+            userNameControl.setValidators([Validators.required]);
+            passwordControl.setValidators([Validators.required]);
+        } else {
+            userNameControl.clearValidators();
+            passwordControl.clearValidators();
+            userNameControl.setValue('');
+            passwordControl.setValue('');
+        }
+        userNameControl.updateValueAndValidity();
+        passwordControl.updateValueAndValidity();
     }
 
     private buildFormData(payload: Record<string, unknown>): FormData {
