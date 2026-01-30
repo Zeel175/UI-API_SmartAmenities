@@ -273,6 +273,10 @@ namespace Infrastructure.Context
                 .HasMaxLength(200);
 
             modelBuilder.Entity<AmenityUnit>()
+                .Property(u => u.DevicePassword)
+                .HasMaxLength(512);
+
+            modelBuilder.Entity<AmenityUnit>()
                 .HasOne(u => u.AmenityMaster)
                 .WithMany()
                 .HasForeignKey(u => u.AmenityId)

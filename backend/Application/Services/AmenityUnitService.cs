@@ -257,6 +257,10 @@ namespace Application.Services
                     unit.DeviceUserName = null;
                     unit.DevicePassword = null;
                 }
+                else if (string.IsNullOrWhiteSpace(unit.DevicePassword))
+                {
+                    unit.DevicePassword = entity.DevicePassword;
+                }
                 else if (!string.IsNullOrWhiteSpace(unit.DevicePassword))
                 {
                     unit.DevicePassword = _secretProtector.Protect(unit.DevicePassword);
@@ -299,8 +303,13 @@ namespace Application.Services
                 }
 
                 entity.Features.Clear();
-                foreach (var feature in unit.Features)
+                var features = unit.Features ?? new List<AmenityUnitFeatureAddEdit>();
+                foreach (var feature in features)
                 {
+                    if (string.IsNullOrWhiteSpace(feature.FeatureName))
+                    {
+                        continue;
+                    }
                     entity.Features.Add(new AmenityUnitFeature
                     {
                         FeatureId = feature.FeatureId,
