@@ -302,7 +302,7 @@ namespace Application.Services
                         .Select(slot => (int?)(slot.BookingUnit.CapacityReserved ?? 1))
                         .SumAsync() ?? 0;
                     var availableCapacity = Math.Max(0, capacity - reservedCapacity);
-                    var isReserved = reservedCapacity > 0;
+                    var isReserved = availableCapacity == 0;
 
                     slots.Add(new BookingSlotAvailability
                     {
