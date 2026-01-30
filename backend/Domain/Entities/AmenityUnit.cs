@@ -23,7 +23,7 @@ namespace Domain.Entities
         [MaxLength(100)]
         public string? DeviceUserName { get; set; }
 
-        [MaxLength(100)]
+        [MaxLength(512)]
         public string? DevicePassword { get; set; }
 
         [Required]
