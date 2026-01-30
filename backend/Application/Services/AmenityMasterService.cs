@@ -120,8 +120,8 @@ namespace Application.Services
                 .Take(pageSize)
                 .ToListAsync();
 
-            var mapped = _dataMapper.Project<AmenityMaster, AmenityMasterList>(rows.AsQueryable());
-            return new PaginatedList<AmenityMasterList>(mapped.ToList(), totalCount, pageIndex, pageSize);
+            var mapped = _dataMapper.Map<List<AmenityMaster>, List<AmenityMasterList>>(rows);
+            return new PaginatedList<AmenityMasterList>(mapped, totalCount, pageIndex, pageSize);
         }
 
         public async Task<IReadOnlyList<AmenityMasterList>> GetAmenitiesAsync()
@@ -131,8 +131,8 @@ namespace Application.Services
                 .OrderByDescending(a => a.Id)
                 .ToListAsync();
 
-            var mapped = _dataMapper.Project<AmenityMaster, AmenityMasterList>(rows.AsQueryable());
-            return mapped.ToList();
+            var mapped = _dataMapper.Map<List<AmenityMaster>, List<AmenityMasterList>>(rows);
+            return mapped;
         }
 
         public async Task<List<object>> GetAmenityBasicAsync()
